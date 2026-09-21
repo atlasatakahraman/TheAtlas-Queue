@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Riot Games API](https://img.shields.io/badge/Riot_Games-API-eb0029?style=for-the-badge&logo=riotgames&logoColor=white)](https://developer.riotgames.com/)
-[![License: GPL-3.0-only](https://img.shields.io/badge/License-GPL--3.0--only-blue?style=for-the-badge)](LICENSE)
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue?style=for-the-badge)](LICENSE)
 
 _Özel "Şamata" oyunları için tasarlanmış sade ve odaklı bir dashboard — chat'teki ilk `!sıra` komutundan takımların oluşturulmasına kadar lobi yönetimini tamamen üstlenir._
 
@@ -134,7 +134,7 @@ Her türlü katkı memnuniyetle karşılanır.
 
 ## Lisans
 
-GNU Genel Kamu Lisansı v3.0 (yalnızca, `GPL-3.0-only`) kapsamında dağıtılmaktadır. Ayrıntılar için [`LICENSE`](LICENSE) dosyasına bakın.
+GNU Affero Genel Kamu Lisansı v3.0 veya sonraki bir sürümü (`AGPL-3.0-or-later`) kapsamında dağıtılmaktadır. Ayrıntılar için [`LICENSE`](LICENSE) dosyasına bakın.
 
 ---
 

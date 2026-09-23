@@ -1,7 +1,9 @@
 import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { I18nProvider } from "@/components/i18n";
+import { LANG_COOKIE, langFromHeader, parseLang } from "@/lib/i18n";
 import "./globals.css";
 
 // OFL 1.1 faces, the same three TheAtlas ships (DESIGN.md § Type). Self-hosted and preloaded.
@@ -27,23 +29,12 @@ const jetbrains = localFont({
   ],
 });
 
+// Stage 5 completes the metadata (descriptions, Open Graph, canonical, JSON-LD).
 export const metadata: Metadata = {
-  title: "TheAtlas — Queue",
-  description:
-    "League of Legends Şamata (ARAM Mayhem) 5v5 özel lobi yönetim paneli. Kick canlı yayın sohbetinden sıraya katılın.",
-  keywords: [
-    "League of Legends",
-    "ARAM",
-    "Şamata",
-    "Queue",
-    "Lobby",
-    "Kick",
-    "Atlas Ata KAHRAMAN",
-    "TheAtlas",
-  ],
-  authors: [
-    { name: "Atlas Ata KAHRAMAN", url: "https://github.com/atlasatakahraman" },
-  ],
+  title: { default: "TheAtlas Queue", template: "%s · TheAtlas Queue" },
+  applicationName: "TheAtlas Queue",
+  authors: [{ name: "Atlas Ata KAHRAMAN", url: "https://github.com/atlasatakahraman" }],
+  formatDetection: { telephone: false },
 };
 
 export default async function RootLayout({
@@ -54,15 +45,19 @@ export default async function RootLayout({
   // Nonce CSP (src/proxy.ts) needs every page rendered per request: a prerendered page
   // carries no nonce, and strict-dynamic would block all of its scripts. Reading the
   // header opts every page into dynamic rendering and hands next-themes its nonce.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const h = await headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+  const lang = parseLang((await cookies()).get(LANG_COOKIE)?.value) ?? langFromHeader(h.get("accept-language"));
   return (
     <html
-      lang="tr"
+      lang={lang}
       className={`${newsreader.variable} ${hanken.variable} ${jetbrains.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <Providers nonce={nonce}>{children}</Providers>
+        <I18nProvider lang={lang}>
+          <Providers nonce={nonce}>{children}</Providers>
+        </I18nProvider>
       </body>
     </html>
   );

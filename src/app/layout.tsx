@@ -3,51 +3,26 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-const anthropicSans = localFont({
-  variable: "--font-anthropic-sans",
+// OFL 1.1 faces, the same three TheAtlas ships (DESIGN.md § Type). Self-hosted and preloaded.
+const newsreader = localFont({
+  variable: "--font-newsreader",
   src: [
-    {
-      path: "./fonts/Anthropic-Sans-Regular-Web.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "./fonts/Anthropic-Sans-Regular-Italic-Web.woff2",
-      weight: "400",
-      style: "italic",
-    },
+    { path: "./fonts/Newsreader-Variable.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/Newsreader-Variable-Italic.woff2", weight: "400", style: "italic" },
   ],
 });
-
-const anthropicSerif = localFont({
-  variable: "--font-anthropic-serif",
+const hanken = localFont({
+  variable: "--font-hanken",
   src: [
-    {
-      path: "./fonts/Anthropic-Serif-Regular-Web.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "./fonts/Anthropic-Seris-Regular-Italic-Web.woff2",
-      weight: "400",
-      style: "italic",
-    },
+    { path: "./fonts/HankenGrotesk-Variable.woff2", weight: "100 900", style: "normal" },
+    { path: "./fonts/HankenGrotesk-Variable-Italic.woff2", weight: "100 900", style: "italic" },
   ],
 });
-
-const anthropicMono = localFont({
-  variable: "--font-anthropic-mono",
+const jetbrains = localFont({
+  variable: "--font-jetbrains",
   src: [
-    {
-      path: "./fonts/Anthropic-Mono-Variable-Regular.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-    {
-      path: "./fonts/Anthropic-Mono-Variable-Regular-Italic.woff2",
-      weight: "100 900",
-      style: "italic",
-    },
+    { path: "./fonts/JetBrainsMono-Variable.woff2", weight: "100 800", style: "normal" },
+    { path: "./fonts/JetBrainsMono-Variable-Italic.woff2", weight: "100 800", style: "italic" },
   ],
 });
 
@@ -78,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${anthropicSans.variable} ${anthropicSerif.variable} ${anthropicMono.variable} h-full antialiased`}
+      className={`${newsreader.variable} ${hanken.variable} ${jetbrains.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

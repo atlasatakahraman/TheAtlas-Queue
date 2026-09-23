@@ -36,6 +36,9 @@ insert into public.channel_members (channel_id, kick_user_id, role, source) valu
 insert into public.settings (channel_id, team_size) values ('c0000000-0000-4000-8000-000000000001', 1);
 insert into public.moderation (channel_id, kick_username, kind, reason)
   values ('c0000000-0000-4000-8000-000000000001', 'banned_guy', 'ban', 'fixture');
+-- A 10-day-old warning: 100 - 10 × 0.75 = 92.5, which rounds to 93 as Math.round did.
+insert into public.moderation (channel_id, kick_username, kind, level, reason, created_at)
+  values ('c0000000-0000-4000-8000-000000000001', 'old_timer', 'warn', 1, 'fixture', now() - interval '10 days');
 
 -- Draw fixture: channel qa-draw (owner qa_owner), team size 5, fair-play on, one perk use per
 -- window; p00..p11 with games_played = i; p00 and p01 are subs and p01 has used its perk
@@ -239,6 +242,58 @@ begin
     where channel_id = ch and deleted_at is null and kick_username <> 'p05'), gen_random_uuid());
   perform pg_temp.expect(format('select public.draw_teams(%L, %L, false, gen_random_uuid())', ch,
     (select id from public.draws where channel_id = ch and undone_at is null order by created_at desc limit 1)), 'draw.not_enough');
+end $$;
+
+-- Moderation and respect.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000001';
+  r     jsonb;
+  v_id  uuid;
+  act   bigint;
+begin
+  r := public.warn(ch, 'dan', 'spam', gen_random_uuid());
+  if (select (e ->> 'points')::int from pg_temp.rows_of(r, 'respect') e) <> 90 then raise exception 'warn: respect not 90'; end if;
+  -- Second warning: level 2, both spent, a 1-game punishment; respect counts the punishment only.
+  r := public.warn(ch, 'dan', 'spam again', gen_random_uuid());
+  if exists (select 1 from public.moderation where channel_id = ch and kick_username = 'dan' and kind = 'warn' and revoked_at is null)
+     or not exists (select 1 from public.moderation where channel_id = ch and kick_username = 'dan' and kind = 'warn' and level = 2)
+     or (select games_left from public.moderation where channel_id = ch and kick_username = 'dan' and kind = 'punish') <> 1 then
+    raise exception 'warn: second warning did not become a 1-game punishment';
+  end if;
+  if (select (e ->> 'points')::int from pg_temp.rows_of(r, 'respect') e) <> 80 then raise exception 'warn: respect not 80'; end if;
+  perform pg_temp.expect(format('select public.add_player(%L, %L, null, gen_random_uuid())', ch, 'dan'), 'queue.punished');
+
+  -- Lifting the punishment lets dan join; a lifted punishment still counts against respect.
+  select id into v_id from public.moderation where channel_id = ch and kick_username = 'dan' and kind = 'punish';
+  r := public.revoke_sanction(ch, v_id, gen_random_uuid());
+  if (select (e ->> 'points')::int from pg_temp.rows_of(r, 'respect') e) <> 80 then raise exception 'revoke: respect changed'; end if;
+  perform public.add_player(ch, 'dan', null, gen_random_uuid());
+
+  -- Ban: refuses joins, respect 50; deleting it restores respect; undo brings the ban back.
+  r := public.ban(ch, 'eve', null, 'toxic', gen_random_uuid());
+  if (select (e ->> 'points')::int from pg_temp.rows_of(r, 'respect') e) <> 50 then raise exception 'ban: respect not 50'; end if;
+  perform pg_temp.expect(format('select public.add_player(%L, %L, null, gen_random_uuid())', ch, 'EVE'), 'queue.banned');
+  select id into v_id from public.moderation where channel_id = ch and kick_username = 'eve';
+  r := public.delete_sanction(ch, v_id, gen_random_uuid());
+  select (e ->> 'id')::bigint into act from pg_temp.rows_of(r, 'activity') e;
+  if (select (e ->> 'points')::int from pg_temp.rows_of(r, 'respect') e) <> 100
+     or not exists (select 1 from pg_temp.rows_of(r, 'moderation') e where (e ->> '_deleted')::boolean) then
+    raise exception 'delete_sanction: respect not restored or no tombstone';
+  end if;
+  perform public.undo(ch, act, gen_random_uuid());
+  if not exists (select 1 from public.moderation where id = v_id and kind = 'ban' and revoked_at is null) then
+    raise exception 'undo delete_sanction: ban not back';
+  end if;
+
+  -- Punish takes games or minutes, exactly one, in range.
+  perform pg_temp.expect(format('select public.punish(%L, %L, 1, 60, null, gen_random_uuid())', ch, 'frank'), 'request.invalid');
+  perform pg_temp.expect(format('select public.punish(%L, %L, null, null, null, gen_random_uuid())', ch, 'frank'), 'request.invalid');
+  perform pg_temp.expect(format('select public.punish(%L, %L, 11, null, null, gen_random_uuid())', ch, 'frank'), 'request.invalid');
+  perform public.punish(ch, 'frank', null, 60, 'afk', gen_random_uuid());
+  perform pg_temp.expect(format('select public.add_player(%L, %L, null, gen_random_uuid())', ch, 'frank'), 'queue.punished');
+
+  if (public.get_state(ch) -> 'respect' ->> 'old_timer')::int <> 93 then raise exception 'respect: decay port wrong'; end if;
 end $$;
 
 -- One write, one event: each fixture channel's version equals its number of writes.

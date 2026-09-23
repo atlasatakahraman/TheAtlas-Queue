@@ -112,3 +112,11 @@ export async function ensureSubscriptions(broadcasterId: number): Promise<string
     return String(e instanceof Error ? e.message : e).slice(0, 200);
   }
 }
+
+// A Kick user by their channel slug (their username, lower-cased): the owner pre-adding a
+// moderator types a name, and channel_members is keyed by the Kick user id.
+export async function kickUserBySlug(slug: string): Promise<{ id: number; slug: string } | null> {
+  const res = await kick(`${API}/channels?slug=${encodeURIComponent(slug)}`);
+  const c = ((await res.json()) as { data?: { broadcaster_user_id?: number; slug?: string }[] }).data?.[0];
+  return c?.broadcaster_user_id && c.slug ? { id: c.broadcaster_user_id, slug: c.slug } : null;
+}

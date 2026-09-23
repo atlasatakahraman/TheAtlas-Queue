@@ -7,9 +7,10 @@ import { Toaster } from "sonner";
 
 interface ProvidersProps {
   children: React.ReactNode;
+  nonce?: string;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, nonce }: ProvidersProps) {
   return (
     <SessionProvider>
       <ThemeProvider
@@ -17,6 +18,7 @@ export function Providers({ children }: ProvidersProps) {
         defaultTheme="dark"
         enableSystem
         disableTransitionOnChange={false}
+        nonce={nonce}
       >
         <TooltipProvider delayDuration={200}>
           {children}

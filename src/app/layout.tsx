@@ -1,6 +1,7 @@
 import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
 import "./globals.css";
 
 // OFL 1.1 faces, the same three TheAtlas ships (DESIGN.md § Type). Self-hosted and preloaded.
@@ -45,11 +46,15 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Nonce CSP (src/proxy.ts) needs every page rendered per request: a prerendered page
+  // carries no nonce, and strict-dynamic would block all of its scripts. Reading the
+  // header opts every page into dynamic rendering and hands next-themes its nonce.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html
       lang="tr"
@@ -57,7 +62,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );

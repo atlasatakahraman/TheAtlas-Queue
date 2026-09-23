@@ -2,12 +2,13 @@
 import { MessageSquareText, Search } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
+import { FilterPills } from "@/components/queue/filter-pills";
 import { PlayerRow } from "@/components/queue/player-row";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { enter, SearchRefContext, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useStored } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
@@ -75,27 +76,12 @@ export function QueueTab() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <ScrollArea className="rounded-lg bg-muted max-md:w-full">
-          <div role="group" aria-label={t("filter.label")} className="flex w-max gap-1 p-1 select-none">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                type="button"
-                aria-pressed={filter === f}
-                onClick={() => setFilter(f)}
-                className={cn(
-                  "flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-control outline-none focus-visible:ring-2 focus-visible:ring-ring/40 max-md:h-11",
-                  // Kâğıt's track and hover share one value, so the active pill steps up to the card.
-                  filter === f ? "bg-card text-foreground shadow-xs dark:bg-accent" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {t(`filter.${f}`)}
-                <span className="text-muted-foreground tabular-nums">{counts[f]}</span>
-              </button>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          <FilterPills
+            label={t("filter.label")}
+            value={filter}
+            onChange={setFilter}
+            options={FILTERS.map((f) => ({ value: f, label: t(`filter.${f}`), count: counts[f] }))}
+          />
           <div className="relative ml-auto max-md:ml-0 max-md:w-full">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <Input

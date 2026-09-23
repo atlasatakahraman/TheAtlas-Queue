@@ -8,6 +8,7 @@ import { NotMember } from "@/components/queue/not-member";
 import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dialogs";
 import { QueueTab } from "@/components/queue/queue-tab";
 import { RevealDriver } from "@/components/queue/reveal";
+import { SanctionDialog } from "@/components/queue/sanction-dialog";
 import { SettingsTab } from "@/components/queue/settings-tab";
 import { QueueProvider, useQueue } from "@/components/queue/store";
 import { TeamsTab } from "@/components/queue/teams-tab";
@@ -117,6 +118,7 @@ function Shell({ initialTab }: { initialTab: Tab }) {
 
       <AddPlayerDialog />
       <EditPlayerDialog />
+      <SanctionDialog />
       <RevealDriver />
 
       {/* Mobile: the tabs move to a bottom bar (DESIGN.md § Mobile). */}

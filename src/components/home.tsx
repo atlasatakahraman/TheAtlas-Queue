@@ -18,7 +18,10 @@ export function Home({ callbackUrl }: { callbackUrl: string }) {
       <main className="flex flex-1 flex-col justify-center gap-8 py-16">
         <h1 className="font-serif text-display max-md:text-title">
           <Typewriter text="TheAtlas" />{" "}
-          <span className="text-brand italic selection:bg-foreground selection:text-background">Queue</span>
+          {/* Queue types on after the name, one 40ms beat for the space. */}
+          <span className="text-brand italic selection:bg-foreground selection:text-background">
+            <Typewriter text="Queue" startDelay={9 * 40} />
+          </span>
         </h1>
         <p className="animate-enter text-body text-foreground" style={{ animationDelay: "70ms" }}>
           {t("home.tagline")}

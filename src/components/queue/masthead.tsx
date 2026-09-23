@@ -40,7 +40,10 @@ export function Masthead() {
       <div className="flex items-start justify-between gap-4">
         <h1 className="min-w-0 font-serif text-display text-foreground max-md:text-title">
           <Typewriter text={name} />{" "}
-          <span className="text-brand italic selection:bg-foreground selection:text-background">Queue</span>
+          {/* Queue types on after the name, one 40ms beat for the space. */}
+          <span className="text-brand italic selection:bg-foreground selection:text-background">
+            <Typewriter text="Queue" startDelay={([...name].length + 1) * 40} />
+          </span>
         </h1>
         <div style={e1.style} className={cn("flex shrink-0 items-center gap-1", e1.className)}>
           <ConnectionPill />

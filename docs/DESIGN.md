@@ -395,6 +395,8 @@ that, nothing moves unless the data did.
    sharpen, so a short trailing edge is always still resolving. Untyped characters are
    `invisible`, not absent, so the line holds its final width from the first frame and nothing
    beside it moves.
+   The gold italic *Queue* types on after it, one 40ms beat for the space: a second `Typewriter`
+   whose `startDelay` is the name's length plus one, times 40ms.
 2. The dateline, the header tools, the tabs, then the page heading rise 10px into place
    (`--animate-enter`), starting at 70ms and 45ms apart.
 3. Rows rise the same way, 45ms apart, **capped at the first 12**. Row 13 onwards is simply
@@ -545,7 +547,7 @@ Finishing opens the dashboard with its entrance. Theme and UI language start fro
 One column of chrome, then the active tab. Max width 1180px, centred.
 
 **Masthead.** The channel name in Newsreader, typed in by `Typewriter`, followed by the gold
-italic ***Queue***. Below it, a muted dateline: day, session number, how many are waiting.
+italic ***Queue***, typed on after it. Below it, a muted dateline: day, session number, how many are waiting.
 Right-aligned: the [connection pill](#connection-health), the command palette button (a search
 icon, `aria-label`), the EN | TR switch, the theme button.
 

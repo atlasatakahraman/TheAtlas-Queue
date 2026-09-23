@@ -22,6 +22,8 @@ import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
 export const REVEAL = { step: 160, speed: 30, sharpen: 200 };
 
 // Draw, reroll and pick, shared by the Teams tab, the command palette and the global keys.
+export type PickSource = "waiting" | "teams" | "all";
+
 export function useDrawActions() {
   const act = useAct();
   const store = useStore();
@@ -33,8 +35,8 @@ export function useDrawActions() {
   return {
     draw: () => act("draw_teams", { p_base: base(), p_reroll: false }, { done: "done.draw" }).then(stale),
     reroll: () => act("draw_teams", { p_base: base(), p_reroll: true }, { done: "done.reroll" }).then(stale),
-    pick: (n: number) =>
-      act("pick_from_waiting", { p_n: n, p_base: base() }, { done: "done.pick", vars: { n } }).then(stale),
+    pick: (n: number, source: PickSource = "waiting") =>
+      act("pick_players", { p_n: n, p_source: source, p_base: base() }, { done: `done.pick.${source}`, vars: { n } }).then(stale),
   };
 }
 

@@ -77,6 +77,7 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
       const { error: e } = await adminDb().rpc("set_riot_rank", {
         p_channel: channel, p_riot_id: riotId, p_puuid: rank.puuid, p_game_name: rank.gameName, p_tag_line: rank.tagLine,
         p_tier: rank.tier, p_division: rank.division, p_lp: rank.lp, p_icon: rank.icon,
+        p_wins: rank.wins, p_losses: rank.losses, p_level: rank.level,
       });
       if (e) console.error(JSON.stringify({ route: "kick/webhook", step: "rank", error: e.code }));
     });

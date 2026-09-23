@@ -5,7 +5,15 @@ export type Lang = "en" | "tr";
 export type Status = "waiting" | "playing" | "away";
 export type Role = "owner" | "mod";
 
-export type Rank = { tier: string; division: string | null; lp: number | null; icon: number | null } | null;
+export type Rank = {
+  tier: string;
+  division: string | null;
+  lp: number | null;
+  icon: number | null;
+  wins?: number | null;
+  losses?: number | null;
+  level?: number | null;
+} | null;
 
 export type Player = {
   id: string;

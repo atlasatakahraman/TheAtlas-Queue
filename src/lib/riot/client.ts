@@ -168,5 +168,8 @@ export async function fetchRank(riotId: string, region: string) {
     division: best?.rank ?? null,
     lp: best?.leaguePoints ?? null,
     icon: summoner?.profileIconId ?? null,
+    wins: best?.wins ?? null,
+    losses: best?.losses ?? null,
+    level: summoner?.summonerLevel ?? null,
   };
 }

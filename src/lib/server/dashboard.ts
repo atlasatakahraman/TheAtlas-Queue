@@ -40,6 +40,7 @@ export async function lookupRank(channelId: string, riotId: string): Promise<boo
   const { error } = await db.rpc("set_riot_rank", {
     p_channel: channelId, p_riot_id: riotId, p_puuid: rank.puuid, p_game_name: rank.gameName, p_tag_line: rank.tagLine,
     p_tier: rank.tier, p_division: rank.division, p_lp: rank.lp, p_icon: rank.icon,
+    p_wins: rank.wins, p_losses: rank.losses, p_level: rank.level,
   });
   if (error) console.error(JSON.stringify({ route: "action/lookupRank", error: error.message }));
   return !error;

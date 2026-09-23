@@ -17,9 +17,12 @@ export default function Error({ error, unstable_retry }: { error: Error & { dige
       {error.digest && (
         <p className="font-mono text-code text-muted-foreground select-all">{t("error.page.code", { digest: error.digest })}</p>
       )}
-      <div>
+      <div className="flex gap-2">
         <Button size="lg" onClick={() => unstable_retry()}>
           {t("common.retry")}
+        </Button>
+        <Button size="lg" variant="outline" onClick={() => window.location.reload()}>
+          {t("menu.reload")}
         </Button>
       </div>
     </main>

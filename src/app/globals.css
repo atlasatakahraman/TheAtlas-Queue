@@ -4,56 +4,191 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Custom Design Tokens ─────────────────────────────────────── */
+/* Values only; what they mean and when to use which is docs/DESIGN.md. Changing a hex means
+   re-running its contrast gates (DESIGN.md § Contrast). */
+
+/* ─── Palette: literal, mode-independent. Components never name these. ─── */
+:root {
+  --ink-floor: #131210;
+  --ink-card: #1c1a17;
+  --ink-row: #272520;
+  --ink-hover: #302d27;
+  --ink-highlight: #322b1d;
+  --ink-hairline: #34312a;
+  --ink-row-edge: #47433a;
+  --ink-outline: #807866;
+  --ink-muted: #a39c8b;
+  --ink-text: #efe9dc;
+  --ink-gold: #e9c46a;
+  --ink-teal: #6cc3b6;
+  --ink-orange: #f0a35e;
+  --ink-red: #e27a70;
+  --ink-red-fill: #b3413a;
+  --ink-green: #9cc98a;
+
+  --paper-floor: #f4f0e6;
+  --paper-card: #fffdf8;
+  --paper-hover: #efe8d8;
+  --paper-highlight: #f6e9c4;
+  --paper-hairline: #e2dccd;
+  --paper-row-edge: #d2c7b0;
+  --paper-outline: #857c66;
+  --paper-muted: #655f51;
+  --paper-text: #1c1a16;
+  --paper-gold: #7f5c0c;
+  --paper-teal: #1d6f78;
+  --paper-orange: #9a4a16;
+  --paper-red: #b3261e;
+  --paper-red-fill: #b3261e;
+  --paper-green: #386e2e;
+
+  --radius: 0.625rem;
+}
+
+/* ─── Semantics: Kâğıt (light) ─── */
+:root {
+  --background: var(--paper-floor);
+  --foreground: var(--paper-text);
+  --card: var(--paper-card);
+  --card-foreground: var(--paper-text);
+  --popover: var(--paper-card);
+  --popover-foreground: var(--paper-text);
+  --row: var(--paper-card);
+  --row-edge: var(--paper-row-edge);
+  --highlight: var(--paper-highlight);
+  --muted: var(--paper-hover);
+  --muted-foreground: var(--paper-muted);
+  --accent: var(--paper-hover);
+  --accent-foreground: var(--paper-text);
+  --primary: var(--paper-text);
+  --primary-foreground: var(--paper-card);
+  --secondary: var(--paper-card);
+  --secondary-foreground: var(--paper-text);
+  --border: var(--paper-hairline);
+  --input: var(--paper-outline);
+  --ring: var(--paper-gold);
+  --brand: var(--paper-gold);
+  --destructive: var(--paper-red);
+  --destructive-fill: var(--paper-red-fill);
+  --success: var(--paper-green);
+  --warning: var(--paper-gold);
+  --team-1: var(--paper-teal);
+  --team-2: var(--paper-orange);
+  --selection: var(--paper-gold);
+  --selection-foreground: var(--paper-card);
+  --chart-1: var(--paper-teal);
+  --chart-2: var(--paper-orange);
+  --chart-3: var(--paper-gold);
+  --chart-4: var(--paper-green);
+  --chart-5: var(--paper-muted);
+  /* shadcn's generated files reference these; Queue has no sidebar. */
+  --sidebar: var(--paper-card);
+  --sidebar-foreground: var(--paper-text);
+  --sidebar-primary: var(--paper-text);
+  --sidebar-primary-foreground: var(--paper-card);
+  --sidebar-accent: var(--paper-hover);
+  --sidebar-accent-foreground: var(--paper-text);
+  --sidebar-border: var(--paper-hairline);
+  --sidebar-ring: var(--paper-gold);
+}
+
+/* ─── Semantics: Mürekkep (dark, the default) ─── */
+.dark {
+  --background: var(--ink-floor);
+  --foreground: var(--ink-text);
+  --card: var(--ink-card);
+  --card-foreground: var(--ink-text);
+  --popover: var(--ink-card);
+  --popover-foreground: var(--ink-text);
+  --row: var(--ink-row);
+  --row-edge: var(--ink-row-edge);
+  --highlight: var(--ink-highlight);
+  --muted: var(--ink-card);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--ink-hover);
+  --accent-foreground: var(--ink-text);
+  --primary: var(--ink-text);
+  --primary-foreground: var(--ink-floor);
+  --secondary: var(--ink-card);
+  --secondary-foreground: var(--ink-text);
+  --border: var(--ink-hairline);
+  --input: var(--ink-outline);
+  --ring: var(--ink-gold);
+  --brand: var(--ink-gold);
+  --destructive: var(--ink-red);
+  --destructive-fill: var(--ink-red-fill);
+  --success: var(--ink-green);
+  --warning: var(--ink-gold);
+  --team-1: var(--ink-teal);
+  --team-2: var(--ink-orange);
+  --selection: var(--ink-gold);
+  --selection-foreground: var(--ink-floor);
+  --chart-1: var(--ink-teal);
+  --chart-2: var(--ink-orange);
+  --chart-3: var(--ink-gold);
+  --chart-4: var(--ink-green);
+  --chart-5: var(--ink-muted);
+  --sidebar: var(--ink-card);
+  --sidebar-foreground: var(--ink-text);
+  --sidebar-primary: var(--ink-text);
+  --sidebar-primary-foreground: var(--ink-floor);
+  --sidebar-accent: var(--ink-hover);
+  --sidebar-accent-foreground: var(--ink-text);
+  --sidebar-border: var(--ink-hairline);
+  --sidebar-ring: var(--ink-gold);
+}
+
+/* ─── Utilities: every semantic token needs its line here (DESIGN.md § The token layers). ─── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-hanken);
   --font-serif: var(--font-newsreader);
   --font-mono: var(--font-jetbrains);
   --font-heading: var(--font-newsreader);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Custom esports tokens */
-  --color-team-blue: var(--team-blue);
-  --color-team-red: var(--team-red);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-row: var(--row);
+  --color-row-edge: var(--row-edge);
+  --color-highlight: var(--highlight);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-destructive: var(--destructive);
+  --color-destructive-fill: var(--destructive-fill);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-team-1: var(--team-1);
+  --color-team-2: var(--team-2);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Rank emblem dots only, never text (they fail on Kâğıt). */
   --color-rank-iron: oklch(0.55 0.04 60);
   --color-rank-bronze: oklch(0.6 0.1 55);
   --color-rank-silver: oklch(0.72 0.02 250);
@@ -65,133 +200,75 @@
   --color-rank-grandmaster: oklch(0.6 0.22 25);
   --color-rank-challenger: oklch(0.75 0.18 85);
 
-  /* Moderation tokens */
-  --color-cl-warning: var(--cl-warning);
-  --color-cl-punishment: var(--cl-punishment);
-  --color-cl-banned: var(--cl-banned);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Animation tokens */
-  --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-fade-in: fade-in 0.3s ease-out;
-  --animate-scale-in: scale-in 0.2s ease-out;
-  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
-  --animate-slot-machine: slot-machine 0.1s ease-in-out;
-  --animate-tab-enter: tab-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-tab-enter-top: tab-enter-top 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-tab-enter-left: tab-enter-left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-tab-enter-right: tab-enter-right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-card-enter: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-badge-pulse: badge-pulse 2s ease-in-out infinite;
-  --animate-progress-fill: progress-fill 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  /* The scale (DESIGN.md § Type). The face is set where the size is used. */
+  --text-display: 2.25rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+  --text-headline: 2.75rem;
+  --text-headline--line-height: 1.05;
+  --text-headline--letter-spacing: -0.02em;
+  --text-title: 1.75rem;
+  --text-title--line-height: 1.15;
+  --text-title--letter-spacing: -0.01em;
+  --text-team: 1.375rem;
+  --text-team--line-height: 1.2;
+  --text-numeral: 1.25rem;
+  --text-numeral--line-height: 1;
+  --text-name: 1rem;
+  --text-name--line-height: 1.35;
+  --text-name--font-weight: 600;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.5;
+  --text-control: 0.875rem;
+  --text-control--line-height: 1.3;
+  --text-control--font-weight: 500;
+  --text-meta: 0.84375rem;
+  --text-meta--line-height: 1.45;
+  --text-code: 0.8125rem;
+  --text-code--line-height: 1.4;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.3;
+  --text-caption--letter-spacing: 0.12em;
+  --text-caption--font-weight: 600;
+  --text-overlay-name: 2rem;
+  --text-overlay-name--line-height: 1.2;
+  --text-overlay-name--font-weight: 600;
+  --text-overlay-headline: 3.5rem;
+  --text-overlay-headline--line-height: 1.05;
+  --text-overlay-headline--letter-spacing: -0.02em;
+
+  /* The entrance, once per page load (DESIGN.md § Motion). */
+  --animate-enter: enter 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  /* A realtime arrival: fades in over 150ms, holds the highlight 1.5s, settles. */
+  --animate-arrive: arrive 1650ms ease-out both;
+  /* A failed action's row coming back: the highlight alone. */
+  --animate-highlight: highlight 1500ms ease-out both;
 }
 
-/* ─── Light Theme — Caelestia Light Fidelity ───────────────────── */
-:root {
-  --background: #fdf8f5;
-  --foreground: #1c1b1a;
-  --card: #ffffff;
-  --card-foreground: #1c1b1a;
-  --popover: #ffffff;
-  --popover-foreground: #1c1b1a;
-  --primary: #3b3628;
-  --primary-foreground: #ffffff;
-  --secondary: #e8e2d7;
-  --secondary-foreground: #68645c;
-  --muted: #f7f3f0;
-  --muted-foreground: #7b776d;
-  --accent: #eae2cd;
-  --accent-foreground: #1f1b0e;
-  --destructive: #ba1a1a;
-  --border: #ccc6bb;
-  --input: #ece7e4;
-  --ring: #3b3628;
-  --chart-1: #3b3628;
-  --chart-2: #4f6354;
-  --chart-3: #9b782c;
-  --chart-4: #00664e;
-  --chart-5: #38353f;
-  --radius: 0.625rem;
-  --team-blue: #1d4ed8;
-  --team-red: #ba1a1a;
-  --success: #4f6354;
-  --warning: #9b782c;
-  --sidebar: #f7f3f0;
-  --sidebar-foreground: #1c1b1a;
-  --sidebar-primary: #3b3628;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eae2cd;
-  --sidebar-accent-foreground: #1f1b0e;
-  --sidebar-border: #ccc6bb;
-  --sidebar-ring: #3b3628;
-
-  /* Moderation */
-  --cl-warning: #9b782c;
-  --cl-punishment: #8f3b00;
-  --cl-banned: #ba1a1a;
-}
-
-/* ─── Dark Theme — Caelestia Dark (Inverted) ───────────────────── */
-.dark {
-  --background: #1a1917;
-  --foreground: #f4f0ed;
-  --card: #242320;
-  --card-foreground: #f4f0ed;
-  --popover: #242320;
-  --popover-foreground: #f4f0ed;
-  --primary: #cec6b1;
-  --primary-foreground: #1f1b0e;
-  --secondary: #3a3830;
-  --secondary-foreground: #cbc6bc;
-  --muted: #2e2c28;
-  --muted-foreground: #9c9890;
-  --accent: #3a3628;
-  --accent-foreground: #eae2cd;
-  --destructive: #ff6b6b;
-  --border: #4a473e;
-  --input: #3a3830;
-  --ring: #cec6b1;
-  --chart-1: #cec6b1;
-  --chart-2: #d1e8d5;
-  --chart-3: #c5aa3d;
-  --chart-4: #4b882e;
-  --chart-5: #c2bdc9;
-  --team-blue: #3b82f6;
-  --team-red: #ff6b6b;
-  --success: #4b882e;
-  --warning: #c5aa3d;
-  --sidebar: #1e1d1b;
-  --sidebar-foreground: #f4f0ed;
-  --sidebar-primary: #cec6b1;
-  --sidebar-primary-foreground: #1f1b0e;
-  --sidebar-accent: #3a3628;
-  --sidebar-accent-foreground: #eae2cd;
-  --sidebar-border: #4a473e;
-  --sidebar-ring: #cec6b1;
-
-  /* Moderation */
-  --cl-warning: #c5aa3d;
-  --cl-punishment: #e07830;
-  --cl-banned: #ff6b6b;
-}
-
-/* ─── Base Layer ───────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground antialiased;
-  }
   html {
-    @apply font-sans scroll-smooth;
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-body text-foreground antialiased selection:bg-selection selection:text-selection-foreground;
   }
 }
 
-/* ─── Custom Keyframes ─────────────────────────────────────────── */
-@keyframes slide-up {
+@keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -199,381 +276,59 @@
   }
 }
 
-@keyframes fade-in {
-  from {
+@keyframes arrive {
+  0% {
     opacity: 0;
+    background-color: var(--highlight);
   }
-  to {
+  9%,
+  91% {
+    opacity: 1;
+    background-color: var(--highlight);
+  }
+  100% {
     opacity: 1;
   }
 }
 
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes pulse-soft {
+@keyframes highlight {
   0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
+  90% {
+    background-color: var(--highlight);
   }
 }
 
-@keyframes slot-machine {
-  0% {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes tab-enter {
+/* Typewriter (copied from TheAtlas packages/@ui theme.css; fix upstream and re-copy). */
+@keyframes theatlas-type-in {
   from {
     opacity: 0;
+    filter: blur(var(--type-blur, 0.12em));
   }
   to {
     opacity: 1;
+    filter: blur(0);
   }
 }
 
-@keyframes tab-enter-top {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.type-in {
+  display: inline-block;
+  /* Both read from the wrapper, so one instance can be softer or slower than
+     another without a second class. A `var()` inside a keyframe is resolved
+     when the animation starts, which is exactly the moment each character
+     needs it. */
+  animation: theatlas-type-in var(--type-reveal, 200ms) ease-out backwards;
+  /* The greeting contains spaces, and an inline-block space collapses. */
+  white-space: pre;
 }
 
-@keyframes tab-enter-left {
-  from {
-    opacity: 0;
-    transform: translateX(-24px);
+/* Reduced motion removes the entrance, the fades and the typing. The arrival highlight stays:
+   it is information, not decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .type-in,
+  .animate-enter {
+    animation: none;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+  .animate-arrive {
+    animation: highlight 1500ms ease-out both;
   }
-}
-
-@keyframes tab-enter-right {
-  from {
-    opacity: 0;
-    transform: translateX(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes card-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.97) translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes badge-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes progress-fill {
-  from {
-    width: 0%;
-  }
-  to {
-    width: var(--progress-width, 100%);
-  }
-}
-
-@keyframes underline-slide {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-/* ─── Utility Classes ──────────────────────────────────────────── */
-@layer utilities {
-  .glass {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg;
-  }
-
-  .glass-subtle {
-    @apply bg-card/40 backdrop-blur-md border border-border/30;
-  }
-
-  .glass-warm {
-    backdrop-filter: blur(16px) saturate(120%);
-    background: color-mix(in oklch, var(--card) 75%, transparent);
-    border: 1px solid color-mix(in oklch, var(--border) 40%, transparent);
-    box-shadow: 0 4px 24px color-mix(in oklch, var(--primary) 6%, transparent);
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-linear-to-r from-primary to-chart-2;
-  }
-
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      oklch(1 0 0 / 8%) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-  }
-
-  .dot-online {
-    @apply h-2 w-2 rounded-full bg-success shadow-[0_0_6px] shadow-success/50;
-  }
-
-  .dot-offline {
-    @apply h-2 w-2 rounded-full bg-destructive shadow-[0_0_6px] shadow-destructive/50;
-  }
-
-  /* Typography helpers */
-  .font-heading {
-    font-family: var(--font-newsreader), serif;
-  }
-
-  .font-display {
-    font-family: var(--font-newsreader), serif;
-    letter-spacing: -0.02em;
-  }
-
-  .font-body {
-    font-family: var(--font-hanken), sans-serif;
-  }
-
-  .font-code {
-    font-family: var(--font-jetbrains), monospace;
-  }
-
-  /* Animation helpers */
-  .animate-tab-enter {
-    animation: tab-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .animate-card-enter {
-    animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .animate-badge-pulse {
-    animation: badge-pulse 2s ease-in-out infinite;
-  }
-
-  /* ─── Drag & Drop Utilities ─────────────────────────────────── */
-  .dragging {
-    opacity: 0.4;
-    transform: scale(0.98);
-  }
-
-  .drag-overlay {
-    background: var(--card);
-    box-shadow:
-      0 12px 36px oklch(0 0 0 / 25%),
-      0 4px 12px oklch(0 0 0 / 15%);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border);
-    pointer-events: none;
-  }
-
-  /* Moderation status utilities */
-  .mod-warning {
-    color: var(--cl-warning);
-  }
-
-  .mod-punishment {
-    color: var(--cl-punishment);
-  }
-
-  .mod-banned {
-    color: var(--cl-banned);
-  }
-}
-
-/* ─── Scrollbar Styling ────────────────────────────────────────── */
-@layer base {
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: oklch(0.5 0 0 / 30%);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.5 0 0 / 50%);
-  }
-}
-
-/* ─── State-Driven High-Fidelity Tab Slide Animations ─────────── */
-[role="tabpanel"][data-state="active"] {
-  animation: tab-enter-top 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.slide-from-right [role="tabpanel"][data-state="active"] {
-  animation: tab-enter-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.slide-from-left [role="tabpanel"][data-state="active"] {
-  animation: tab-enter-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* ─── Sliding Tabs Custom Overrides ───────────────────────────── */
-.sliding-tabs [data-slot="tabs-trigger"][data-state="active"],
-.sliding-tabs [data-slot="tabs-trigger"][data-active] {
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border-color: transparent !important;
-}
-
-/* ─── Premium Loading Bar Animation ───────────────────────────── */
-@keyframes loading-bar {
-  0% {
-    left: -50%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-.animate-loading-bar {
-  animation: loading-bar 1.5s infinite ease-in-out;
-}
-
-/* ─── Premium YouTube/Material Spinner Animation ──────────────── */
-@keyframes youtube-rotate {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes youtube-dash {
-  0% {
-    stroke-dasharray: 1, 200;
-    stroke-dashoffset: 0;
-  }
-  50% {
-    stroke-dasharray: 89, 200;
-    stroke-dashoffset: -35px;
-  }
-  100% {
-    stroke-dasharray: 89, 200;
-    stroke-dashoffset: -124px;
-  }
-}
-
-.animate-youtube-rotate {
-  animation: youtube-rotate 1.4s linear infinite;
-}
-
-.animate-youtube-dash {
-  animation: youtube-dash 1.4s ease-in-out infinite;
-}
-
-/* ─── Premium Entry Animations ───────────────────────────────── */
-@keyframes slide-down-fade {
-  from {
-    opacity: 0;
-    transform: translateY(-24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-up-fade {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-right-fade {
-  from {
-    opacity: 0;
-    transform: translateX(-24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-left-fade {
-  from {
-    opacity: 0;
-    transform: translateX(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-down-fade {
-  animation: slide-down-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.animate-slide-up-fade {
-  animation: slide-up-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.animate-slide-right-fade {
-  animation: slide-right-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.animate-slide-left-fade {
-  animation: slide-left-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

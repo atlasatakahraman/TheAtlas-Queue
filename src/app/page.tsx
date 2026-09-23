@@ -9,9 +9,13 @@ import { userDb } from "@/lib/server/user-db";
 
 type Props = { searchParams: Promise<{ callbackUrl?: string }> };
 
-// Only same-site paths: an open redirect would hand a signed-in user to anyone's page.
+// Only same-site paths: an open redirect would hand a signed-in user to anyone's page. Parsed
+// the way a browser reads Location, which drops tabs and newlines ("/\t/evil.com" is //evil.com).
 function safePath(p: string | undefined): string | null {
-  return p && p.startsWith("/") && !p.startsWith("//") && !p.includes("\\") ? p : null;
+  if (typeof p !== "string" || !p.startsWith("/")) return null;
+  const base = "http://queue.invalid";
+  const u = URL.parse(p, base);
+  return u && u.origin === base ? u.pathname + u.search + u.hash : null;
 }
 
 // `/` (spec D11): signed out, the home page, which is also the sign-in page; signed in, the

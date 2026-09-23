@@ -86,7 +86,7 @@ RIOT_API_KEY="RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ### Çalıştırma
 
 ```bash
-bun run dev
+bun --bun run next:dev
 ```
 
 `http://localhost:3000` adresini açın, Kick hesabınızla giriş yapın; dashboard sıra komutlarını almaya hazır.

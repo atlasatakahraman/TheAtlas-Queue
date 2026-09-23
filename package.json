@@ -5,10 +5,11 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "next:dev": "next dev",
-    "next:build": "next build",
+    "next:build": "next build && bun --bun scripts/check-secrets.ts",
     "next:start": "next start",
     "check:types": "tsc --noEmit",
-    "check:lint": "eslint ."
+    "check:lint": "eslint .",
+    "check:secrets": "bun --bun scripts/check-secrets.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

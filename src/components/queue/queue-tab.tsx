@@ -3,7 +3,7 @@ import { MessageSquareText, Search } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
 import { FilterPills } from "@/components/queue/filter-pills";
-import { PlayerRow } from "@/components/queue/player-row";
+import { PlayerRow, TableHeader } from "@/components/queue/player-row";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { enter, SearchRefContext, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
@@ -70,9 +70,6 @@ export function QueueTab() {
               <WithCommand text={t("queue.hint")} command={command} />
             </p>
           </div>
-          <Button size="lg" className="max-md:hidden" disabled={!canWrite} onClick={() => ui.setAdding(true)}>
-            {t("action.add")}
-          </Button>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -107,6 +104,7 @@ export function QueueTab() {
           <p className="py-10 text-muted-foreground">{t("queue.none_match")}</p>
         ) : (
           <div data-rows className="flex flex-col gap-1.5">
+            <TableHeader />
             {shown.map(({ p, n }, i) => (
               <PlayerRow
                 key={p.id}

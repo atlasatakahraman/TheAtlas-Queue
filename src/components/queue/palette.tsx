@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useSetLang, useT } from "@/components/i18n";
 import { useCanWrite, useQueue, useStore } from "@/components/queue/store";
+import { signOutNow } from "@/components/queue/header";
 import { useDrawActions } from "@/components/queue/teams-tab";
 import type { Tab } from "@/components/queue/tabs";
 import { useUi } from "@/components/queue/ui";
@@ -50,7 +51,8 @@ export function Palette() {
   const standingTeams = useQueue((v) => v.draw?.kind === "teams");
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
-  const { draw, reroll, pick } = useDrawActions();
+  const { draw, reroll, pick, shuffle, clearTeams, clearQueue } = useDrawActions();
+  const playing = players.filter((p) => p.status === "playing").length;
   const run = (f: () => void) => () => {
     ui.setPalette(false);
     f();
@@ -79,8 +81,17 @@ export function Palette() {
                 <Keys>{String(n)}</Keys>
               </CommandItem>
             ))}
+            <CommandItem disabled={!canWrite || playing < 2} onSelect={run(() => void shuffle())}>
+              {t("action.shuffle_teams")}
+            </CommandItem>
             <CommandItem disabled={!canWrite} onSelect={run(() => ui.setAdding(true))}>
               {t("action.add")}
+            </CommandItem>
+            <CommandItem disabled={!canWrite || playing === 0} onSelect={run(() => void clearTeams())}>
+              {t("action.clear_teams")}
+            </CommandItem>
+            <CommandItem disabled={!canWrite || players.length === 0} onSelect={run(() => void clearQueue())}>
+              {t("action.clear_queue")}
             </CommandItem>
           </CommandGroup>
           {players.length > 0 && (
@@ -123,6 +134,7 @@ export function Palette() {
             <CommandItem onSelect={run(() => setLang(lang === "en" ? "tr" : "en"))}>
               {lang === "en" ? t("lang.name.tr") : t("lang.name.en")}
             </CommandItem>
+            <CommandItem onSelect={run(signOutNow)}>{t("account.sign_out")}</CommandItem>
           </CommandGroup>
         </CommandList>
       </Command>

@@ -1,15 +1,33 @@
 "use client";
-import { Ellipsis } from "lucide-react";
+import {
+  Ban,
+  Clock,
+  Coffee,
+  Copy,
+  Ellipsis,
+  Gamepad2,
+  Hourglass,
+  type LucideIcon,
+  Pencil,
+  ShieldOff,
+  Trash2,
+  TriangleAlert,
+  Undo2,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
-import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
+import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuShortcut,
   ContextMenuTrigger,
@@ -18,6 +36,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
@@ -136,32 +155,45 @@ export function usePlayerActions(p: Player) {
   };
 }
 
-type Item = { label: string; shortcut?: string; onSelect: () => void; destructive?: boolean; swatch?: string; write?: boolean };
+type Item = {
+  label: string;
+  icon: LucideIcon;
+  shortcut?: string;
+  onSelect: () => void;
+  destructive?: boolean;
+  // A team item's icon and label take the team colour (August's blue/red "add to team").
+  tone?: string;
+  write?: boolean;
+};
 
 function useMenu(p: Player): Item[][] {
   const { t } = useT();
   const a = usePlayerActions(p);
   const groups: Item[][] = [
     [
-      ...(p.riot_id ? [{ label: t("menu.copy_riot"), shortcut: "C", onSelect: a.copyRiot }] : []),
-      { label: t("menu.copy_name"), onSelect: a.copyName },
+      ...(p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, shortcut: "C", onSelect: a.copyRiot }] : []),
+      { label: t("menu.copy_name"), icon: Gamepad2, onSelect: a.copyName },
     ],
-    [{ label: t("menu.edit"), shortcut: "E", onSelect: a.edit, write: true }],
+    [{ label: t("menu.edit"), icon: Pencil, shortcut: "E", onSelect: a.edit, write: true }],
     [
-      ...(p.team !== 1 ? [{ label: t("menu.move_to", { team: t("team.1") }), shortcut: "←", onSelect: () => a.moveTo(1), swatch: "bg-team-1", write: true }] : []),
-      ...(p.team !== 2 ? [{ label: t("menu.move_to", { team: t("team.2") }), shortcut: "→", onSelect: () => a.moveTo(2), swatch: "bg-team-2", write: true }] : []),
-      ...(p.status === "playing" ? [{ label: t("menu.to_waiting"), onSelect: a.toWaiting, write: true }] : []),
+      ...(p.team !== 1
+        ? [{ label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, shortcut: "←", onSelect: () => a.moveTo(1), tone: "text-team-1", write: true }]
+        : []),
+      ...(p.team !== 2
+        ? [{ label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, shortcut: "→", onSelect: () => a.moveTo(2), tone: "text-team-2", write: true }]
+        : []),
+      ...(p.status === "playing" ? [{ label: t("menu.to_waiting"), icon: Undo2, onSelect: a.toWaiting, write: true }] : []),
       ...(p.status !== "playing"
-        ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), shortcut: "A", onSelect: a.toggleAway, write: true }]
+        ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, shortcut: "A", onSelect: a.toggleAway, write: true }]
         : []),
     ],
-    p.locked ? [{ label: t("menu.unprotect"), onSelect: a.removeProtection, write: true }] : [],
+    p.locked ? [{ label: t("menu.unprotect"), icon: ShieldOff, onSelect: a.removeProtection, write: true }] : [],
     [
-      { label: t("menu.warn"), shortcut: "W", onSelect: a.warn, write: true },
-      { label: t("menu.punish"), onSelect: a.punish, write: true },
-      { label: t("menu.ban"), onSelect: a.ban, destructive: true, write: true },
+      { label: t("menu.warn"), icon: TriangleAlert, shortcut: "W", onSelect: a.warn, tone: "text-warning", write: true },
+      { label: t("menu.punish"), icon: Hourglass, onSelect: a.punish, tone: "text-warning", write: true },
+      { label: t("menu.ban"), icon: Ban, onSelect: a.ban, destructive: true, write: true },
     ],
-    [{ label: t("menu.remove"), shortcut: "Del", onSelect: () => void a.remove(), destructive: true, write: true }],
+    [{ label: t("menu.remove"), icon: Trash2, shortcut: "Del", onSelect: () => void a.remove(), destructive: true, write: true }],
   ];
   return groups.filter((g) => g.length > 0);
 }
@@ -172,8 +204,8 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
   const canWrite = useCanWrite();
   const K =
     kit === "context"
-      ? { Item: ContextMenuItem, Sep: ContextMenuSeparator, Short: ContextMenuShortcut }
-      : { Item: DropdownMenuItem, Sep: DropdownMenuSeparator, Short: DropdownMenuShortcut };
+      ? { Item: ContextMenuItem, Sep: ContextMenuSeparator, Short: ContextMenuShortcut, Label: ContextMenuLabel }
+      : { Item: DropdownMenuItem, Sep: DropdownMenuSeparator, Short: DropdownMenuShortcut, Label: DropdownMenuLabel };
   const items = groups.map((g, i) => (
     <div key={i} role="group">
       {i > 0 && <K.Sep />}
@@ -183,8 +215,9 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
           variant={it.destructive ? "destructive" : "default"}
           disabled={it.write && !canWrite}
           onSelect={it.onSelect}
+          className={cn(it.tone, it.tone && "focus:text-current [&_svg]:text-current!")}
         >
-          {it.swatch && <span className={cn("size-2.5 rounded-full", it.swatch)} aria-hidden />}
+          <it.icon aria-hidden />
           {it.label}
           {it.shortcut && (
             <K.Short className="tracking-normal">
@@ -195,7 +228,17 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
       ))}
     </div>
   ));
-  if (kit === "context") return <ContextMenuContent className="min-w-56 p-1.5">{items}</ContextMenuContent>;
+  // The header names who the menu acts on: the Riot ID when there is one (August's menu header).
+  const header = (
+    <K.Label className="truncate font-mono text-code font-normal text-muted-foreground">{player.riot_id ?? player.kick_username}</K.Label>
+  );
+  if (kit === "context")
+    return (
+      <ContextMenuContent className="min-w-60 p-1.5">
+        {header}
+        {items}
+      </ContextMenuContent>
+    );
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
@@ -203,22 +246,79 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
           <Ellipsis aria-hidden />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-56 p-1.5">
+      <DropdownMenuContent align="end" className="min-w-60 p-1.5">
+        {header}
         {items}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-// Riot ID hover card (DESIGN.md § Recipes): nothing at all when there is no Riot ID and none is
-// required; a popover on tap where there is no hover.
-function PlayerName({ player }: { player: Player }) {
+// Riot profile icon, as the August queue showed it. ponytail: Data Dragon is versioned; icons
+// newer than this version fall back to the initial. Bump the version when that shows.
+const PROFILE_ICON = (id: number) => `https://ddragon.leagueoflegends.com/cdn/15.7.1/img/profileicon/${id}.png`;
+
+function PlayerAvatar({ player }: { player: Player }) {
+  const name = player.riot_id?.split("#")[0] || player.kick_username;
+  return (
+    <Avatar className="size-9 border border-row-edge">
+      {player.rank?.icon != null && <AvatarImage src={PROFILE_ICON(player.rank.icon)} alt="" />}
+      <AvatarFallback className="bg-transparent text-meta text-muted-foreground uppercase">{name.slice(0, 1)}</AvatarFallback>
+    </Avatar>
+  );
+}
+
+// Respect (spec § Respect score): 100 is a clean record.
+function RespectBadge({ player }: { player: Player }) {
+  const { t } = useT();
+  const score = useQueue((v) => v.respect[player.kick_username.toLowerCase()]) ?? 100;
+  const tone =
+    score >= 80 ? "border-success/45 text-success" : score >= 50 ? "border-warning/45 text-warning" : "border-destructive/45 text-destructive";
+  return (
+    <span title={t("mod.respect")} className={cn(TAG, "tabular-nums", tone)}>
+      {score}
+    </span>
+  );
+}
+
+function WinRate({ player }: { player: Player }) {
+  const { t } = useT();
+  const w = player.rank?.wins;
+  const l = player.rank?.losses;
+  if (w == null || l == null || w + l === 0) return <span className="text-meta text-muted-foreground">—</span>;
+  const pct = Math.round((w / (w + l)) * 100);
+  return (
+    <span title={t("row.record", { w, l })} className={cn("text-meta tabular-nums", pct >= 50 ? "text-success" : "text-muted-foreground")}>
+      {pct}%
+    </span>
+  );
+}
+
+function Joined({ player }: { player: Player }) {
+  const { lang } = useT();
+  return (
+    <span className="inline-flex items-center gap-1.5 text-meta whitespace-nowrap text-muted-foreground tabular-nums" suppressHydrationWarning>
+      <Clock className="size-3.5" aria-hidden />
+      {new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit" }).format(new Date(player.joined_at))}
+    </span>
+  );
+}
+
+// The name: the Riot game name with its #TAG under it (August's queue), the Kick name when
+// there is no Riot ID. Hovering it opens the Riot ID card; a tap opens it where there is no hover.
+function PlayerName({ player, stacked }: { player: Player; stacked: boolean }) {
   const { t } = useT();
   const touch = useIsTouch();
   const required = useQueue((v) => v.settings.require_riot_id);
   const fairPlay = useQueue((v) => v.settings.fair_play);
   const now = useNow();
-  const name = <span className="truncate text-name">{player.kick_username}</span>;
+  const [game, tag] = player.riot_id ? player.riot_id.split("#") : [player.kick_username, null];
+  const name = (
+    <span className={cn("flex min-w-0", stacked ? "flex-col" : "items-baseline gap-1")}>
+      <span className="truncate text-name">{game}</span>
+      {tag && <span className="truncate font-mono text-caption tracking-normal normal-case text-muted-foreground">#{tag}</span>}
+    </span>
+  );
   if (!player.riot_id && !required) return name;
 
   const card = (
@@ -228,7 +328,9 @@ function PlayerName({ player }: { player: Player }) {
       ) : (
         <span className="text-meta text-muted-foreground">{t("card.no_riot")}</span>
       )}
+      <span className="text-meta text-muted-foreground">{player.kick_username}</span>
       <RankText player={player} />
+      {player.rank?.level != null && <span className="text-meta text-muted-foreground">{t("row.level", { n: player.rank.level })}</span>}
       <span className="text-meta text-muted-foreground">
         {t(player.source === "chat" ? "card.joined_chat" : "card.joined_manual", { t: now ? ago(player.joined_at, now, t) : "" })}
       </span>
@@ -246,7 +348,7 @@ function PlayerName({ player }: { player: Player }) {
     </div>
   );
   const trigger = (
-    <button type="button" tabIndex={-1} className="min-w-0 truncate text-left outline-none">
+    <button type="button" tabIndex={-1} className="min-w-0 text-left outline-none">
       {name}
     </button>
   );
@@ -266,19 +368,101 @@ function PlayerName({ player }: { player: Player }) {
   );
 }
 
-// A player row (DESIGN.md § Recipes → Queue row): number, name, tags, rank, menu. On the floor it
-// is bg-row; inside a card (a team roster) it goes back to the floor colour.
+// Hover quick actions (August): team 1, team 2, remove. Hidden until the row is hovered or has
+// focus inside, but always in the layout, so nothing shifts; absent where there is no hover.
+function QuickActions({ player }: { player: Player }) {
+  const { t } = useT();
+  const a = usePlayerActions(player);
+  const canWrite = useCanWrite();
+  const touch = useIsTouch();
+  if (touch) return null;
+  const btn = "size-8 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 focus-visible:opacity-100";
+  const to = (n: 1 | 2) => t("menu.move_to", { team: t(`team.${n}`) });
+  return (
+    <span className="flex items-center max-md:hidden">
+      {([1, 2] as const).map((n) =>
+        player.team === n ? null : (
+          <Button
+            key={n}
+            variant="ghost"
+            size="icon"
+            className={cn(btn, n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
+            disabled={!canWrite}
+            aria-label={to(n)}
+            title={to(n)}
+            onClick={() => void a.moveTo(n)}
+          >
+            <UserPlus aria-hidden />
+          </Button>
+        ),
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(btn, "text-muted-foreground")}
+        disabled={!canWrite}
+        aria-label={t("menu.remove")}
+        title={t("menu.remove")}
+        onClick={() => void a.remove()}
+      >
+        <X aria-hidden />
+      </Button>
+    </span>
+  );
+}
+
+// Drag and drop (August's sortable queue and rosters), native: a row drags onto another row to
+// take its place, or onto the other team's card to change team. Where there is no hover there
+// is no drag; the menu and the row keys do the same.
+let dragging: Player | null = null;
+export const draggedPlayer = () => dragging;
+
+export function useMoveTo() {
+  const { t } = useT();
+  const act = useAct();
+  return (p: Player, team: 1 | 2) =>
+    act("move_player", { p_player: p.id, p_status: "playing", p_team: team }, {
+      optimistic: { ids: [p.id], patch: (x) => ({ ...x, status: "playing", team }) },
+      done: "done.move_team",
+      vars: { name: p.kick_username, team: t(`team.${team}`) },
+    });
+}
+
+// The new place is the midpoint between the target and its neighbour on that side.
+function useReorder() {
+  const act = useAct();
+  const store = useStore();
+  return (d: Player, target: Player, at: "before" | "after") => {
+    const list = store.get().players.filter((p) => p.id !== d.id);
+    const i = list.findIndex((p) => p.id === target.id);
+    const nb = list[at === "before" ? i - 1 : i + 1];
+    const key = nb ? (target.sort_key + nb.sort_key) / 2 : target.sort_key + (at === "before" ? -1 : 1);
+    return act("reorder_player", { p_player: d.id, p_key: key }, {
+      optimistic: { ids: [d.id], patch: (x) => ({ ...x, sort_key: key }) },
+      done: "done.reorder",
+      vars: { name: d.kick_username },
+    });
+  };
+}
+
+// The queue table's columns (August): #, player, Kick, rank, win rate, joined, actions. Under
+// 768px the row keeps #, player and actions; under 1024px win rate and joined go too.
+export const TABLE_COLS =
+  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1.6fr)_minmax(0,1fr)_8.5rem_auto] lg:grid-cols-[2rem_minmax(0,1.6fr)_minmax(0,1fr)_8.5rem_4.5rem_6rem_auto]";
+
+// A player row (DESIGN.md § Recipes → Queue row). "table" is the Queue tab's row; "roster" is a
+// team card's row: number, avatar, name#tag, rank, menu, on the floor colour.
 export function PlayerRow({
   player,
   number,
-  inset = false,
+  variant = "table",
   arrivedAt,
   revertedAt,
   enterStyle,
 }: {
   player: Player;
   number?: number;
-  inset?: boolean;
+  variant?: "table" | "roster";
   arrivedAt?: number;
   revertedAt?: number;
   enterStyle?: { className?: string; style?: React.CSSProperties };
@@ -290,6 +474,12 @@ export function PlayerRow({
   // mounted, so a tab switch does not replay them.
   const [mountedAt] = useState(() => Date.now());
   const recent = (at?: number) => !!at && at > mountedAt - 2000;
+  const table = variant === "table";
+  const touch = useIsTouch();
+  const reorder = useReorder();
+  const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
+  // A roster row takes drops from its own team only; the other team's rows go to the card.
+  const accepts = (d: Player | null): d is Player => !!d && d.id !== player.id && (table || (d.status === "playing" && d.team === player.team));
 
   // Row keys fire only while the row itself has focus (DESIGN.md § Focus and keyboard).
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -335,33 +525,92 @@ export function PlayerRow({
           data-player={player.id}
           tabIndex={0}
           onKeyDown={onKeyDown}
+          draggable={canWrite && !touch}
+          onDragStart={(e) => {
+            dragging = player;
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", player.kick_username);
+          }}
+          onDragEnd={() => (dragging = null)}
+          onDragOver={(e) => {
+            if (!accepts(dragging)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const r = e.currentTarget.getBoundingClientRect();
+            setDropAt(e.clientY < r.top + r.height / 2 ? "before" : "after");
+          }}
+          onDragLeave={() => setDropAt(null)}
+          onDrop={(e) => {
+            const d = dragging;
+            const at = dropAt;
+            setDropAt(null);
+            if (!accepts(d) || !at) return;
+            e.preventDefault();
+            e.stopPropagation();
+            void reorder(d, player, at);
+          }}
           style={enterStyle?.style}
           className={cn(
-            "grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-3 rounded-xl border border-l-[3px] border-row-edge px-4 py-3 outline-none",
+            "group/row grid items-center gap-x-3 rounded-xl border border-l-[3px] border-row-edge px-4 py-3 outline-none",
             "transition-colors duration-150 ease-out hover:bg-accent focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
-            inset ? "bg-background" : "bg-row",
-            number === undefined && "grid-cols-[minmax(0,1fr)_auto_auto]",
+            table ? cn("bg-row", TABLE_COLS) : "grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] bg-background",
             edge,
             recent(arrivedAt) && "animate-arrive",
             recent(revertedAt) && "animate-highlight",
+            canWrite && !touch && "cursor-grab active:cursor-grabbing",
+            dropAt === "before" && "shadow-[0_-3px_0_0_var(--ring)]",
+            dropAt === "after" && "shadow-[0_3px_0_0_var(--ring)]",
             enterStyle?.className,
           )}
         >
-          {number !== undefined && (
-            <span className="w-7 font-serif text-numeral text-muted-foreground tabular-nums select-none">{number}</span>
-          )}
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <PlayerName player={player} />
-            <PlayerTags player={player} showState={!inset} />
+          <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{number}</span>
+          <div className="flex min-w-0 items-center gap-3">
+            <PlayerAvatar player={player} />
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+              <PlayerName player={player} stacked={table} />
+              {table && <RespectBadge player={player} />}
+              <PlayerTags player={player} showState={table} />
+            </div>
           </div>
-          {/* Always a cell, so rows with and without a rank keep the menu in one column. */}
-          <span className="max-sm:hidden">
+          {table && <span className="truncate text-meta text-muted-foreground max-md:hidden">{player.kick_username}</span>}
+          {/* Always a cell, so rows with and without a rank keep the next columns in place. */}
+          <span className={table ? "max-md:hidden" : "max-sm:hidden"}>
             <RankText player={player} />
           </span>
-          <RowMenu player={player} kit="dropdown" open={menuOpen} onOpenChange={setMenuOpen} />
+          {table && (
+            <span className="max-lg:hidden">
+              <WinRate player={player} />
+            </span>
+          )}
+          {table && (
+            <span className="max-lg:hidden">
+              <Joined player={player} />
+            </span>
+          )}
+          <span className="flex items-center justify-end">
+            {table && <QuickActions player={player} />}
+            <RowMenu player={player} kit="dropdown" open={menuOpen} onOpenChange={setMenuOpen} />
+          </span>
         </div>
       </ContextMenuTrigger>
       <RowMenu player={player} kit="context" />
     </ContextMenu>
+  );
+}
+
+// The table's header row, on the same grid as the rows.
+export function TableHeader() {
+  const { t } = useT();
+  const th = "text-caption text-muted-foreground uppercase select-none";
+  return (
+    <div aria-hidden className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", TABLE_COLS)}>
+      <span className={th}>#</span>
+      <span className={th}>{t("col.player")}</span>
+      <span className={th}>{t("col.kick")}</span>
+      <span className={th}>{t("col.rank")}</span>
+      <span className={cn(th, "max-lg:hidden")}>{t("col.winrate")}</span>
+      <span className={cn(th, "max-lg:hidden")}>{t("col.joined")}</span>
+      <span />
+    </div>
   );
 }

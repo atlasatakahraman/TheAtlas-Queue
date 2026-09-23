@@ -44,5 +44,13 @@ export default async function ChannelPage({ params, searchParams }: Props) {
   const state = data as QueueState;
   let tab = await tabOf(searchParams);
   if (tab === "settings" && state.role !== "owner") tab = "queue";
-  return <Dashboard initial={state} me={user.kickUserId} tab={tab} actions={{ lookupRank, findKickUser, reconnect }} />;
+  return (
+    <Dashboard
+      initial={state}
+      me={user.kickUserId}
+      account={{ name: user.username, image: user.image ?? null }}
+      tab={tab}
+      actions={{ lookupRank, findKickUser, reconnect }}
+    />
+  );
 }

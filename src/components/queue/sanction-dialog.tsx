@@ -155,3 +155,52 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
     </form>
   );
 }
+
+const KICK_NAME = /^[A-Za-z0-9_-]{1,40}$/;
+
+// Moderation → New action (August's "Yeni İşlem"): warn, punish or ban someone who is not in the
+// queue, by their Kick name. It hands over to the same form the row menu opens.
+export function NewSanctionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const { t } = useT();
+  const ui = useUi();
+  const canWrite = useCanWrite();
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  function go(kind: SanctionDraft["kind"]) {
+    const n = name.trim().replace(/^@/, "");
+    if (!KICK_NAME.test(n)) return setError(t("mod.new.invalid"));
+    onOpenChange(false);
+    setName("");
+    setError(null);
+    ui.setSanction({ name: n, kind });
+  }
+  return (
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange} title={t("mod.new.title")} description={t("mod.new.hint")}>
+      <form className="flex flex-col gap-4" onSubmit={(e) => (e.preventDefault(), go("warn"))}>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="new-sanction-name">{t("mod.new.name")}</Label>
+          <Input
+            id="new-sanction-name"
+            value={name}
+            autoComplete="off"
+            aria-invalid={!!error}
+            onChange={(e) => (setName(e.target.value), setError(null))}
+            className="h-9 max-md:h-11"
+          />
+          {error && <p className="text-meta text-destructive">{error}</p>}
+        </div>
+        <div className="flex flex-wrap justify-end gap-2 max-md:grid max-md:grid-cols-3">
+          <Button type="submit" variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite}>
+            {t("menu.warn.confirm")}
+          </Button>
+          <Button type="button" variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite} onClick={() => go("punish")}>
+            {t("menu.punish.confirm")}
+          </Button>
+          <Button type="button" variant="destructive" size="lg" className="max-md:h-11" disabled={!canWrite} onClick={() => go("ban")}>
+            {t("menu.ban.confirm")}
+          </Button>
+        </div>
+      </form>
+    </ResponsiveDialog>
+  );
+}

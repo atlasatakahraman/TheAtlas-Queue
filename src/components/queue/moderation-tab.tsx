@@ -1,10 +1,12 @@
 "use client";
-import { Ellipsis } from "lucide-react";
-import { Fragment, useMemo } from "react";
+import { Ellipsis, Plus, Trash2 } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
 import { FilterPills } from "@/components/queue/filter-pills";
 import { Tag } from "@/components/queue/player-row";
+import { NewSanctionDialog } from "@/components/queue/sanction-dialog";
 import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
+import { useDrawActions } from "@/components/queue/teams-tab";
 import { enter, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,11 +47,33 @@ export function ModerationTab() {
   const [sub, setSub] = useStored<Subtab>("queue.mod-subtab", "sanctions", SUBTABS);
   const moderation = useQueue((v) => v.moderation);
   const activity = useQueue((v) => v.activity);
+  const role = useQueue((v) => v.role);
+  const canWrite = useCanWrite();
+  const { clearModeration } = useDrawActions();
+  const [creating, setCreating] = useState(false);
   const e3 = enter(ui.entering, 3);
   return (
     <div className="flex flex-col gap-4">
       <div style={e3.style} className={cn("flex flex-wrap items-end justify-between gap-4", e3.className)}>
         <h2 className="font-serif text-title">{t("tab.moderation")}</h2>
+        <div className="flex flex-wrap items-center gap-2 max-md:w-full">
+          <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite} onClick={() => setCreating(true)}>
+            <Plus aria-hidden />
+            {t("mod.new")}
+          </Button>
+          {role === "owner" && (
+            <Button
+              variant="ghost"
+              size="lg"
+              className="text-destructive hover:text-destructive max-md:h-11"
+              disabled={!canWrite || moderation.length === 0}
+              onClick={() => void clearModeration()}
+            >
+              <Trash2 aria-hidden />
+              {t("mod.clear")}
+            </Button>
+          )}
+        </div>
         <FilterPills
           label={t("mod.show")}
           value={sub}
@@ -61,6 +85,7 @@ export function ModerationTab() {
         />
       </div>
       {sub === "sanctions" ? <Sanctions list={moderation} /> : <ActivityList list={activity} />}
+      <NewSanctionDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

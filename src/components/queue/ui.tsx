@@ -13,11 +13,16 @@ export type Ui = {
   setPalette: (open: boolean) => void;
   adding: boolean;
   setAdding: (open: boolean) => void;
+  // Add player straight into a team (a team card's Add); null adds to waiting.
+  addTo: 1 | 2 | null;
+  setAddTo: (team: 1 | 2 | null) => void;
   editing: Player | null;
   setEditing: (p: Player | null) => void;
   sanction: SanctionDraft | null;
   setSanction: (s: SanctionDraft | null) => void;
   focusSearch: () => void;
+  // The signed-in Kick account, for the top bar's account menu.
+  account: { name: string; image: string | null };
   // True during the first page load only: the entrance never replays (DESIGN.md § Motion).
   entering: boolean;
 };

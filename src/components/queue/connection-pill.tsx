@@ -32,14 +32,29 @@ const DOT: Record<Health, string> = {
   down: "bg-destructive",
 };
 
-export function ConnectionPill() {
+// Re-creates the Kick subscriptions now; the pill and the page's right-click menu both offer it.
+export function useReconnect() {
   const { t } = useT();
   const store = useStore();
+  const channelId = useQueue((v) => v.channel.id);
+  const [busy, setBusy] = useState(false);
+  const { reconnect } = useServerActions();
+  async function run() {
+    setBusy(true);
+    const error = await reconnect(channelId);
+    await store.refetch();
+    setBusy(false);
+    if (error) toast.error(t("pill.reconnect.failed"));
+  }
+  return { busy, reconnect: run };
+}
+
+export function ConnectionPill() {
+  const { t } = useT();
   const channel = useQueue((v) => v.channel);
   const now = useNow();
   const state = health(channel, now);
-  const [busy, setBusy] = useState(false);
-  const { reconnect } = useServerActions();
+  const { busy, reconnect } = useReconnect();
 
   // Only Not connected ever raises a toast (DESIGN.md § Connection health).
   const prev = useRef(state);
@@ -57,14 +72,6 @@ export function ConnectionPill() {
           : t("pill.listening.never")
         : t(`pill.${state}`);
   const short = t(`pill.short.${state}`);
-
-  async function onReconnect() {
-    setBusy(true);
-    const error = await reconnect(channel.id);
-    await store.refetch();
-    setBusy(false);
-    if (error) toast.error(t("pill.reconnect.failed"));
-  }
 
   return (
     <Popover>
@@ -93,7 +100,7 @@ export function ConnectionPill() {
           </p>
         )}
         {(state === "down" || state === "delayed") && (
-          <Button size="lg" variant="outline" disabled={busy} onClick={onReconnect}>
+          <Button size="lg" variant="outline" disabled={busy} onClick={() => void reconnect()}>
             {busy ? t("pill.reconnecting") : t("pill.reconnect")}
           </Button>
         )}

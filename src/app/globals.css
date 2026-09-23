@@ -103,7 +103,9 @@
   --row: var(--ink-row);
   --row-edge: var(--ink-row-edge);
   --highlight: var(--ink-highlight);
-  --muted: var(--ink-card);
+  /* Kâğıt's muted is its hover colour; Mürekkep's was the card colour, so a ghost button's
+     hover (bg-muted) vanished on every card surface, the top bar included (vault ADR 0016). */
+  --muted: var(--ink-hover);
   --muted-foreground: var(--ink-muted);
   --accent: var(--ink-hover);
   --accent-foreground: var(--ink-text);
@@ -323,6 +325,32 @@
 
 /* Reduced motion removes the entrance, the fades and the typing. The arrival highlight stays:
    it is information, not decoration. */
+/* Every button hovers and presses, and its icon moves like TheAtlas's sidebar (nav-item.tsx:
+   -6deg and x1.15 over 150ms). Stock shadcn's default button only hovers as a link, and its
+   press skips menu triggers (aria-haspopup). Recorded in DESIGN.md § Divergences. */
+@layer components {
+  [data-slot="button"][data-variant="default"]:not(:disabled):hover {
+    background-color: color-mix(in oklab, var(--primary) 85%, transparent);
+  }
+  [data-slot="button"][aria-haspopup]:not(:disabled):active {
+    translate: 0 1px;
+  }
+  [data-slot="button"] > svg {
+    transition: transform 150ms ease-out;
+  }
+  [data-slot="button"]:not(:disabled):hover > svg {
+    transform: rotate(-6deg) scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="button"] > svg,
+  [data-slot="button"]:hover > svg {
+    transition: none;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .type-in,
   .animate-enter {

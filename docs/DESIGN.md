@@ -475,7 +475,8 @@ wheel.
 - **Shortcut hints never appear on the page.** The shortcuts work everywhere, but their hints
   appear in exactly two places, both of them menus: the **right-click menu**
   (`ContextMenuShortcut`) and the **command palette** (`CommandShortcut`), each key drawn with
-  shadcn's `Kbd` inside that slot. No kbd chips in toolbars, buttons, headings, tooltips or
+  shadcn's `Kbd` inside that slot (the page menu and the toolbar's Shuffle menu follow the same
+  rule). No kbd chips in toolbars, buttons, headings, tooltips or
   empty states.
 
 **Global keys** fire only when no text input has focus and no row has keyboard focus.
@@ -544,22 +545,53 @@ Finishing opens the dashboard with its entrance. Theme and UI language start fro
 
 ### Dashboard (`/`, signed in)
 
-One column of chrome, then the active tab. Max width 1180px, centred.
+One column of chrome, then the active tab. Max width 1440px, centred (widened from 1180px at the owner's request, 2026-09-23, so the queue table and the feed sit side by side without crowding).
 
-**Masthead.** The channel name in Newsreader, typed in by `Typewriter`, followed by the gold
-italic ***Queue***, typed on after it. Below it, a muted dateline: day, session number, how many are waiting.
-Right-aligned: the [connection pill](#connection-health), the command palette button (a search
-icon, `aria-label`), the EN | TR switch, the theme button.
+**August parity (owner, 2026-09-23).** The owner compared this dashboard with the deployed
+August app and brought back its header, toolbar, queue table, menu icons and headers, fixed team
+boxes and drag and drop. The sections below describe the result; where they differ from what
+this document said before, the owner's choice wins.
+
+**Top bar.** A full-width band on `bg-card` with a `border-b`, sticky at the top while the page
+scrolls; its content keeps the page's 1440px (August's header). The TheAtlas tile (black on
+Kâğıt, white on Mürekkep) and the wordmark "TheAtlas *Queue*", **typed in by `Typewriter`**
+(*Queue* one 40ms beat after *TheAtlas*): it is the page's title; right: the [connection pill](#connection-health), the command palette button
+(a search icon, `aria-label`), the EN | TR switch, GitHub, the theme button, a settings gear
+(streamer only; **Settings is not a tab**, this gear, the account menu, `⋯` and the palette open
+it) and the **account menu** (avatar and name; Settings, **Sign out**). Under 768px the middle
+tools fold into `⋯`; the pill and the account stay.
+
+**Masthead.** No big channel title (owner, 2026-09-23: it repeated the wordmark); an `sr-only`
+`h1` keeps the heading. A muted dateline led by the channel name: channel · day · live state ·
+how many are waiting. Right: **the toolbar**, the same on every tab.
+
+**Toolbar.** Add player · **Pick ×1 ×2 ×3** with its source (*Waiting*, *Teams*, *Whole
+queue*; remembered per browser) · **Shuffle ▾** (Draw teams `D`, Reroll `R`, Shuffle current
+teams, Clear teams) · **Clear queue** (destructive ghost). Everything in it has an Undo toast.
+Under 768px the labels become `sr-only` and the icons stay.
+
+**Page menu.** Right-click anywhere on the dashboard, kept short (owner, 2026-09-23): a header
+*Queue management (N players)*, **Reload page** first, then Add player, Draw teams, Pick 1, Clear
+queue, Search and commands, theme. Everything else is in the toolbar, the top bar or the account
+menu. Rows and team cards keep their own menus; text fields keep the browser's.
+
+**Errors.** A crash or a failed load shows Retry and **Reload page** where the content would be,
+with one line saying the queue is safe on the server (it is: Postgres holds it, and a reload
+refetches `get_state`). `global-error.tsx` covers a failure of the root layout itself, in both
+languages, without the providers.
+
+**Footer.** "Atlas Ata KAHRAMAN", muted caption, centred. August's hover easter egg on it stays
+removed (spec D14).
 
 **Tabs.** shadcn `Tabs`, underline style, in this order. These are the current tabs minus Maç
 Geçmişi; do not add to them without a reason written here.
 
 | Tab | Contents |
 |---|---|
-| **Queue** (with count) | Filters All / Waiting / In game / Away · search · **Add player** (the view's primary) · the row list · right: *From chat* feed and four stat tiles |
-| **Teams** | The match headline · two team cards · the fair-play switch · Draw teams (primary) / Reroll / Pick from waiting |
-| **Moderation** | Filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)) |
-| **Settings** | Streamer only. Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data |
+| **Queue** (with count) | Filters All / Waiting / In game / Away · search · the queue table · right: *From chat* feed and four stat tiles |
+| **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Reroll / Pick from waiting / Draw teams (primary) |
+| **Moderation** | **New action** (sanction a Kick name that is not in the queue) · **Clear history** (streamer only, undoable) · filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)) |
+| **Settings** | Streamer only, **not in the tab bar** (opened from the top bar). Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data |
 
 A **Watch page ↗** link sits at the tab bar's right edge.
 
@@ -648,20 +680,33 @@ their channel name.
 
 ## Recipes
 
-### Queue row
+### Queue table
 
 ```
-[ 3 ]  brkdmr  (in game)                       Platinum IV   [⋯]
-  │      │        │                                 │          └ icon button: the same menu as right-click
-  │      │        └ state tag: word + colour, never colour alone
-  │      └ text-name; hovering it (350ms delay) opens the Riot ID hover card
-  └ text-numeral, muted, tabular
+ #   PLAYER                          KICK        RANK          WIN RATE  JOINED
+[3] (◉) brkdmr         100 (in game)  brkdmr_tv   ● Platinum IV   56%     ◷ 21:40   [+][+][×] [⋯]
+     │   │ #TR1         │                                                            │         └ the same menu as right-click
+     │   └ Riot game name (text-name), #TAG under it in mono; the Kick name when there is no Riot ID
+     │                  └ respect badge (success ≥ 80, warning ≥ 50, destructive below), then the tags
+     └ Riot profile icon (Data Dragon), the initial when there is none
 ```
 
-`rounded-xl bg-row border border-row-edge border-l-[3px] px-4 py-3`, a grid of number · name ·
-tags · rank · menu. The row is focusable (`tabIndex={0}`) for the row keys. **The Riot ID is not
-in the row.** It lives in the hover card, because the Riot ID requirement can be switched off,
-and a column that is empty half the time is noise.
+The owner chose August's table over the earlier "no Riot ID in the row" rule. `rounded-xl bg-row
+border border-row-edge border-l-[3px] px-4 py-3` rows under a header row on the same grid
+(`TABLE_COLS`). Under 1024px win rate and joined go; under 768px the Kick and rank columns go
+and the header hides. **Quick actions** (move to team 1, team 2, remove) sit before `⋯`, in the
+layout but at opacity 0 until the row is hovered or has focus inside, so nothing shifts; there is
+no hover on touch, so they are not rendered there. The row is focusable (`tabIndex={0}`) for the
+row keys.
+
+### Drag and drop
+
+Native HTML drag and drop (no library; `@dnd-kit` stays removed). A queue row dragged onto
+another row takes its place above or below it (a 3px `--ring` line shows where); a roster row
+reorders inside its team the same way, and dropped on the other team's card it changes team
+(the card rings in its team colour). The order is `players.sort_key`; the joined column keeps
+the join time. Every drop has an Undo toast. Touch has no drag: the menu and the row keys do the
+same.
 
 ### Riot ID hover card
 
@@ -673,10 +718,11 @@ touch it becomes a `Popover` opened by tapping the name.
 ### Row menu
 
 shadcn `ContextMenu` on the row, the same content in a `DropdownMenu` on the `⋯` button, and on
-long-press on touch. Groups: copy (Riot ID, Kick name) · edit · move (to team 1 / team 2, each
-with its colour swatch and the team's **current name**) · mark away · protection (*Remove
-protection*, only on a protected sub) · moderation (warn, punish, ban) · remove. Ban and remove
-are `variant="destructive"`. Shortcut hints go here.
+long-press on touch. A header line names the player (the Riot ID in mono, else the Kick name),
+and **every item has its lucide icon** (August). Groups: copy (Riot ID, Kick name) · edit · move
+(to team 1 / team 2, icon and label in the team colour, with the team's **current name**) · mark
+away · protection (*Remove protection*, only on a protected sub) · moderation (warn and punish in
+warning, ban) · remove. Ban and remove are `variant="destructive"`. Shortcut hints go here.
 
 ### Add player
 
@@ -700,10 +746,19 @@ shortcuts are written down.
 
 ### Team card
 
-`bg-card rounded-xl` with a 5px top bar in `--team-1` / `--team-2`, the team **name** (a label)
-in `text-team` Newsreader in the team colour, the average rank right-aligned in muted text, then
-the roster as inset rows (`bg-background border-row-edge`, `gap-1.5`). A protected subscriber
-shows `🛡 protected`.
+`bg-card rounded-xl` with a 5px top bar in `--team-1` / `--team-2`. **No team name in the card**
+(owner, 2026-09-23): the match headline above names both, team 1 left over its card, *vs* in the
+middle, team 2 right-aligned over its card. The card's header line is muted: the count and the
+average rank, and on the right **Add to {team}** in the team colour, which opens a searchable
+list of waiting players (picking one moves them into this team) ending in *Add a new player…*
+(Add player, then the new player moves here). Every empty slot opens the same list.
+Right-click on the card (not on a player) opens **the team's menu**: *Team N · n of size*, Add
+from waiting ▸ (the waiting players), Add a new player…, Shuffle current teams, Clear teams. Then
+the roster as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name
+`#TAG`, rank, menu. **The card always holds team-size slots** (August's fixed team boxes): the
+free ones are dashed rows reading *Empty slot*, every slot one row high, so a card keeps its
+height while names land and leave, and the two cards stretch to the same height. A protected
+subscriber shows `🛡 protected`.
 
 ### Tags
 
@@ -917,6 +972,9 @@ page's shows the wordmark; each `/watch` shows the channel name and its current 
 
 `lucide-react`, as today. Size comes from the button's size variant; do not set `size-*` on an
 icon inside a button. Decorative icons are `aria-hidden`; icon-only buttons carry `aria-label`.
+Menu items carry an icon each (the row menu, the page menu, the toolbar's Shuffle menu, the
+account menu); the command palette does not. GitHub's mark is inline SVG, since lucide 1.x ships
+no brand icons.
 The 🛡 subscriber mark is the one emoji, because chat replies use it too.
 
 ---
@@ -946,6 +1004,18 @@ these; re-apply them after:
   thumb is `bg-row-edge` (stock `bg-border` is a hairline, near invisible on Mürekkep). The page
   scrolls inside this `ScrollArea` (root layout), so no native scrollbar is ever drawn.
 
+**Button states, without touching `ui/button.tsx`** (owner, 2026-09-23: "some buttons have no
+hover or active effect"). In `globals.css`, `@layer components`: the `default` variant hovers at
+85% `--primary` (stock only hovers it as a link), a menu trigger (`aria-haspopup`) presses 1px
+like every other button (stock skips it), and a button's icon turns −6° and grows ×1.15 over
+150ms on hover, TheAtlas's sidebar motion (`packages/@ui/.../appbar/nav-item.tsx`); none of it
+under reduced motion. And Mürekkep's `--muted` is `--ink-hover`, as Kâğıt's already was: it was
+`--ink-card`, so the ghost button's `hover:bg-muted` vanished on every card surface (vault ADR
+0016, fix the token, not the variant). Filter pills sit on `bg-muted` and got a shade lighter.
+
+**Settings save on blur.** A text field saves its section when it loses focus; switches and
+selects keep the section's Save button.
+
 **Ported, not generated:** `src/components/typewriter.tsx` is TheAtlas's, copied verbatim. It is
 not a shadcn file and is never regenerated; it is re-copied from upstream.
 
@@ -968,8 +1038,7 @@ not a shadcn file and is never regenerated; it is re-copied from upstream.
 
 - Don't write a hex literal or an arbitrary `text-[…]` size in a component.
 - Don't use teal or orange for anything but a team, or red for a team.
-- Don't show a shortcut hint outside the row menu and the command palette.
-- Don't show a Riot ID column in the row.
+- Don't show a shortcut hint outside the menus (row, page, toolbar) and the command palette.
 - Don't toast an event that came from chat.
 - Don't ask "are you sure?" for anything Undo can reverse.
 - Don't bold a serif heading, set a heading in sans, or set a name in mono.

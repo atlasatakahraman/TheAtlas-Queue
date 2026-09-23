@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
+import { useMoveTo } from "@/components/queue/player-row";
 import { ResponsiveDialog } from "@/components/queue/responsive-dialog";
 import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useNow } from "@/components/use-now";
 import { isError, type RpcError } from "@/lib/queue-store";
 import { ago } from "@/lib/time";
+import type { ChangeEvent, Player } from "@/types/queue";
 
 const NAME = /^\S{1,40}$/;
 const RIOT_ID = /^[^#]{3,16}#[A-Za-z0-9]{3,5}$/u;
@@ -67,18 +69,23 @@ export function AddPlayerDialog() {
   const { t } = useT();
   const ui = useUi();
   return (
-    <ResponsiveDialog open={ui.adding} onOpenChange={ui.setAdding} title={t("action.add")}>
-      {ui.adding && <AddPlayerForm onDone={() => ui.setAdding(false)} />}
+    <ResponsiveDialog
+      open={ui.adding}
+      onOpenChange={ui.setAdding}
+      title={ui.addTo ? t("teams.add", { team: t(`team.${ui.addTo}`) }) : t("action.add")}
+    >
+      {ui.adding && <AddPlayerForm team={ui.addTo} onDone={() => ui.setAdding(false)} />}
     </ResponsiveDialog>
   );
 }
 
-function AddPlayerForm({ onDone }: { onDone: () => void }) {
+function AddPlayerForm({ team, onDone }: { team: 1 | 2 | null; onDone: () => void }) {
   const { t } = useT();
   const act = useAct();
   const canWrite = useCanWrite();
   const fieldErrors = useFieldErrors();
   const { lookupRank } = useServerActions();
+  const moveTo = useMoveTo();
   const now = useNow();
   const channelId = useQueue((v) => v.channel.id);
   const required = useQueue((v) => v.settings.require_riot_id);
@@ -124,6 +131,9 @@ function AddPlayerForm({ onDone }: { onDone: () => void }) {
     if (isError(res)) return setErrors(fieldErrors(res));
     if (r && riotEnabled) void lookupRank(channelId, r);
     onDone();
+    // From a team card: straight into that team, as a second (undoable) step.
+    const added = (res as ChangeEvent).rows.find((row) => row._t === "players") as unknown as Player | undefined;
+    if (team && added) void moveTo(added, team);
   }
 
   return (

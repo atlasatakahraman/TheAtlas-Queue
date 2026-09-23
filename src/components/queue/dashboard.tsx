@@ -2,9 +2,11 @@
 import { ListOrdered, Settings2, ShieldAlert, Swords } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
+import { TopBar } from "@/components/queue/header";
 import { Masthead } from "@/components/queue/masthead";
 import { ModerationTab } from "@/components/queue/moderation-tab";
 import { NotMember } from "@/components/queue/not-member";
+import { PageMenu } from "@/components/queue/page-menu";
 import { Hotkeys, Palette } from "@/components/queue/palette";
 import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dialogs";
 import { QueueTab } from "@/components/queue/queue-tab";
@@ -20,11 +22,19 @@ import type { Labels } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { DashboardActions, Player, QueueState } from "@/types/queue";
 
-export function Dashboard({ initial, me, tab, actions }: { initial: QueueState; me: number; tab: Tab; actions: DashboardActions }) {
+type Account = { name: string; image: string | null };
+
+export function Dashboard({ initial, me, account, tab, actions }: {
+  initial: QueueState;
+  me: number;
+  account: Account;
+  tab: Tab;
+  actions: DashboardActions;
+}) {
   return (
     <QueueProvider initial={initial} me={me} actions={actions}>
       <ChannelLabels>
-        <Shell initialTab={tab} />
+        <Shell initialTab={tab} account={account} />
       </ChannelLabels>
     </QueueProvider>
   );
@@ -38,7 +48,7 @@ function ChannelLabels({ children }: { children: React.ReactNode }) {
 
 const ICONS = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, settings: Settings2 } as const;
 
-function Shell({ initialTab }: { initialTab: Tab }) {
+function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const { t } = useT();
   const role = useQueue((v) => v.role);
   const slug = useQueue((v) => v.channel.slug);
@@ -47,7 +57,13 @@ function Shell({ initialTab }: { initialTab: Tab }) {
   const offline = useQueue((v) => !v.online || v.conn === "down");
   const [tab, setTabState] = useState<Tab>(initialTab);
   const [palette, setPalette] = useState(false);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAddingState] = useState(false);
+  const [addTo, setAddTo] = useState<1 | 2 | null>(null);
+  // Closing Add player forgets its team, so the toolbar's Add adds to waiting again.
+  const setAdding = useCallback((open: boolean) => {
+    setAddingState(open);
+    if (!open) setAddTo(null);
+  }, []);
   const [editing, setEditing] = useState<Player | null>(null);
   const [sanction, setSanction] = useState<SanctionDraft | null>(null);
   const [entering, setEntering] = useState(true);
@@ -78,13 +94,23 @@ function Shell({ initialTab }: { initialTab: Tab }) {
 
   if (lost) return <NotMember />;
 
-  const tabs: Tab[] = role === "owner" ? ["queue", "teams", "moderation", "settings"] : ["queue", "teams", "moderation"];
+  // Settings is not a tab (owner, 2026-09-23): the top bar's gear, the account menu, the page menu
+  // and the palette open it.
+  const tabs: Tab[] = ["queue", "teams", "moderation"];
   const e2 = enter(entering, 2);
 
   return (
-    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, editing, setEditing, sanction, setSanction, focusSearch, entering }}>
+    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, editing, setEditing, sanction, setSanction, focusSearch, entering, account }}>
       <SearchRefContext.Provider value={search}>
-      <div className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-6 px-8 py-10 max-md:px-4 max-md:pt-6 max-md:pb-28">
+      <PageMenu>
+      {/* The top bar runs the full width on its own ground (August's header); its content keeps
+          the page's width. It sticks while the page scrolls. */}
+      <div className="sticky top-0 z-40 border-b border-border bg-card">
+        <div className="mx-auto w-full max-w-[1440px] px-8 py-3 max-md:px-4">
+          <TopBar />
+        </div>
+      </div>
+      <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-6 px-8 pt-8 pb-4 max-md:px-4 max-md:pt-6 max-md:pb-28">
         <Masthead />
         {offline && (
           <div role="status" className="rounded-lg border border-warning/45 px-4 py-2.5 text-meta text-foreground">
@@ -115,7 +141,12 @@ function Shell({ initialTab }: { initialTab: Tab }) {
             </TabsContent>
           )}
         </Tabs>
+        {/* The credit August carried (its hover easter egg stays removed, spec D14). */}
+        <footer className="mt-auto pt-6 text-center text-caption tracking-wider text-muted-foreground/60 uppercase select-none">
+          Atlas Ata KAHRAMAN
+        </footer>
       </div>
+      </PageMenu>
 
       <AddPlayerDialog />
       <EditPlayerDialog />

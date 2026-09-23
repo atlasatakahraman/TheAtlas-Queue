@@ -57,7 +57,15 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
   return { draft, set, dirty: changed.length > 0, save, state, errors };
 }
 
-function Section({ title, hint, children, step }: { title: string; hint: string; children: React.ReactNode; step: number }) {
+// A text field saves its section when it loses focus (owner, 2026-09-23); switches and selects
+// keep the section's Save. save() does nothing when nothing changed.
+function Section({ title, hint, children, step, onAutosave }: {
+  title: string;
+  hint: string;
+  children: React.ReactNode;
+  step: number;
+  onAutosave?: () => void;
+}) {
   const ui = useUi();
   const e = enter(ui.entering, step);
   return (
@@ -69,7 +77,14 @@ function Section({ title, hint, children, step }: { title: string; hint: string;
         <h3 className="font-serif text-team">{title}</h3>
         <p className="text-meta text-muted-foreground">{hint}</p>
       </div>
-      <div className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4">{children}</div>
+      <div
+        className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4"
+        onBlur={(e) => {
+          if (onAutosave && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) onAutosave();
+        }}
+      >
+        {children}
+      </div>
     </section>
   );
 }
@@ -126,7 +141,7 @@ function QueueSection() {
   const { t } = useT();
   const s = useSection([...COMMANDS, "team_size"] as const);
   return (
-    <Section title={t("settings.queue")} hint={t("settings.queue.hint")} step={3}>
+    <Section title={t("settings.queue")} hint={t("settings.queue.hint")} step={3} onAutosave={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         {COMMANDS.map((k) => (
           <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]}>
@@ -165,7 +180,7 @@ function RiotSection() {
   const { t } = useT();
   const s = useSection(["riot_enabled", "require_riot_id", "riot_region"] as const);
   return (
-    <Section title={t("settings.riot")} hint={t("settings.riot.hint")} step={4}>
+    <Section title={t("settings.riot")} hint={t("settings.riot.hint")} step={4} onAutosave={() => void s.save()}>
       <SwitchField id="riot_enabled" label={t("settings.riot_enabled")} hint={t("settings.riot_enabled.hint")} checked={s.draft.riot_enabled} onChange={(v) => s.set("riot_enabled", v)} />
       <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => s.set("require_riot_id", v)} />
       <Field label={t("settings.riot_region")} hint={t("settings.riot_region.hint")} error={s.errors.riot_region}>
@@ -201,7 +216,7 @@ function DrawsSection() {
     />
   );
   return (
-    <Section title={t("settings.draws")} hint={t("settings.draws.hint")} step={5}>
+    <Section title={t("settings.draws")} hint={t("settings.draws.hint")} step={5} onAutosave={() => void s.save()}>
       <Field label={t("settings.draw_reveal")} hint={t("settings.draw_reveal.hint")}>
         <Select value={s.draft.draw_reveal} onValueChange={(v) => s.set("draw_reveal", v as Settings["draw_reveal"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
@@ -355,7 +370,7 @@ function WatchSectionSettings() {
   const toggle = (x: WatchSection, on: boolean) =>
     s.set("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
   return (
-    <Section title={t("settings.watch")} hint={t("settings.watch.hint")} step={7}>
+    <Section title={t("settings.watch")} hint={t("settings.watch.hint")} step={7} onAutosave={() => void s.save()}>
       <SwitchField id="watch_enabled" label={t("settings.watch_enabled")} hint={t("settings.watch_enabled.hint")} checked={s.draft.watch_enabled} onChange={(v) => s.set("watch_enabled", v)} />
       {SECTIONS.map((x) => (
         <SwitchField
@@ -392,7 +407,7 @@ function LabelsSection() {
     s.set("labels", { ...s.draft.labels, [lang]: next });
   };
   return (
-    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} step={8}>
+    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} step={8} onAutosave={() => void s.save()}>
       <Field label={t("settings.stream_locale")} hint={t("settings.stream_locale.hint")}>
         <Select value={s.draft.stream_locale} onValueChange={(v) => s.set("stream_locale", v as Settings["stream_locale"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>

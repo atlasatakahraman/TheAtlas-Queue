@@ -1,15 +1,28 @@
 "use client";
-import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { ChevronDown, Shuffle, UserPlus, UsersRound } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
-import { PlayerRow, RankText, Tag } from "@/components/queue/player-row";
+import { draggedPlayer, PlayerRow, RankText, Tag, useMoveTo } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typewriter } from "@/components/typewriter";
 import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { useMedia } from "@/components/use-client-state";
 import { isError } from "@/lib/queue-store";
@@ -21,7 +34,8 @@ import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
 // 30ms a character and sharpening over 200ms. Off the motion ladder on purpose: it is a sequence.
 export const REVEAL = { step: 160, speed: 30, sharpen: 200 };
 
-// Draw, reroll and pick, shared by the Teams tab, the command palette and the global keys.
+// Draw, reroll, shuffle, pick and the clears, shared by the toolbar, the Teams tab, the page
+// menu, the command palette and the global keys.
 export type PickSource = "waiting" | "teams" | "all";
 
 export function useDrawActions() {
@@ -35,8 +49,15 @@ export function useDrawActions() {
   return {
     draw: () => act("draw_teams", { p_base: base(), p_reroll: false }, { done: "done.draw" }).then(stale),
     reroll: () => act("draw_teams", { p_base: base(), p_reroll: true }, { done: "done.reroll" }).then(stale),
+    shuffle: () => act("shuffle_teams", { p_base: base() }, { done: "done.shuffle_teams" }).then(stale),
     pick: (n: number, source: PickSource = "waiting") =>
       act("pick_players", { p_n: n, p_source: source, p_base: base() }, { done: `done.pick.${source}`, vars: { n } }).then(stale),
+    clearTeams: () => act("clear_teams", {}, { done: "done.clear_teams" }),
+    clearQueue: () => {
+      const ids = store.get().players.map((p) => p.id);
+      return act("remove_players", { p_ids: null }, { optimistic: { ids, patch: () => null }, done: "done.clear_queue" });
+    },
+    clearModeration: () => act("clear_moderation", {}, { done: "done.clear_moderation" }),
   };
 }
 
@@ -65,11 +86,105 @@ export function revealDuration(order: Landing[]): number {
   return Math.max(0, ...order.map((o) => o.at + [...o.entry.kick_username].length * REVEAL.speed + REVEAL.sharpen));
 }
 
+// Every roster slot is one row high, filled or not: a team card holds team-size slots (August's
+// fixed team boxes), so the cards keep their height while names land and leave.
+const SLOT = "min-h-[3.875rem]";
+
+function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?: () => void }) {
+  const { t } = useT();
+  const cls = cn(
+    "grid grid-cols-[1.25rem_minmax(0,1fr)] items-center gap-x-3 rounded-xl border border-dashed border-row-edge px-4 py-3 text-left",
+    SLOT,
+  );
+  return Array.from({ length: Math.max(size - from, 0) }, (_, i) => {
+    const body = (
+      <>
+        <span className="font-serif text-numeral text-muted-foreground/50 tabular-nums select-none">{from + i + 1}</span>
+        <span className="inline-flex items-center gap-2 text-meta text-muted-foreground">
+          {onAdd && <UserPlus className="size-4" aria-hidden />}
+          {t("teams.slot.empty")}
+        </span>
+      </>
+    );
+    return onAdd ? (
+      <button
+        key={i}
+        type="button"
+        onClick={onAdd}
+        className={cn(cls, "outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40")}
+      >
+        {body}
+      </button>
+    ) : (
+      <div key={i} className={cls}>
+        {body}
+      </div>
+    );
+  });
+}
+
+// A team card's Add (owner, 2026-09-23): a waiting player straight into this team, or a new one
+// through Add player, which then moves them here.
+function AddToTeam({ team, open, onOpenChange, children }: {
+  team: 1 | 2;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  children: React.ReactNode;
+}) {
+  const { t } = useT();
+  const ui = useUi();
+  const moveTo = useMoveTo();
+  // Select the stable array and filter outside: a selector that builds a new array makes
+  // useSyncExternalStore see a new snapshot every render and loop.
+  const players = useQueue((v) => v.players);
+  const waiting = useMemo(() => players.filter((p) => p.status === "waiting"), [players]);
+  const pick = (f: () => void) => () => {
+    onOpenChange(false);
+    f();
+  };
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverAnchor asChild>{children}</PopoverAnchor>
+      <PopoverContent align="end" className="w-72 p-0">
+        <Command>
+          <CommandInput placeholder={t("teams.add.search")} />
+          <CommandList className="max-h-72">
+            <CommandEmpty>{t("teams.add.none")}</CommandEmpty>
+            {waiting.length > 0 && (
+              <CommandGroup heading={t("teams.add.waiting")}>
+                {waiting.map((p) => (
+                  <CommandItem key={p.id} value={`${p.kick_username} ${p.riot_id ?? ""}`} onSelect={pick(() => void moveTo(p, team))}>
+                    <span className="text-name">{p.kick_username}</span>
+                    {p.riot_id && <span className="truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            <CommandSeparator />
+            <CommandGroup>
+              <CommandItem
+                value="__new"
+                onSelect={pick(() => {
+                  ui.setAddTo(team);
+                  ui.setAdding(true);
+                })}
+              >
+                <UserPlus aria-hidden />
+                {t("teams.add.new")}
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // One name landing: typed in with Typewriter, its 🛡 rising with it.
 export function LandingName({ entry, at }: { entry: DrawEntry; at: number }) {
   const { t } = useT();
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-row-edge bg-background px-4 py-3">
+    <div className={cn("flex items-center gap-2 rounded-xl border border-row-edge bg-background px-4 py-3", SLOT)}>
       <Typewriter text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
       {entry.locked && (
         <span className="animate-enter" style={{ animationDelay: `${at}ms` }}>
@@ -80,39 +195,136 @@ export function LandingName({ entry, at }: { entry: DrawEntry; at: number }) {
   );
 }
 
-function TeamCard({ team, count, size, avg, children }: {
+function TeamCard({ team, count, size, avg, addable = false, children }: {
   team: 1 | 2;
   count: number;
   size: number;
   avg?: React.ReactNode;
+  addable?: boolean;
   children: React.ReactNode;
 }) {
   const { t } = useT();
-  return (
-    <section className="flex min-w-0 flex-col overflow-hidden rounded-xl bg-card">
+  const moveTo = useMoveTo();
+  const canWrite = useCanWrite();
+  const [over, setOver] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const canAdd = addable && canWrite && count < size;
+  // Drop target for a player of the other team, or anyone dragged here (August's team boxes).
+  const takes = (d: ReturnType<typeof draggedPlayer>) => !!d && !(d.status === "playing" && d.team === team);
+  const card = (
+    <section
+      onDragOver={(e) => {
+        if (!takes(draggedPlayer())) return;
+        e.preventDefault();
+        setOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false);
+      }}
+      onDrop={(e) => {
+        const d = draggedPlayer();
+        setOver(false);
+        if (!d || !takes(d)) return;
+        e.preventDefault();
+        void moveTo(d, team);
+      }}
+      className={cn(
+        "flex min-w-0 flex-col overflow-hidden rounded-xl bg-card transition-shadow",
+        over && (team === 1 ? "ring-2 ring-team-1/60" : "ring-2 ring-team-2/60"),
+      )}
+    >
       <div className={cn("h-[5px]", team === 1 ? "bg-team-1" : "bg-team-2")} aria-hidden />
       <div className="flex flex-col gap-3 p-4">
-        <header className="flex items-baseline justify-between gap-3">
-          <h3
-            className={cn(
-              "min-w-0 truncate font-serif text-team",
-              team === 1
-                ? "text-team-1 selection:bg-team-1 selection:text-background"
-                : "text-team-2 selection:bg-team-2 selection:text-background",
+        {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
+        <AddToTeam team={team} open={adding} onOpenChange={setAdding}>
+          <header aria-label={t(`team.${team}`)} className="flex min-h-9 items-center justify-between gap-3 text-meta text-muted-foreground">
+            <span className="flex min-w-0 items-baseline gap-3">
+              <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
+              {avg}
+            </span>
+            {addable && (
+              <Button
+                variant="ghost"
+                size="lg"
+                className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
+                disabled={!canAdd}
+                onClick={() => setAdding(true)}
+              >
+                <UserPlus aria-hidden />
+                {t("teams.add", { team: t(`team.${team}`) })}
+              </Button>
             )}
-          >
-            {t(`team.${team}`)}
-          </h3>
-          <span className="flex shrink-0 items-baseline gap-3 text-meta text-muted-foreground">
-            {avg}
-            <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
-          </span>
-        </header>
+          </header>
+        </AddToTeam>
         <div data-rows className="flex flex-col gap-1.5">
           {children}
+          <EmptySlots from={count} size={size} onAdd={canAdd ? () => setAdding(true) : undefined} />
         </div>
       </div>
     </section>
+  );
+  if (!addable) return card;
+  // Right-click on the card (not on a player, whose row has its own menu): this team's menu.
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>{card}</ContextMenuTrigger>
+      <TeamMenu team={team} count={count} size={size} canAdd={canAdd} />
+    </ContextMenu>
+  );
+}
+
+function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; size: number; canAdd: boolean }) {
+  const { t } = useT();
+  const ui = useUi();
+  const canWrite = useCanWrite();
+  const moveTo = useMoveTo();
+  const players = useQueue((v) => v.players);
+  const waiting = useMemo(() => players.filter((p) => p.status === "waiting"), [players]);
+  const playing = players.length - waiting.length - players.filter((p) => p.status === "away").length;
+  const { shuffle, clearTeams } = useDrawActions();
+  return (
+    <ContextMenuContent className="min-w-60 p-1.5">
+      <ContextMenuLabel className={cn("font-normal", team === 1 ? "text-team-1" : "text-team-2")}>
+        {t(`team.${team}`)} · {t("teams.count", { n: count, size })}
+      </ContextMenuLabel>
+      <ContextMenuSub>
+        <ContextMenuSubTrigger disabled={!canAdd}>
+          <UserPlus aria-hidden />
+          {t("teams.add.waiting")}
+        </ContextMenuSubTrigger>
+        <ContextMenuSubContent className="max-h-80 min-w-52 overflow-y-auto p-1.5">
+          {waiting.length === 0 ? (
+            <ContextMenuItem disabled>{t("teams.add.none")}</ContextMenuItem>
+          ) : (
+            waiting.map((p) => (
+              <ContextMenuItem key={p.id} onSelect={() => void moveTo(p, team)}>
+                <span className="truncate">{p.kick_username}</span>
+                {p.riot_id && <span className="ml-auto truncate pl-3 font-mono text-code text-muted-foreground">{p.riot_id}</span>}
+              </ContextMenuItem>
+            ))
+          )}
+        </ContextMenuSubContent>
+      </ContextMenuSub>
+      <ContextMenuItem
+        disabled={!canAdd}
+        onSelect={() => {
+          ui.setAddTo(team);
+          ui.setAdding(true);
+        }}
+      >
+        <UserPlus aria-hidden />
+        {t("teams.add.new")}
+      </ContextMenuItem>
+      <ContextMenuSeparator />
+      <ContextMenuItem disabled={!canWrite || playing < 2} onSelect={() => void shuffle()}>
+        <Shuffle aria-hidden />
+        {t("action.shuffle_teams")}
+      </ContextMenuItem>
+      <ContextMenuItem variant="destructive" disabled={!canWrite || playing === 0} onSelect={() => void clearTeams()}>
+        <UsersRound aria-hidden />
+        {t("action.clear_teams")}
+      </ContextMenuItem>
+    </ContextMenuContent>
   );
 }
 
@@ -163,8 +375,9 @@ export function TeamsTab() {
   const draw = useQueue((v) => v.draw);
   const reveal = useQueue((v) => v.reveal);
   const motion = useRevealMotion();
-  const { draw: drawTeams, reroll, pick } = useDrawActions();
+  const { draw: drawTeams, reroll, shuffle, clearTeams, pick } = useDrawActions();
   const waiting = useQueue((v) => v.players.filter((p) => p.status === "waiting").length);
+  const playing = useQueue((v) => v.players.filter((p) => p.status === "playing").length);
 
   const rosters = useMemo(
     () => ([1, 2] as const).map((n) => players.filter((p) => p.status === "playing" && p.team === n)),
@@ -176,28 +389,25 @@ export function TeamsTab() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Team 1 over its card on the left, vs in the middle, team 2 on the right (owner, 2026-09-23). */}
       <h2
         style={e3.style}
-        className={cn("flex flex-wrap items-baseline gap-x-3 font-serif text-headline max-md:text-title", e3.className)}
+        className={cn("grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-x-4 font-serif text-headline max-md:text-title", e3.className)}
       >
-        <span className="text-team-1 selection:bg-team-1 selection:text-background">{t("team.1")}</span>
+        <span className="truncate text-team-1 selection:bg-team-1 selection:text-background">{t("team.1")}</span>
         <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
-        <span className="text-team-2 selection:bg-team-2 selection:text-background">{t("team.2")}</span>
+        <span className="truncate text-right text-team-2 selection:bg-team-2 selection:text-background">{t("team.2")}</span>
       </h2>
 
-      <div style={e4.style} className={cn("grid grid-cols-2 items-start gap-4 max-md:grid-cols-1", e4.className)}>
+      <div style={e4.style} className={cn("grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1", e4.className)}>
         {revealing ? (
           <RevealRosters key={revealing.id} draw={revealing} size={size} />
         ) : (
           rosters.map((roster, i) => (
-            <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={<Avg players={roster} />}>
-              {roster.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-row-edge px-4 py-3 text-meta text-muted-foreground">
-                  {t("teams.empty")}
-                </p>
-              ) : (
-                roster.map((p) => <PlayerRow key={p.id} player={p} inset />)
-              )}
+            <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={<Avg players={roster} />} addable>
+              {roster.map((p, n) => (
+                <PlayerRow key={p.id} player={p} number={n + 1} variant="roster" />
+              ))}
             </TeamCard>
           ))
         )}
@@ -220,6 +430,12 @@ export function TeamsTab() {
           </Label>
         </div>
         <div className="flex flex-wrap items-center gap-2 max-md:grid max-md:grid-cols-2">
+          <Button variant="ghost" size="lg" className="text-destructive hover:text-destructive max-md:h-11" disabled={!canWrite || playing === 0} onClick={() => void clearTeams()}>
+            {t("action.clear_teams")}
+          </Button>
+          <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || playing < 2} onClick={() => void shuffle()}>
+            {t("action.shuffle_teams")}
+          </Button>
           <Button
             variant="outline"
             size="lg"

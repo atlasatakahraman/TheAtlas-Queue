@@ -13,7 +13,8 @@ function csp(nonce: string) {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://*.kick.com",
+    // Kick avatars; Riot profile icons from Data Dragon (the queue table's avatars).
+    "img-src 'self' data: blob: https://*.kick.com https://ddragon.leagueoflegends.com",
     "font-src 'self'",
     `connect-src 'self'${supabase ? ` ${supabase} ${supabase.replace("https://", "wss://")}` : ""}`,
     "frame-ancestors 'none'",

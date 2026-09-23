@@ -2,6 +2,9 @@
 import { createContext, useContext } from "react";
 
 import type { Tab } from "@/components/queue/tabs";
+import type { Player } from "@/types/queue";
+
+export type SanctionDraft = { name: string; kind: "warn" | "punish" | "ban" };
 
 export type Ui = {
   tab: Tab;
@@ -10,12 +13,19 @@ export type Ui = {
   setPalette: (open: boolean) => void;
   adding: boolean;
   setAdding: (open: boolean) => void;
-  search: React.RefObject<HTMLInputElement | null>;
+  editing: Player | null;
+  setEditing: (p: Player | null) => void;
+  sanction: SanctionDraft | null;
+  setSanction: (s: SanctionDraft | null) => void;
+  focusSearch: () => void;
   // True during the first page load only: the entrance never replays (DESIGN.md § Motion).
   entering: boolean;
 };
 
 export const UiContext = createContext<Ui | null>(null);
+
+// Kept out of Ui: a ref inside the context object would make every reader "read a ref in render".
+export const SearchRefContext = createContext<React.RefObject<HTMLInputElement | null> | null>(null);
 
 export function useUi(): Ui {
   const ui = useContext(UiContext);

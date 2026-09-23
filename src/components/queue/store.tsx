@@ -52,6 +52,8 @@ type ActOptions = {
   // Success toast with Undo (DESIGN.md § Undo, not confirm).
   done?: LabelKey;
   vars?: Vars;
+  // Forms show errors inline under the field instead of a toast (spec § Error handling).
+  silent?: boolean;
 };
 
 // One place every dashboard write goes through: request_id, optimistic change, error toast with
@@ -69,6 +71,7 @@ export function useAct() {
       const r = await store.call(rpc, args);
       if (isError(r)) {
         if (opts.optimistic) void store.revert(opts.optimistic.ids);
+        if (opts.silent) return r;
         toast.error(r.key === "network" ? t("error.network") : errorText(r), {
           action: { label: t("common.retry"), onClick: () => void act(rpc, args, opts) },
         });

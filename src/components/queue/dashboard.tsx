@@ -5,16 +5,17 @@ import { I18nProvider, useT } from "@/components/i18n";
 import { Masthead } from "@/components/queue/masthead";
 import { ModerationTab } from "@/components/queue/moderation-tab";
 import { NotMember } from "@/components/queue/not-member";
+import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dialogs";
 import { QueueTab } from "@/components/queue/queue-tab";
 import { SettingsTab } from "@/components/queue/settings-tab";
 import { QueueProvider, useQueue } from "@/components/queue/store";
 import { TeamsTab } from "@/components/queue/teams-tab";
 import { LAST_CHANNEL_COOKIE, TAB_COOKIE, type Tab } from "@/components/queue/tabs";
-import { enter, UiContext } from "@/components/queue/ui";
+import { enter, type SanctionDraft, SearchRefContext, UiContext } from "@/components/queue/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Labels } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { QueueState } from "@/types/queue";
+import type { Player, QueueState } from "@/types/queue";
 
 export function Dashboard({ initial, me, tab }: { initial: QueueState; me: number; tab: Tab }) {
   return (
@@ -44,8 +45,14 @@ function Shell({ initialTab }: { initialTab: Tab }) {
   const [tab, setTabState] = useState<Tab>(initialTab);
   const [palette, setPalette] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Player | null>(null);
+  const [sanction, setSanction] = useState<SanctionDraft | null>(null);
   const [entering, setEntering] = useState(true);
   const search = useRef<HTMLInputElement>(null);
+  const focusSearch = () => {
+    setTab("queue");
+    requestAnimationFrame(() => search.current?.focus());
+  };
 
   useEffect(() => {
     const id = setTimeout(() => setEntering(false), 1500);
@@ -72,7 +79,8 @@ function Shell({ initialTab }: { initialTab: Tab }) {
   const e2 = enter(entering, 2);
 
   return (
-    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, search, entering }}>
+    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, editing, setEditing, sanction, setSanction, focusSearch, entering }}>
+      <SearchRefContext.Provider value={search}>
       <div className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-6 px-8 py-10 max-md:px-4 max-md:pt-6 max-md:pb-28">
         <Masthead />
         {offline && (
@@ -106,6 +114,9 @@ function Shell({ initialTab }: { initialTab: Tab }) {
         </Tabs>
       </div>
 
+      <AddPlayerDialog />
+      <EditPlayerDialog />
+
       {/* Mobile: the tabs move to a bottom bar (DESIGN.md § Mobile). */}
       <nav
         aria-label={t("tab.nav")}
@@ -130,6 +141,7 @@ function Shell({ initialTab }: { initialTab: Tab }) {
           );
         })}
       </nav>
+      </SearchRefContext.Provider>
     </UiContext.Provider>
   );
 }

@@ -1,12 +1,13 @@
 "use client";
 import { ListOrdered, Settings2, ShieldAlert, Swords } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
 import { Masthead } from "@/components/queue/masthead";
 import { ModerationTab } from "@/components/queue/moderation-tab";
 import { NotMember } from "@/components/queue/not-member";
 import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dialogs";
 import { QueueTab } from "@/components/queue/queue-tab";
+import { RevealDriver } from "@/components/queue/reveal";
 import { SettingsTab } from "@/components/queue/settings-tab";
 import { QueueProvider, useQueue } from "@/components/queue/store";
 import { TeamsTab } from "@/components/queue/teams-tab";
@@ -65,13 +66,13 @@ function Shell({ initialTab }: { initialTab: Tab }) {
   }, [tab, t]);
 
   // ?tab= in the URL, and a cookie so the server renders the same tab next time.
-  const setTab = (next: Tab) => {
+  const setTab = useCallback((next: Tab) => {
     setTabState(next);
     document.cookie = `${TAB_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
     const url = new URL(window.location.href);
     url.searchParams.set("tab", next);
     window.history.replaceState(null, "", url);
-  };
+  }, []);
 
   if (lost) return <NotMember />;
 
@@ -116,6 +117,7 @@ function Shell({ initialTab }: { initialTab: Tab }) {
 
       <AddPlayerDialog />
       <EditPlayerDialog />
+      <RevealDriver />
 
       {/* Mobile: the tabs move to a bottom bar (DESIGN.md § Mobile). */}
       <nav

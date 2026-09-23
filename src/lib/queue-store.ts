@@ -241,7 +241,7 @@ export function createQueueStore(initial: QueueState, me: number) {
     get: () => view,
     subscribe: (l: () => void) => {
       listeners.add(l);
-      return () => listeners.delete(l);
+      return () => void listeners.delete(l);
     },
     connect,
     refetch,

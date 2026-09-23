@@ -351,9 +351,12 @@ export function PlayerRow({
           )}
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
             <PlayerName player={player} />
-            <PlayerTags player={player} />
+            <PlayerTags player={player} showState={!inset} />
           </div>
-          <RankText player={player} className="max-sm:hidden" />
+          {/* Always a cell, so rows with and without a rank keep the menu in one column. */}
+          <span className="max-sm:hidden">
+            <RankText player={player} />
+          </span>
           <RowMenu player={player} kit="dropdown" open={menuOpen} onOpenChange={setMenuOpen} />
         </div>
       </ContextMenuTrigger>

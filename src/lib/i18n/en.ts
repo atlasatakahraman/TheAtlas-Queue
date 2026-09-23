@@ -176,6 +176,19 @@ export const en = {
   "player.riot": "Riot ID",
   "add.recent": "Recent in chat",
   "edit.title": "Edit player",
+  // Teams tab and the draws.
+  "teams.count": "{n} of {size}",
+  "teams.avg": "avg",
+  "teams.empty": "No one on this team yet.",
+  "teams.fair_play": "Prioritise players who haven't played",
+  "teams.fair_play.hint": "Players with the fewest games this stream are drawn first; ties are random.",
+  "action.pick.n": "Pick {n}",
+  "draw.stale": "Someone else drew first. Showing their draw.",
+  "done.draw": "Teams drawn.",
+  "done.reroll": "Teams rerolled.",
+  "done.pick": "{n} picked from waiting.",
+  "done.fair_on": "Fair play is on.",
+  "done.fair_off": "Fair play is off.",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

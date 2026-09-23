@@ -1,0 +1,1001 @@
+# TheAtlas Queue design system
+
+The visual contract for every page **TheAtlas Queue** serves: the public home page, the
+streamer dashboard, `/watch/<channel>`, `/overlay/<channel>` and first-run onboarding. Values
+live in one file — [`src/app/globals.css`](../src/app/globals.css). This document says what
+those values mean, when to reach for which, and what to build with them. **The CSS is the source
+of truth for values; this file is the source of truth for decisions.**
+
+It is a sibling of TheAtlas's `docs/DESIGN.md`, not a copy. It keeps that system's three faces,
+its token-layer discipline, its `Typewriter` and its contrast gates, and swaps the palette: a
+streaming tool that sits open beside a game for four hours needs warm, low-glare surfaces, and
+team colours that are never confused with an error.
+
+**Ink and paper.** Two themes, one toggle. **Mürekkep** (dark, the default) is a warm
+near-black with cream text; **Kâğıt** (light) is warm newsprint with black ink. Gold is the only
+brand accent. Teal and orange belong to the two teams and to nothing else. Red means *rejected,
+banned, destructive* and nothing else.
+
+**Every value is a gate, not a preference.** Each hex below was solved against the gates in
+[Contrast](#contrast) on every surface it can land on. Changing one means re-running those
+numbers. Newsreader ships at weight 400 with no bold cut, so a heading has no weight to fall
+back on when contrast is thin.
+
+- [Where the code is today](#where-the-code-is-today)
+- [Name and identity](#name-and-identity)
+- [The token layers](#the-token-layers)
+- [Palette](#palette)
+- [Semantics](#semantics)
+- [Contrast](#contrast)
+- [Text selection](#text-selection)
+- [Type](#type)
+- [Shape and space](#shape-and-space)
+- [Surfaces and depth](#surfaces-and-depth)
+- [Motion](#motion)
+- [The draw reveal](#the-draw-reveal)
+- [Focus and keyboard](#focus-and-keyboard)
+- [Pages](#pages)
+- [States](#states)
+- [Recipes](#recipes)
+- [Roles: streamer and moderators](#roles-streamer-and-moderators)
+- [Mobile](#mobile)
+- [Language and labels](#language-and-labels)
+- [Metadata and SEO](#metadata-and-seo)
+- [Icons](#icons)
+- [Extending this](#extending-this)
+- [Do and don't](#do-and-dont)
+- [Checklist for a new screen](#checklist-for-a-new-screen)
+
+---
+
+## Where the code is today
+
+Measured against the working tree on 2026-09-23. Anything in the *Today* column that this file
+contradicts is migration work, not an alternative.
+
+| Area | Today | This system |
+|---|---|---|
+| shadcn style | `radix-nova`, `baseColor: neutral`, primitives from `radix-ui` | **Unchanged.** Same style, same primitives, same `components.json` |
+| Icons | `lucide-react` | **Unchanged** |
+| Theme switch | `next-themes`, `attribute="class"`, `defaultTheme="dark"`, `enableSystem` | **Unchanged.** `.dark` = Mürekkep, `:root` = Kâğıt |
+| Fonts | Anthropic Sans / Serif / Mono in `src/app/fonts/` (not licensable, see [Type](#type)) | Newsreader / Hanken Grotesk / JetBrains Mono, OFL 1.1, same `next/font/local` pattern |
+| Font variables | `--font-anthropic-{sans,serif,mono}` → `--font-sans/serif/mono/heading` | `--font-{hanken,newsreader,jetbrains}` → the **same** four `--font-*` theme names |
+| Semantic colours | shadcn set (`--background` … `--ring`, `--chart-*`, `--sidebar-*`) on `neutral` | **Same names**, new values (below), plus `--row`, `--row-edge`, `--highlight`, `--brand`, `--destructive-fill`, `--selection` |
+| Team colours | `--team-blue`, `--team-red` | **`--team-1`, `--team-2`** (teal, orange). The old names are deleted, not aliased |
+| Moderation colours | `--cl-warning`, `--cl-punishment`, `--cl-banned` | `--warning`, `--destructive`, `--destructive-fill`. The `--cl-*` names are deleted |
+| Rank colours | `--color-rank-*` (oklch) | **Kept**, emblem dots only, never text (they fail on Kâğıt) |
+| Radius | `--radius: 0.625rem` with shadcn's multipliers | **Unchanged** |
+| Type sizes | arbitrary `text-[…]` values in components | Named sizes in `@theme` (`text-display`, `text-meta` …), see [Type](#type) |
+| Animation | `tw-animate-css`, `--animate-slide-up/fade-in/scale-in` | `tw-animate-css` stays. The three custom animations give way to `--animate-enter` and TheAtlas's `Typewriter` |
+| Draw animation | `pickAnimationStyle`: `classic` / `list` / `spin` / `none`, `single-pick-dialog.tsx` | **One signature reveal** or none: setting `drawReveal: "typewriter" \| "none"` ([The draw reveal](#the-draw-reveal)) |
+| Easter eggs | `use-easter-eggs.ts` (Konami → `confetti-overlay`, "badapple" → `bad-apple-overlay`) | **Deleted**, all three files |
+| Tabs | `sliding-tabs.tsx` (custom, in `ui/`) + shadcn `tabs` | shadcn `tabs` only. `sliding-tabs` is deleted |
+| Selection styling | none | Every text role declares its pair ([Text selection](#text-selection)) |
+| UI language | Turkish strings inline in components | `en` (default) + `tr`, every string a label key ([Language and labels](#language-and-labels)) |
+| Site name | `metadata.title` "TheAtlas — Queue", editable `pageTitle` setting | **"TheAtlas Queue"**, fixed. `pageTitle` is deleted ([Name and identity](#name-and-identity)) |
+| Metadata | title, description in Turkish about ARAM, `keywords` | Full Next.js metadata per route ([Metadata and SEO](#metadata-and-seo)). `keywords` is deleted: Google ignores it |
+| Signed-out `/` | redirects to `/login` | **The public home page**, which is also the sign-in page |
+
+---
+
+## Name and identity
+
+**The product is "TheAtlas Queue".** Exactly that: one space, capital T-A-Q, no dash, no
+"TheAtlas — Queue", no "Atlas Queue". It is **never translated and never a label** — a Turkish
+page still says TheAtlas Queue.
+
+| Where | What it says |
+|---|---|
+| Browser tab / search result title | `{page} · TheAtlas Queue`, or just `TheAtlas Queue` on the home page |
+| Dashboard and `/watch` masthead | The streamer's **channel name** from Kick (not editable) + the gold italic word ***Queue*** |
+| Home page | The wordmark "TheAtlas *Queue*" |
+| Open Graph `siteName`, JSON-LD `name`, web manifest `name` | `TheAtlas Queue` |
+| Web manifest `short_name` | `Queue` |
+
+The channel name comes from the streamer's Kick profile. A streamer cannot rename their page;
+they can set an optional subtitle under it (`brand.subtitle`, a label).
+
+---
+
+## The token layers
+
+Two layers, both in `globals.css`.
+
+**The palette** is mode-independent: `--ink-*`, `--paper-*`, `--gold`, `--teal`, `--orange` and
+friends are literal hex and never change. **The semantics** (`--background`, `--foreground`,
+`--primary`, `--card`, `--border`, `--team-1` …) point at palette entries, and *that* mapping is
+what `:root` (Kâğıt) and `.dark` (Mürekkep) swap.
+
+Consequence: **write `bg-background`, not `bg-[#131210]`, and not `bg-ink-floor`.** The semantic
+token is the one that knows about the theme.
+
+A new semantic token needs **three** edits: the `:root` mapping, the `.dark` mapping, and the
+`@theme inline` line that turns it into a utility. Skipping the third produces a variable that
+exists and a `bg-*` class that does not — no error, no style.
+
+---
+
+## Palette
+
+### Mürekkep — dark
+
+| Token | Hex | Role |
+|---|---|---|
+| `--ink-floor` | `#131210` | Page floor |
+| `--ink-card` | `#1c1a17` | Cards, popovers, dialogs |
+| `--ink-row` | `#272520` | A row on the floor |
+| `--ink-hover` | `#302d27` | Hover and selected fill |
+| `--ink-highlight` | `#322b1d` | A row that just arrived (gold-tinted) |
+| `--ink-hairline` | `#34312a` | Decorative rules |
+| `--ink-row-edge` | `#47433a` | A row's outline, 1.9:1 on the floor |
+| `--ink-outline` | `#807866` | **Control** outlines, 3.13:1 worst case |
+| `--ink-muted` | `#a39c8b` | Secondary text, 5.02:1 worst case |
+| `--ink-text` | `#efe9dc` | Body text, 11.34:1 worst case |
+
+### Kâğıt — light
+
+| Token | Hex | Role |
+|---|---|---|
+| `--paper-floor` | `#f4f0e6` | Page floor |
+| `--paper-card` | `#fffdf8` | Cards, popovers, dialogs, **and rows on the floor** |
+| `--paper-hover` | `#efe8d8` | Hover and selected fill |
+| `--paper-highlight` | `#f6e9c4` | A row that just arrived (gold-tinted) |
+| `--paper-hairline` | `#e2dccd` | Decorative rules |
+| `--paper-row-edge` | `#d2c7b0` | A row's outline, 1.47:1 on the floor |
+| `--paper-outline` | `#857c66` | **Control** outlines, 3.39:1 worst case |
+| `--paper-muted` | `#655f51` | Secondary text, 5.20:1 worst case |
+| `--paper-text` | `#1c1a16` | Body text, 14.23:1 worst case |
+
+### Accent, teams, status
+
+Each ships two steps. **The light step is not a shade, it is the other theme's value.** One
+hex cannot serve both grounds: teal `#6cc3b6` is 9.0:1 on ink and 2.0:1 on paper.
+
+| Token | Mürekkep | Kâğıt | Use |
+|---|---|---|---|
+| `--gold` | `#e9c46a` | `#7f5c0c` | Brand accent, focus ring, text selection, subscriber tag, warnings |
+| `--teal` | `#6cc3b6` | `#1d6f78` | **Team 1, only** |
+| `--orange` | `#f0a35e` | `#9a4a16` | **Team 2, only** |
+| `--red` | `#e27a70` | `#b3261e` | Rejected, banned, destructive text and outlines |
+| `--red-fill` | `#b3413a` | `#b3261e` | Solid destructive fill (5.6:1 / 6.4:1 with white on it) |
+| `--green` | `#9cc98a` | `#386e2e` | Live, accepted, success |
+
+**Team colours are fixed, team names are not.** A streamer renames "Team 1" to "Kurtlar" in
+Settings; they cannot recolour it. Teal and orange were picked because they stay distinct under
+the three common colour-vision deficiencies. **Red is never a team colour**: the same screen uses
+red for "`!sıra` rejected: banned", and a red team would read as a failed team.
+
+---
+
+## Semantics
+
+`.dark` is Mürekkep, `:root` is Kâğıt.
+
+| Semantic token | Mürekkep | Kâğıt | Meaning |
+|---|---|---|---|
+| `--background` | ink-floor | paper-floor | The page, and rows inside a card |
+| `--foreground` | ink-text | paper-text | Body text |
+| `--card` / `--popover` | ink-card | paper-card | Raised surfaces |
+| `--card-foreground` / `--popover-foreground` | ink-text | paper-text | |
+| `--row` | ink-row | paper-card | A row on the floor |
+| `--row-edge` | ink-row-edge | paper-row-edge | Every row's outline |
+| `--highlight` | ink-highlight | paper-highlight | A just-arrived row, for 1.5s |
+| `--muted` | ink-card | paper-hover | Quiet fills: filter track, skeleton bars |
+| `--muted-foreground` | ink-muted | paper-muted | Secondary text |
+| `--accent` | ink-hover | paper-hover | Hover and selected rows |
+| `--accent-foreground` | ink-text | paper-text | |
+| `--primary` | ink-text | paper-text | **The one primary button per view** (cream on ink, ink on paper) |
+| `--primary-foreground` | ink-floor | paper-card | |
+| `--secondary` | ink-card | paper-card | Outline-style buttons |
+| `--secondary-foreground` | ink-text | paper-text | |
+| `--border` | ink-hairline | paper-hairline | Decorative rules only |
+| `--input` | ink-outline | paper-outline | Control outlines (≥3:1) |
+| `--ring` | gold | gold | Focus |
+| `--brand` | gold | gold | The *Queue* wordmark, the subscriber tag |
+| `--destructive` | red | red | Text and outlines |
+| `--destructive-fill` | red-fill | red-fill | Solid fills |
+| `--success` | green | green | Live dot, accepted |
+| `--warning` | gold | gold | Moderation warning, degraded connection |
+| `--team-1` | teal | teal | Team 1 |
+| `--team-2` | orange | orange | Team 2 |
+| `--selection` / `--selection-foreground` | gold / ink-floor | gold / paper-card | Default text selection |
+| `--chart-1…5` | teal, orange, gold, green, ink-muted | same, light steps | `/watch` stats only |
+
+`--sidebar-*` stays defined because shadcn's generated files reference it; Queue has no sidebar
+and nothing new should use it.
+
+**Gold does four jobs** (brand, warning, focus, selection), and warning shares it with the
+subscriber tag. That is deliberate: every free amber sits too close to team 2's orange, and none
+of the four is ever the only signal. The subscriber tag carries 🛡 and a word, a warning carries
+a triangle and a word, focus is a ring, selection is a selection.
+
+---
+
+## Contrast
+
+**The gates.** Body text ≥ 7:1. Secondary text ≥ 4.6:1. Accent, team and status text ≥ 4.5:1.
+Control outlines and the focus ring ≥ 3:1. "Worst case" is the lowest ratio across every surface
+the colour can sit on: floor, card, row, hover and highlight.
+
+| | Mürekkep worst | Kâğıt worst |
+|---|---|---|
+| Body text | 11.34 | 14.23 |
+| Secondary text | 5.02 | 5.20 |
+| Gold | 7.59 | 5.00 |
+| Team 1 | 6.61 | 4.78 |
+| Team 2 | 6.60 | 5.11 |
+| Red | 4.74 | 5.36 |
+| Green | 6.72 | 5.00 |
+| `--input` outline | 3.13 | 3.39 |
+| Focus ring | 7.59 | 5.00 |
+| Primary button (label on fill) | 15.48 | 15.27 |
+| White on `--destructive-fill` | 5.62 | 6.54 |
+
+**The overlay** sits on unknown video. Its panels are `--ink-floor` at 88% opacity, always
+Mürekkep. Measured over pure white, mid-grey and black footage: body 11.2 / 13.6 / 15.7,
+secondary 4.96 / 6.03 / 6.96, teams ≥ 6.52, gold ≥ 8.11.
+
+**Rows are separated by their edge, not by their fill.** Row fill against its ground is 1.08 to
+1.22, deliberately low. The `--row-edge` outline plus the 6px gap between rows is what makes
+each row read as its own object. Don't judge two adjacent surfaces by contrast ratio.
+
+**Checking a new pair:** WCAG relative luminance, the same formula TheAtlas uses. Add the result
+to this table in the same commit as the hex.
+
+---
+
+## Text selection
+
+**Every piece of text declares what it looks like selected.** The browser default (system blue)
+clashes with both themes and disappears on a team-coloured name.
+
+1. **Content text is selectable and has a pair.** `<body>` carries the default pair, so anything
+   that does not override it is already correct. Tailwind's `selection:` variant applies to the
+   element *and its descendants*, so one class on a container covers everything inside it.
+2. **Chrome is not selectable.** Buttons, tabs, filters, tags, menu rows, the live pill and icons
+   are `select-none`. Dragging across a row selects the player's name, not the row's buttons.
+
+| Text role | Classes | Pair (Mürekkep / Kâğıt) |
+|---|---|---|
+| Default: body, names, descriptions, feed | on `<body>`: `selection:bg-selection selection:text-selection-foreground` | 11.2 / 6.0 |
+| Team 1 name, headline and roster | `selection:bg-team-1 selection:text-background` | 9.0 / 5.7 |
+| Team 2 name, headline and roster | `selection:bg-team-2 selection:text-background` | 9.0 / 6.1 |
+| Rejections, bans, destructive text | `selection:bg-destructive selection:text-background` | 6.5 / 6.4 |
+| Riot ID in the hover card | default pair + **`select-all`**: one click selects the whole ID | 11.2 / 6.0 |
+| Chat command in the feed (`!sıra …`) | default pair + `select-all` | 11.2 / 6.0 |
+| Text inputs | default pair (inherited from `<body>`) | 11.2 / 6.0 |
+| Buttons, tabs, tags, menus | `select-none` | — |
+| `/overlay` | `select-none` on the root: nothing there is ever selected | — |
+
+`select-all` goes only where the whole string is the useful unit to copy: an ID, a command.
+Never on prose.
+
+---
+
+## Type
+
+Three OFL 1.1 faces, the same three TheAtlas ships, each doing one job.
+
+| Face | Variable | Job |
+|---|---|---|
+| **Newsreader** (`opsz 6–72`, wght 400) | `--font-serif`, `--font-heading` | Channel name, wordmark, page titles, the match headline, team names, queue numbers, stat numbers |
+| **Hanken Grotesk** (`wght 100–900`) | `--font-sans` | Everything else: body, player names, controls, labels |
+| **JetBrains Mono** (`wght 100–800`) | `--font-mono` | **Only text that was literally typed**: a Riot ID, a chat command, a label key |
+
+The files live in `src/app/fonts/` with each family's `OFL.txt` beside them, subset to Latin +
+Latin-Extended (covers `ğĞıİşŞçÇöÖüÜ`), loaded through `next/font/local` so they are
+self-hosted, preloaded, and get a size-adjusted fallback that stops layout shift. **Never** load
+them from Google Fonts at runtime: that is a third-party request on every page view.
+
+The Anthropic faces currently in `src/app/fonts/` are a bespoke commission and cannot be
+licensed at any price. They are deleted, not kept as a fallback.
+
+### The scale
+
+Queue is a web page read at arm's length beside a game, so it runs one step **larger** than
+TheAtlas's desktop panels: 15px body, not 14px. **Every size is a named `@theme` token**
+(`--text-meta: 0.84375rem` plus its `--text-meta--line-height`), so components write
+`text-meta`, never `text-[0.84375rem]`. None of these names may collide with a colour token.
+
+| Role | Utility | Size / line | Weight | Tracking | Face |
+|---|---|---|---|---|---|
+| Channel name | `text-display` | 36 / 1.05 | 400 | -0.02em | Serif |
+| Match headline | `text-headline` | 44 / 1.05 | 400 | -0.02em | Serif |
+| Page title | `text-title` | 28 / 1.15 | 400 | -0.01em | Serif |
+| Team name | `text-team` | 22 / 1.2 | 400 | 0 | Serif |
+| Queue number | `text-numeral` | 20 / 1 | 400 | 0, `tabular-nums` | Serif |
+| Player name | `text-name` | 16 / 1.35 | 600 | 0 | Sans |
+| Body | `text-body` | 15 / 1.5 | 400 | 0 | Sans |
+| Control | `text-control` | 14 / 1.3 | 500–600 | 0 | Sans |
+| Secondary / meta | `text-meta` | 13.5 / 1.45 | 400 | 0 | Sans |
+| Riot ID, command | `text-code` | 13 / 1.4 | 400–500 | 0 | Mono |
+| Caption / section label | `text-caption` | 12 / 1.3 | 600 | 0.12em, uppercase | Sans |
+| Overlay name | `text-overlay-name` | 32 / 1.2 | 600 | 0 | Sans |
+| Overlay headline | `text-overlay-headline` | 56 / 1.05 | 400 | -0.02em | Serif |
+
+**Never bold a serif heading.** Newsreader has no bold cut; the browser fakes one, badly. Size
+up instead. **Never set a heading in the sans face**, and never set a name in mono.
+
+---
+
+## Shape and space
+
+**Radius.** shadcn's multipliers on `--radius: 0.625rem`, unchanged.
+
+| Token | Value | Use |
+|---|---|---|
+| `rounded-md` | 8px | Small icon buttons, skeleton bars |
+| `rounded-lg` | 10px | Buttons, inputs, menu rows, filter pills |
+| `rounded-xl` | 14px | **Rows**, cards, popovers, the hover card, overlay panels |
+| `rounded-2xl` | 18px | Dialogs |
+| `rounded-full` | — | Tags, the live dot, avatars |
+
+**Spacing.** Tailwind's 4px scale.
+
+| Context | Value |
+|---|---|
+| Page gutter | `px-8` desktop, `px-4` under 768px |
+| Between masthead, tabs and content | `gap-6` |
+| **Between two rows** | **`gap-1.5` (6px)**: every list of rows, queue, rosters, moderation, labels |
+| Row padding | `px-4 py-3` |
+| Card | `p-4` dense, `p-6` default |
+| Dialog | `p-6` |
+| Menu content | `p-1.5`, rows `px-2.5 py-2` |
+| Overlay safe margin | 48px from every canvas edge |
+
+**Control heights**: 36px default, 32px small, 40px large; **44px on touch** ([Mobile](#mobile)).
+24px is the floor for anything clickable. One height per cluster.
+
+---
+
+## Surfaces and depth
+
+**Colour-block first, shadow rare.** Depth comes from ground-versus-surface contrast and one
+outline. Shadows exist for things that float above the page (hover card, menu, dialog, toast)
+and nothing else.
+
+```
+floor      background   the page
+raised     card         panels, the chat feed, team cards, popovers, dialogs
+row        row          one player on the floor, always with row-edge
+inset      background   a row inside a card (team roster, a dialog's list), always with row-edge
+hover      accent       hover and selected rows, the active filter
+arrival    highlight    a row that just arrived, for 1.5s
+```
+
+**A row always carries `border border-row-edge`.** A row on the floor is `bg-row`; a row inside a
+card goes back to `bg-background`, which is TheAtlas's own rule: a panel inside a panel returns
+to the floor. Never `bg-card` inside `bg-card`.
+
+**State is marked by kind, not by a slightly different fill.** A row's left edge is 3px:
+`border-l-team-1` when the player is in a game, dashed when away, `row-edge` when waiting. The
+state is also written as a tag, because colour is never the only signal.
+
+---
+
+## Motion
+
+Four durations, the same four as TheAtlas. The draw reveal's per-name cadence is the one
+justified exception and is documented in [The draw reveal](#the-draw-reveal).
+
+| Duration | Easing | Use |
+|---|---|---|
+| 100ms | default | Menu, popover and hover-card open/close |
+| 150ms | `ease-out` | Hover and colour transitions, a realtime row fading in |
+| 200ms | `ease-out` | Layout: a dialog or sheet appearing, a row being removed; `Typewriter`'s per-character reveal |
+| 500ms | `cubic-bezier(.2,.7,.2,1)` | **Entrance** (`--animate-enter`), once per page load |
+
+### The entrance
+
+The first mount of a page is choreographed, the way a scroll-crafted page reveals itself. After
+that, nothing moves unless the data did.
+
+1. **The channel name types itself** with `Typewriter`, the component TheAtlas's dashboard
+   greeting uses: each character lands out of a `0.12em` blur, 40ms apart, each taking 200ms to
+   sharpen, so a short trailing edge is always still resolving. Untyped characters are
+   `invisible`, not absent, so the line holds its final width from the first frame and nothing
+   beside it moves.
+2. The dateline, the header tools, the tabs, then the page heading rise 10px into place
+   (`--animate-enter`), starting at 70ms and 45ms apart.
+3. Rows rise the same way, 45ms apart, **capped at the first 12**. Row 13 onwards is simply
+   there, so a 60-player queue does not take three seconds to settle.
+
+`Typewriter` is ported **verbatim** from TheAtlas `packages/@ui/src/components/typewriter.tsx`
+into `src/components/typewriter.tsx`, with its `.type-in` rule and `theatlas-type-in` keyframe
+copied from `theme.css` into `globals.css`. Queue is not in the turborepo, so it cannot import
+the package; when it joins, the copy is deleted and the import takes its place. **Do not diverge
+the copy.** Fix it upstream and re-copy.
+
+Its contract, which the port keeps:
+
+- It **retypes whenever `text` changes**. Do not feed it a value that changes on every render.
+- The characters are `aria-hidden`; the real string is read once from an `sr-only` span.
+- Under reduced motion it shows the finished line at once, and `.type-in` is also switched off in
+  CSS as a second guard.
+- **The typed element gets no `--animate-enter`.** The typing *is* its entrance; adding the rise
+  on top nests two animations, which compound.
+
+Rules:
+
+- **Once per load.** Switching tabs, filtering, or a realtime update never replays it.
+- **`Typewriter` has exactly two jobs:** the line that introduces a page (the channel name, the
+  home wordmark) and [the draw reveal](#the-draw-reveal). Never rows, buttons or toasts.
+- **A realtime arrival is not an entrance.** A new `!sıra` row fades in over 150ms and holds
+  `bg-highlight` for 1.5s, then settles to `bg-row`. No slide: the list must not jump under the
+  streamer's cursor.
+- **`prefers-reduced-motion: reduce` removes all of it.** Everything is simply present. The 1.5s
+  highlight stays, because it is information, not decoration.
+
+---
+
+## The draw reveal
+
+The draw is the moment the stream is waiting for, so it gets one signature treatment instead of
+a menu of effects. The old `classic` / `list` / `spin` styles are gone.
+
+**The result exists before the animation starts.** The draw is computed and saved on the server
+first; the reveal only *shows* a finished result. A reload mid-reveal shows the final teams, and
+the reveal can never disagree with what `/watch` and `/overlay` show.
+
+**Team draw** (`D`, or the Draw teams button):
+
+1. The Teams tab activates if it is not already open. The headline ("{team 1} vs {team 2}")
+   stays put.
+2. Both rosters clear. Names land **alternately**, team 1 then team 2, one every **160ms**.
+   Protected subscribers land first, with their 🛡, because they were never in doubt.
+3. Each name types in with `Typewriter` at `speed={30}`, `reveal={200}`. Ten names finish in
+   about two seconds.
+4. The average rank under each team name updates when its last name has landed.
+
+160ms and 30ms sit off the motion ladder on purpose: the ladder's rungs describe a single
+transition, and this is a sequence of ten. Faster reads as a flash, slower drags on stream.
+
+**Pick from waiting** (`1`–`5`, or the button): the same cadence in a `Dialog` titled with the
+`action.pick` label, listing the N picked names. The dialog closes on Escape or a click outside;
+the picked players are already marked in the queue behind it.
+
+**Everywhere at once.** `/watch` and `/overlay` play the same reveal when a new draw arrives.
+Each device plays a given draw **once**; a viewer who opens `/watch` afterwards sees the result
+already set.
+
+**`drawReveal: "none"`** and reduced motion show the result instantly. No confetti, no sound, no
+wheel.
+
+---
+
+## Focus and keyboard
+
+- **Focus is gold, in both themes**, via `--ring`: `focus-visible:ring-2 focus-visible:ring-ring/40`
+  plus `focus-visible:border-ring`, which `buttonVariants` already encodes. Do not restyle it per
+  component.
+- **`focus-visible`, never `focus`.** A mouse click does not paint a ring.
+- Icon-only controls carry `aria-label`. Invalid controls use `aria-invalid`.
+- **Shortcut hints never appear on the page.** The shortcuts work everywhere, but their hints
+  appear in exactly two places, both of them menus: the **right-click menu**
+  (`ContextMenuShortcut`) and the **command palette** (`CommandShortcut`). No kbd chips in
+  toolbars, buttons, headings, tooltips or empty states.
+
+**Global keys** fire only when no text input has focus and no row has keyboard focus.
+
+| Key | Does |
+|---|---|
+| `Ctrl/⌘ K` | Open the command palette |
+| `D` | Draw teams |
+| `R` | Reroll |
+| `1`–`5` | Pick ×N from waiting |
+| `/` | Focus the queue search |
+
+**Row keys** fire only while a row has keyboard focus (`Tab` into the list, `↑` `↓` between rows).
+This is what keeps a row's keys from colliding with the global ones.
+
+| Key | Does |
+|---|---|
+| `Enter` or `Shift F10` | Open the row's menu |
+| `C` | Copy the Riot ID |
+| `E` | Edit player |
+| `←` / `→` | Move to team 1 / team 2 (left and right, like the team cards) |
+| `A` | Mark away / back |
+| `W` | Warn |
+| `Delete` | Remove from queue (undo toast) |
+
+`D` replaces the old idea of `Space`: Space also presses whichever button has focus, and a stray
+press mid-stream would reshuffle the teams.
+
+---
+
+## Pages
+
+| Route | Who | Indexed | Theme | Language |
+|---|---|---|---|---|
+| `/` signed out | Anyone | **Yes** | System, with toggle | `?lang=`, else browser, else `en` |
+| `/c/<channel>` (signed-in `/` redirects here) | Streamer, moderators | No | Saved choice, default Mürekkep | Saved choice, default `en` |
+| `/welcome` | A streamer's first sign-in | No | as above | as above |
+| `/watch/<channel>` | Viewers, no login | **Yes**, when enabled | System, with toggle | `?lang=`, else browser, else `en` |
+| `/overlay/<channel>` | OBS browser source | No | Always Mürekkep panels on transparent | Streamer's *stream language* setting |
+
+### Home (`/`, signed out)
+
+The only marketing surface, and deliberately small. It is also the sign-in page: there is no
+separate `/login`.
+
+- The wordmark "TheAtlas *Queue*", typed in with `Typewriter`.
+- One sentence saying what it is, and a three-item list: viewers join from Kick chat, draws are
+  fair and shown live, the queue survives a closed tab.
+- **Continue with Kick** (primary). Under it, muted: what signing in stores.
+- A footer: source code link (AGPL-3.0: a network service must offer its source), language
+  switch, theme toggle.
+
+### Onboarding (`/welcome`)
+
+The first time a streamer signs in. One page, three numbered steps stacked vertically, each
+finishing in place. No wizard, no Next buttons.
+
+1. **Your channel.** "Signed in as HoustonHUB", read from Kick. Nothing to type.
+2. **How viewers join.** The queue command (default `!sıra`), the *Require Riot ID* switch with
+   its region, the stream language. Each control has a one-line description.
+3. **Try it.** "Type `!sıra Name#TAG` in your chat now." A live checker waits and, when the first
+   command arrives, shows the row appearing exactly as it will on the dashboard. A **Skip** link
+   sits beside it.
+
+Finishing opens the dashboard with its entrance. Theme and UI language start from the browser.
+
+### Dashboard (`/`, signed in)
+
+One column of chrome, then the active tab. Max width 1180px, centred.
+
+**Masthead.** The channel name in Newsreader, typed in by `Typewriter`, followed by the gold
+italic ***Queue***. Below it, a muted dateline: day, session number, how many are waiting.
+Right-aligned: the [connection pill](#connection-health), the command palette button (a search
+icon, `aria-label`), the EN | TR switch, the theme button.
+
+**Tabs.** shadcn `Tabs`, underline style, in this order. These are the current tabs minus Maç
+Geçmişi; do not add to them without a reason written here.
+
+| Tab | Contents |
+|---|---|
+| **Queue** (with count) | Filters All / Waiting / In game / Away · search · **Add player** (the view's primary) · the row list · right: *From chat* feed and four stat tiles |
+| **Teams** | The match headline · two team cards · the fair-play switch · Draw teams (primary) / Reroll / Pick from waiting |
+| **Moderation** | Filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)) |
+| **Settings** | Streamer only. Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data |
+
+A **Watch page ↗** link sits at the tab bar's right edge.
+
+### `/watch/<channel>`
+
+Read-only, public, and built **mobile-first**, because viewers open it from a phone.
+
+- The same masthead, minus the tools a viewer cannot use. The pill shows whether the **stream**
+  is live, not the connection.
+- Sections, in order, each switchable by the streamer: **Teams** (when a draw exists), **Queue**
+  (rows without a menu; the Riot ID hover card only if the streamer shares Riot IDs),
+  **Moderation** (off by default; names and kind only, **never reasons**).
+- The draw reveal plays live; the entrance plays on load.
+- When the streamer turns the page off, it says so (`watch.disabled`) and is `noindex`.
+- Footer: "TheAtlas Queue", the source link, EN | TR, theme.
+
+### `/overlay/<channel>`
+
+An OBS browser source at 1920×1080. **No interaction, no cursor, no toasts, no entrance**: OBS
+reloads the source often, and a page that animates on every reload looks broken on stream.
+
+- The page background is **transparent**. Content sits on `rounded-xl` panels of `--ink-floor` at
+  88% opacity, always Mürekkep regardless of theme, measured legible over any footage
+  ([Contrast](#contrast)).
+- `?view=` picks what it shows: `teams` (both team panels side by side), `queue` (the next eight
+  waiting), `draw` (appears only for a reveal and fades out 20s later).
+- Sizes from the overlay rows of [The scale](#the-scale); nothing under 24px, so it survives a
+  720p stream.
+- Language: the streamer's *stream language*, the same one chat replies use.
+
+---
+
+## States
+
+Every view designs all of these, not only the full one.
+
+**Loading.** The dashboard and `/watch` are server-rendered with their data, so a first load has
+no spinner. Anything fetched later shows **skeleton rows**: the real row shape (`bg-row`,
+`row-edge`, `rounded-xl`) with `bg-muted` bars where the text goes, at most six, pulsing once a
+second, still under reduced motion. Never a centred spinner in a list.
+
+**Empty.** A Newsreader line and one muted sentence saying how to fill it, the command in mono:
+"Viewers join by typing `!sıra Name#TAG` in Kick chat." No illustration, no second button.
+
+**Error.** A failed load renders inline where the content would be: a `bg-card` block saying what
+failed, with **Retry**. A failed *action* rolls its optimistic change back (the row returns,
+with `bg-highlight`) and raises a toast with **Retry**.
+
+**Offline.** When the browser goes offline or the realtime channel drops, a slim banner appears
+under the masthead: "Offline — showing the last known queue. Actions are paused until you're
+back." Actions that change data are disabled, not queued.
+
+### Connection health
+
+The masthead pill reports whether **commands from chat are reaching Queue**. It is computed on
+the server from the Kick event subscriptions and the last event received, never from a browser
+socket.
+
+| State | Dot | Text | Meaning |
+|---|---|---|---|
+| Live | `--success`, with a soft ring | "Live · last command 12 s ago" | Subscriptions active, a command in the last 10 min |
+| Listening | `--muted-foreground` | "Listening · quiet for 14 min" | Subscriptions active, chat simply quiet. **Not an error** |
+| Delayed | `--warning` | "Delays possible" | Kick reported failed deliveries or a health check failed |
+| Not connected | `--destructive` | "Not connected" + **Reconnect** | Subscriptions missing or revoked |
+
+Clicking the pill opens a popover with the details: subscription state, last event, last check.
+Only *Not connected* ever raises a toast.
+
+### Toasts versus the feed
+
+- **Events from chat never toast.** They appear in the *From chat* feed and as the row highlight.
+  A busy stream would otherwise bury the screen.
+- **Toasts are for the streamer's own actions** (with Undo), errors (with Retry), and losing the
+  connection.
+- `sonner`, bottom-centre, at most three visible.
+
+### Undo, not confirm
+
+Every action that changes or removes data gets a 5-second **Undo** toast instead of a confirm
+dialog: remove, clear queue, move, mark away, moderation, draw and reroll (Undo restores the
+previous result), removing a protection. **The only `AlertDialog` in the app** is *Delete my
+data* in Settings → Your data, the one action that cannot be undone. It asks the streamer to type
+their channel name.
+
+---
+
+## Recipes
+
+### Queue row
+
+```
+[ 3 ]  brkdmr  (in game)                       Platinum IV   [⋯]
+  │      │        │                                 │          └ icon button: the same menu as right-click
+  │      │        └ state tag: word + colour, never colour alone
+  │      └ text-name; hovering it (350ms delay) opens the Riot ID hover card
+  └ text-numeral, muted, tabular
+```
+
+`rounded-xl bg-row border border-row-edge border-l-[3px] px-4 py-3`, a grid of number · name ·
+tags · rank · menu. The row is focusable (`tabIndex={0}`) for the row keys. **The Riot ID is not
+in the row.** It lives in the hover card, because the Riot ID requirement can be switched off,
+and a column that is empty half the time is noise.
+
+### Riot ID hover card
+
+shadcn `HoverCard`, `openDelay={350}`: the Riot ID in `text-code` with `select-all`, how and when
+the player joined, games played today, the rank emblem and rank, a **Copy** button. **When
+"Require Riot ID" is off and the player has none, there is no hover card**, not an empty one. On
+touch it becomes a `Popover` opened by tapping the name.
+
+### Row menu
+
+shadcn `ContextMenu` on the row, the same content in a `DropdownMenu` on the `⋯` button, and on
+long-press on touch. Groups: copy (Riot ID, Kick name) · edit · move (to team 1 / team 2, each
+with its colour swatch and the team's **current name**) · mark away · protection (*Remove
+protection*, only on a protected sub) · moderation (warn, punish, ban) · remove. Ban and remove
+are `variant="destructive"`. Shortcut hints go here.
+
+### Add player
+
+shadcn `Dialog` (not `AlertDialog`, which shadcn reserves for confirmations) containing a
+`Command`:
+
+- The search filters two groups: **Recent in chat** ("2 min ago") and **Played before**
+  ("played 7 times").
+- Picking an entry fills the Kick name and, if known, the Riot ID. A typed name that matches
+  nothing is added as it is.
+- The Riot ID field is shown and required only while *Require Riot ID* is on.
+- Footer: Cancel (outline) and Add player (primary).
+
+### Command palette
+
+shadcn `CommandDialog`, opened by `Ctrl/⌘ K` or the masthead's search button. Groups:
+**Actions** (draw, reroll, pick ×N, add player, new session), **Players** (typing a name jumps
+to their row and opens its menu), **Go to** (tabs, Watch page), **Preferences** (theme,
+language). Every action shows its `CommandShortcut`; this and the row menu are the only places
+shortcuts are written down.
+
+### Team card
+
+`bg-card rounded-xl` with a 5px top bar in `--team-1` / `--team-2`, the team **name** (a label)
+in `text-team` Newsreader in the team colour, the average rank right-aligned in muted text, then
+the roster as inset rows (`bg-background border-row-edge`, `gap-1.5`). A protected subscriber
+shows `🛡 protected`.
+
+### Tags
+
+`rounded-full border px-2 text-caption normal-case tracking-normal select-none`, text and border
+in the same role colour, the border at 45% alpha of that colour:
+
+| Tag | Colour | When |
+|---|---|---|
+| `🛡 sub` | brand | A subscriber, in the queue |
+| `🛡 protected` | brand | A subscriber locked by the perk in this draw |
+| `in game` | team-1 | State |
+| `away` | muted | State |
+| `first game` | success | Fair-play is on and they have not played this session |
+| `warned` | warning | Moderation |
+| `banned` | destructive | Moderation |
+
+### Fair-play switch
+
+On the Teams tab, above the actions: a shadcn `Switch` labelled *Prioritise players who haven't
+played*, with one muted line under it explaining the effect. When on, players with no game this
+session carry the `first game` tag, and the hover card says how many games each player has had.
+
+### Subscriber perk
+
+Settings → Draws & perks: uses per rolling 30 days, which badges qualify, with a description of
+exactly what a viewer sees in chat. On the dashboard the perk is visible, never hidden odds: the
+`🛡` tags, the protected-first order in the reveal, *Remove protection* in the row menu. Viewers
+check their own remaining uses with `!hak`.
+
+### Buttons
+
+One `primary` per view: Add player on Queue, Draw teams on Teams, Continue with Kick on Home.
+Everything else is `outline` or `ghost`. The primary is cream on ink and ink on paper, never
+gold: gold marks attention, not action.
+
+---
+
+## Roles: streamer and moderators
+
+Kick's API cannot list a channel's moderators, so Queue learns them from chat: a chat message
+carrying Kick's **moderator badge** grants access, and a later message without it takes access
+away. Settings → Moderators lists everyone with access and where it came from (*from chat* or
+*added by you*). The streamer can add a moderator ahead of time by Kick username (the same
+`Command` picker as Add player), and can **block** or remove anyone. A block always beats the
+badge. A moderator signs in with their own Kick account and runs the streamer's dashboard at
+`/c/<channel>`.
+
+| | Streamer | Moderator |
+|---|---|---|
+| Queue, Teams, Moderation tabs | ✓ | ✓ |
+| Settings tab | ✓ | Not shown |
+| Theme, language | Their own | Their own |
+
+- **Who you are acting as is always visible.** A moderator's masthead reads "HoustonHUB
+  *Queue*" like the streamer's, with a `rounded-full` tag after it: *Moderating*.
+- **Every change is attributed.** Moderation → Activity lists actions as rows: avatar, "**mirayy**
+  moved kaanxd to Kurtlar", time. Undo toasts name the actor when it was someone else.
+- A moderator with no dashboard to moderate lands on a short page saying so, with a link to their
+  own.
+
+---
+
+## Mobile
+
+Below 768px. Streamers and moderators use phones as a second screen, viewers use `/watch` on
+phones first.
+
+- **Touch targets are 44px.** Controls step up from 36px; rows keep their padding.
+- **Tabs move to a bottom bar**: fixed, four items with icon and label, `pb-[env(safe-area-inset-bottom)]`.
+- **The masthead compacts**: the channel name at `text-title`, the connection pill as a dot and
+  short text, EN | TR, theme and the palette button behind one `⋯` menu.
+- **The view's primary sticks** to the bottom, above the tab bar: Add player on Queue, Draw teams
+  on Teams.
+- **The chat feed moves into a bottom `Sheet`**, opened by a *From chat* button with an unread
+  count.
+- **Filters become horizontally scrollable pills.** Team cards stack.
+- **Hover becomes tap**: the hover card becomes a `Popover` on the name; the row menu opens from
+  `⋯` or a long-press.
+- **Dialogs become bottom `Sheet`s** (`side="bottom"`), the Add player picker included.
+- No right-click and no keyboard: every shortcut's action is also reachable by touch.
+
+---
+
+## Language and labels
+
+**Two languages, `en` default, `tr`.** Every string the UI renders comes from a label key; none
+is written inline in a component. The product name is the one exception: *TheAtlas Queue* is
+not a label.
+
+**Where the language comes from.** The dashboard: the EN | TR switch, remembered per user. Home
+and `/watch`: an explicit `?lang=en|tr` in the URL wins; otherwise the browser's language
+(Turkish → `tr`, anything else → `en`), and the EN | TR switch sets `?lang`. `/overlay` and chat
+replies: the streamer's *stream language* setting. `<html lang>` always matches the page.
+
+**Keys** are dotted, by area: `queue.title`, `queue.hint`, `team.1`, `team.2`, `match.vs`,
+`action.draw`, `chat.rejected.banned`. A key names the *slot*, not its current wording.
+Interpolation uses braces: `queue.hint` = "Viewers join by typing {command} in Kick chat."
+
+**Streamers can override a curated set of labels, per language.** Settings → *Labels &
+language* lists them, each with a readable name above its key. The editor **always edits the
+language selected in the masthead**; there is no second language switch inside it. A change
+updates the dashboard, `/watch`, `/overlay` and chat replies live. An empty value falls back to
+the default; ↺ clears the override.
+
+Resolution order: **streamer override for that language → built-in default for that language →
+built-in English.**
+
+The curated set, and nothing else. Everything outside it is translated but fixed.
+
+| Area | Keys |
+|---|---|
+| Identity | `brand.subtitle` |
+| Teams | `team.1`, `team.2`, `match.vs` |
+| Queue | `queue.title`, `queue.hint`, `queue.empty.title`, `queue.empty.hint` |
+| Actions | `action.add`, `action.draw`, `action.reroll`, `action.pick` |
+| Watch page | `watch.title`, `watch.subtitle`, `watch.disabled` |
+| Overlay | `overlay.queue.title`, `overlay.draw.title` |
+| Chat replies | `chat.joined`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.position`, `chat.perk` |
+
+Team names are ordinary labels, so "Kurtlar" in Turkish and "Wolves" in English is two
+overrides, not a special field.
+
+The current `AppSettings` text fields migrate:
+
+| Today | Becomes |
+|---|---|
+| `pageTitle` | **Deleted.** The name is fixed |
+| `pageSubtitle` | `brand.subtitle` |
+| `queueCardTitle` | `queue.title` |
+| `queueCardDescription` | `queue.hint` |
+| `emptyQueueTitle` | `queue.empty.title` |
+| `emptyQueueDescription` | `queue.empty.hint` |
+
+**Chat commands are not labels.** `!sıra` is a setting (`queueCommand`), the same in both UI
+languages, because viewers type it. Rank tiers, region names and relative times come from the
+built-in table and are not editable.
+
+---
+
+## Metadata and SEO
+
+Built with the Next.js Metadata API (`metadata` / `generateMetadata`, `viewport`, and the file
+conventions `robots.ts`, `sitemap.ts`, `manifest.ts`, `opengraph-image.tsx`, `icon`,
+`apple-icon`), following Google Search Central's guidance. Nothing is hand-written into `<head>`.
+
+### Titles and descriptions
+
+A title template in the root layout: `{ default: "TheAtlas Queue", template: "%s · TheAtlas
+Queue" }`. Titles stay under 60 characters and descriptions between 120 and 160, both per
+language.
+
+| Route | Title | Description |
+|---|---|---|
+| `/` signed out | absolute: "TheAtlas Queue — Kick queue and fair team draws" | What it does, in one sentence, for a streamer |
+| `/c/<channel>` | "{tab}" → "Teams · TheAtlas Queue" | — (not indexed) |
+| `/watch/<channel>` | "{Channel}'s queue" | "Live queue and team draws for {Channel}'s stream on Kick." |
+| `/overlay/<channel>` | "Overlay" | — (not indexed) |
+| `/welcome` | "Welcome" | — (not indexed) |
+
+### Every page
+
+- `metadataBase` set to the production origin, so every relative URL resolves absolutely.
+- `applicationName: "TheAtlas Queue"`, `creator` and `publisher` as the author.
+- `openGraph`: `siteName: "TheAtlas Queue"`, `type: "website"`, `locale` (`en_US` / `tr_TR`) with
+  `alternateLocale`, `url`, `title`, `description`, and a 1200×630 image.
+- `twitter`: `card: "summary_large_image"`.
+- `alternates.canonical`: the page's own URL. On home and `/watch`, also
+  `alternates.languages` with `en`, `tr` and `x-default` (the URL without `?lang`).
+- `viewport`: `width=device-width`, `initialScale: 1`, and `themeColor` per
+  `prefers-color-scheme`: `#131210` dark, `#f4f0e6` light. Zoom is never disabled.
+- `icons` and a web manifest (`name`, `short_name: "Queue"`, the theme colours).
+- `formatDetection: { telephone: false }`, so Riot tags are not turned into phone links.
+
+### Indexing
+
+- **Indexed:** the home page and every *enabled* `/watch/<channel>`. `sitemap.ts` lists exactly
+  those, with `lastModified`.
+- **Not indexed:** the signed-in dashboard, `/welcome`, `/overlay/*`, a disabled `/watch`, and
+  every error page, via `robots: { index: false, follow: false }`.
+- `robots.ts` disallows `/api/` and points to the sitemap. It does not disallow a page that
+  carries `noindex`: Google has to crawl a page to see its `noindex`.
+- A `/watch` for a channel that does not exist returns a real **404**, not a 200 that says "not
+  found".
+
+### Structured data
+
+JSON-LD in a `<script type="application/ld+json">`, rendered on the server: a `WebApplication`
+on the home page (`name`, `url`, `applicationCategory: "EntertainmentApplication"`,
+`operatingSystem: "Web"`, `offers` at price 0, `inLanguage` both languages), and a `WebSite`
+with `name: "TheAtlas Queue"` so Google shows the right site name.
+
+### Open Graph images
+
+Generated by `opengraph-image.tsx` with `next/og`, in Mürekkep with the three faces: the home
+page's shows the wordmark; each `/watch` shows the channel name and its current team names.
+
+### Page quality Google measures
+
+- **One `h1` per page:** the channel name on the dashboard and `/watch`, the wordmark on home.
+  Headings in outline order below it.
+- **Core Web Vitals**: LCP < 2.5s (the project's own budget is 1s on `/watch`), INP < 200ms,
+  CLS < 0.1. `Typewriter` keeps its final width from the first frame, fonts come with a
+  size-adjusted fallback, and skeletons have the real row size, all so nothing shifts.
+- Real links (`<a href>`) for anything a crawler should follow, descriptive link text, `alt` on
+  every meaningful image.
+- HTTPS only, no interstitials, readable without zoom on a phone.
+
+---
+
+## Icons
+
+`lucide-react`, as today. Size comes from the button's size variant; do not set `size-*` on an
+icon inside a button. Decorative icons are `aria-hidden`; icon-only buttons carry `aria-label`.
+The 🛡 subscriber mark is the one emoji, because chat replies use it too.
+
+---
+
+## Extending this
+
+Everything interactive comes from shadcn, in `src/components/ui/`.
+
+1. Use the component's own variants first.
+2. Close but insufficient → add a `cva` variant to that component.
+3. Layout genuinely breaks → extend the underlying `radix-ui` primitive inside the component.
+4. **Never copy a shadcn file and diverge**, and never rewrite one onto another primitive.
+
+Restyling a component's *layout* where it is used (a row's grid, a card's padding) is normal.
+Changing what the component *is* belongs in `ui/`, as a variant.
+
+A new colour, radius, size or face goes in `globals.css` and in this file's tables, in the same
+commit, with its contrast numbers.
+
+**Deliberate divergences, tracked here.** A future `bunx --bun shadcn@latest add` overwrites
+these; re-apply them after:
+
+- *(none yet)*
+
+**Ported, not generated:** `src/components/typewriter.tsx` is TheAtlas's, copied verbatim. It is
+not a shadcn file and is never regenerated; it is re-copied from upstream.
+
+---
+
+## Do and don't
+
+**Do**
+
+- Reach for the semantic token, so both themes come for free.
+- Keep gold scarce: the wordmark, focus, selection, the subscriber tag, warnings.
+- Give every row its `row-edge` outline and a 6px gap.
+- Write state as a word *and* a colour.
+- Give every text role its selection pair; make chrome `select-none`.
+- Design loading, empty, error and offline for every view.
+- Size a heading up before weighting it up.
+- Put a new string behind a label key, in both languages, in the same commit.
+
+**Don't**
+
+- Don't write a hex literal or an arbitrary `text-[…]` size in a component.
+- Don't use teal or orange for anything but a team, or red for a team.
+- Don't show a shortcut hint outside the row menu and the command palette.
+- Don't show a Riot ID column in the row.
+- Don't toast an event that came from chat.
+- Don't ask "are you sure?" for anything Undo can reverse.
+- Don't bold a serif heading, set a heading in sans, or set a name in mono.
+- Don't replay the entrance on tab switches, realtime updates or overlay reloads.
+- Don't put two primary buttons in one view.
+- Don't nest `bg-card` inside `bg-card`.
+- Don't use an alpha of `--foreground` as a surface or a border.
+- Don't load fonts from a CDN.
+- Don't translate or rename "TheAtlas Queue".
+
+---
+
+## Checklist for a new screen
+
+1. Does every colour come from a semantic token, and every size from a named `text-*`?
+2. Exactly one `primary` action?
+3. Every row: `border-row-edge rounded-xl`, 6px apart, `bg-row` on the floor, `bg-background` in a
+   card?
+4. Body ≥7:1, secondary ≥4.6:1, outlines and focus ≥3:1, on the surface they actually land on?
+5. Every text role has a `selection:` pair; every control is `select-none`?
+6. No shortcut hints on the page; row keys only on a focused row?
+7. Every string behind a label key, in `en` and `tr`?
+8. Loading, empty, error and offline each designed?
+9. Entrance runs once, capped at 12 rows, gone under reduced motion; `Typewriter` only on the
+   introducing line and the draw reveal?
+10. Works at 375px with 44px targets and no hover?
+11. Title from the template, description, canonical, and the right `robots` for the route?
+12. Checked in both Mürekkep and Kâğıt, not assumed from one?
+
+---
+
+## Related
+
+[`CLAUDE.md`](../CLAUDE.md) · [`src/app/globals.css`](../src/app/globals.css) ·
+[`components.json`](../components.json) · TheAtlas `docs/DESIGN.md` (the family system this one
+derives from) · [Google Search Central](https://developers.google.com/search/docs) ·
+[Next.js Metadata API](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)

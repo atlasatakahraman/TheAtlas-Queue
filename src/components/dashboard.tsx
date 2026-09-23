@@ -26,7 +26,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEasterEggs } from "@/hooks/use-easter-eggs";
 import { useKickChat } from "@/hooks/use-kick-chat";
 import { useLiveStatus } from "@/hooks/use-live-status";
 import { useModeration } from "@/hooks/use-moderation";
@@ -34,11 +33,9 @@ import { useQueue } from "@/hooks/use-queue";
 import { useSettings } from "@/hooks/use-settings";
 import { logger } from "@/lib/utils";
 import type { QueuePlayer } from "@/types";
-import { useGameTracker } from "@/hooks/use-game-tracker";
 import {
   Crosshair,
   Dices,
-  History,
   ListOrdered,
   Shield,
   Shuffle,
@@ -51,8 +48,6 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BadAppleOverlay } from "./bad-apple-overlay";
-import { ConfettiOverlay } from "./confetti-overlay";
 import { GlobalContextMenu } from "./global-context-menu";
 import { Header } from "./header";
 import { ModerationActionDialog } from "./moderation-action-dialog";
@@ -61,10 +56,6 @@ import { QueueTable } from "./queue-table";
 
 import { TeamDisplay } from "./team-display";
 import { Watermark } from "./watermark";
-const GameTrackerPanel = dynamic(
-  () => import("./game-tracker-panel").then((m) => m.GameTrackerPanel),
-  { ssr: false },
-);
 const SinglePickDialog = dynamic(
   () => import("./single-pick-dialog").then((m) => m.SinglePickDialog),
   { ssr: false },
@@ -90,14 +81,6 @@ export function Dashboard() {
     isLoading: settingsLoading,
   } = useSettings();
   const moderation = useModeration();
-  const { showConfetti, showBadApple, dismissBadApple } = useEasterEggs();
-  const gameTracker = useGameTracker();
-
-  // Stable ref so handleTabChange / useEffect don't re-subscribe on every history update
-  const fetchRecentMatchesRef = useRef(gameTracker.fetchRecentMatches);
-  fetchRecentMatchesRef.current = gameTracker.fetchRecentMatches;
-  const trackedAccountRef = useRef(gameTracker.trackedAccount);
-  trackedAccountRef.current = gameTracker.trackedAccount;
 
   // Toast helper that respects the enableToasts setting
   const showToast = useCallback(
@@ -135,7 +118,7 @@ export function Dashboard() {
 
   const handleTabChange = useCallback(
     (value: string) => {
-      const tabsOrder = ["queue", "teams", "tracker", "moderation"];
+      const tabsOrder = ["queue", "teams", "moderation"];
       const prevIndex = tabsOrder.indexOf(activeTab);
       const newIndex = tabsOrder.indexOf(value);
 
@@ -144,12 +127,8 @@ export function Dashboard() {
       }
       setActiveTab(value);
       localStorage.setItem("theatlas_active_tab", value);
-
-      if (value === "tracker" && trackedAccountRef.current) {
-        fetchRecentMatchesRef.current(true).catch(console.error);
-      }
     },
-    [activeTab], // No longer depends on gameTracker object
+    [activeTab],
   );
 
   const [queueFilter, setQueueFilter] = useState<
@@ -163,14 +142,8 @@ export function Dashboard() {
 
   useEffect(() => {
     const savedTab = localStorage.getItem("theatlas_active_tab");
-    if (savedTab && ["queue", "teams", "tracker", "moderation"].includes(savedTab)) {
+    if (savedTab && ["queue", "teams", "moderation"].includes(savedTab)) {
       setActiveTab(savedTab);
-      if (savedTab === "tracker" && trackedAccountRef.current) {
-        // Small delay so the component tree finishes mounting
-        setTimeout(() => {
-          fetchRecentMatchesRef.current(true).catch(console.error);
-        }, 100);
-      }
     }
 
     const savedQueueFilter = localStorage.getItem("theatlas_queue_filter");
@@ -1204,20 +1177,6 @@ export function Dashboard() {
                     )}
                   </TabsTrigger>
                   <TabsTrigger
-                    value="tracker"
-                    className="gap-2"
-                    id="tab-tracker"
-                  >
-                    <History className="h-3.5 w-3.5" />
-                    Maç Geçmişi
-                    {gameTracker.session?.state === "in_game" && (
-                      <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-                      </span>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger
                     value="moderation"
                     className="gap-2"
                     id="tab-moderation"
@@ -1410,68 +1369,6 @@ export function Dashboard() {
                       </CardContent>
                     </Card>
                   )}
-                </TabsContent>
-
-                <TabsContent value="tracker" className="mt-0">
-                  <GameTrackerPanel
-                    tracker={gameTracker}
-                    defaultRegion={settings.riotRegion}
-                    enableToasts={settings.enableToasts}
-                    onAddPlayerToQueue={(gameName, tagLine) => {
-                      const riotDisabled = !!settings.disableRiotApi;
-
-                      const exists = riotDisabled
-                        ? queue.players.some(
-                            (p) =>
-                              p.kickUsername.toLowerCase() === gameName.toLowerCase()
-                          )
-                        : queue.players.some(
-                            (p) =>
-                              p.riotGameName.toLowerCase() === gameName.toLowerCase() &&
-                              p.riotTagLine.toLowerCase() === tagLine.toLowerCase()
-                          );
-
-                      if (exists) {
-                        showToast("warning", "Zaten Sırada", {
-                          description: riotDisabled
-                            ? `${gameName} zaten sırada bulunuyor.`
-                            : `${gameName}#${tagLine} zaten sırada bulunuyor.`,
-                        });
-                        return;
-                      }
-
-                      if (moderation.isPlayerBanned(gameName)) {
-                        showToast("error", "Yasaklı Oyuncu", {
-                          description: `${gameName} yasaklı olduğu için sıraya eklenemez.`,
-                        });
-                        return;
-                      }
-
-                      const effectiveTagLine = riotDisabled ? "MAÇ" : tagLine;
-
-                      const newPlayer: QueuePlayer = {
-                        id: crypto.randomUUID(),
-                        kickUsername: gameName,
-                        riotGameName: gameName,
-                        riotTagLine: effectiveTagLine,
-                        isAway: false,
-                        isInGame: false,
-                        joinedAt: new Date(),
-                        isLoading: !riotDisabled,
-                      };
-                      queue.addPlayer(newPlayer);
-                      showToast("success", "Sıraya Eklendi", {
-                        description: riotDisabled
-                          ? `${gameName} sıraya eklendi.`
-                          : `${gameName}#${tagLine} sıraya eklendi.`,
-                      });
-
-                      if (!riotDisabled) {
-                        fetchRiotData(newPlayer);
-                      }
-                    }}
-                    onModeratePlayer={handleModerateRequest}
-                  />
                 </TabsContent>
 
                 <TabsContent value="moderation" className="mt-0">
@@ -1779,8 +1676,6 @@ export function Dashboard() {
           </AlertDialog>
         </div>
       </GlobalContextMenu>
-      <ConfettiOverlay active={showConfetti} />
-      <BadAppleOverlay active={showBadApple} onDismiss={dismissBadApple} />
     </>
   );
 }

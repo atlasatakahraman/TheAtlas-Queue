@@ -39,6 +39,7 @@ export const tr: Record<LabelKey, string> = {
   "error.settings.invalid": "Bu değere izin verilmiyor.",
   "error.request.invalid": "Bu istek geçerli değil.",
   "error.generic": "Kaydedilemedi.",
+  "error.network": "Bağlantı koptu. Tekrar dene.",
   "error.load": "Sıra yüklenemedi.",
   "common.retry": "Tekrar dene",
   "common.undo": "Geri al",

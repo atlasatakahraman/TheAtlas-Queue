@@ -41,6 +41,7 @@ export const en = {
   "error.settings.invalid": "That value isn't allowed.",
   "error.request.invalid": "That request isn't valid.",
   "error.generic": "Couldn't save.",
+  "error.network": "The connection dropped. Try again.",
   "error.load": "Couldn't load the queue.",
   "common.retry": "Retry",
   "common.undo": "Undo",

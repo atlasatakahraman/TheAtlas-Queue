@@ -36,53 +36,57 @@ export function Masthead() {
   const time = liveSince && new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit" }).format(new Date(liveSince));
 
   return (
-    <header className="flex items-start justify-between gap-6">
-      <div className="min-w-0">
-        <h1 className="font-serif text-display text-foreground max-md:text-title">
+    <header className="flex flex-col gap-1">
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="min-w-0 font-serif text-display text-foreground max-md:text-title">
           <Typewriter text={name} />{" "}
           <span className="text-brand italic selection:bg-foreground selection:text-background">Queue</span>
         </h1>
-        {role === "mod" && (
-          <span className="mt-2 inline-flex rounded-full border border-muted-foreground/45 px-2 text-caption tracking-normal text-muted-foreground select-none">
-            {t("masthead.moderating")}
-          </span>
-        )}
-        {subtitle && <p className="mt-1 text-body text-muted-foreground">{subtitle}</p>}
-        <p style={e0.style} className={cn("mt-1 text-meta text-muted-foreground", e0.className)}>
-          <span suppressHydrationWarning>{day}</span>
-          {" · "}
-          {time ? t("dateline.live", { time }) : t("dateline.offline")}
-          {" · "}
-          {t("dateline.waiting", { n: waiting })}
-        </p>
-      </div>
-      <div style={e1.style} className={cn("flex shrink-0 items-center gap-1", e1.className)}>
-        <ConnectionPill />
-        <div className="flex items-center gap-1 max-md:hidden">
-          <Button variant="ghost" size="icon-lg" aria-label={t("palette.open")} onClick={() => ui.setPalette(true)}>
-            <Search aria-hidden />
-          </Button>
-          <LangSwitch />
-          <ThemeButton />
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-lg" className="size-11 md:hidden" aria-label={t("masthead.more")}>
-              <Ellipsis aria-hidden />
+        <div style={e1.style} className={cn("flex shrink-0 items-center gap-1", e1.className)}>
+          <ConnectionPill />
+          <div className="flex items-center gap-1 max-md:hidden">
+            <Button variant="ghost" size="icon-lg" aria-label={t("palette.open")} onClick={() => ui.setPalette(true)}>
+              <Search aria-hidden />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => ui.setPalette(true)}>{t("palette.open")}</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled={lang === "en"} onSelect={() => setLang("en")}>{t("lang.name.en")}</DropdownMenuItem>
-            <DropdownMenuItem disabled={lang === "tr"} onSelect={() => setLang("tr")}>{t("lang.name.tr")}</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
-              {resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <LangSwitch />
+            <ThemeButton />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-lg" className="size-11 md:hidden" aria-label={t("masthead.more")}>
+                <Ellipsis aria-hidden />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => ui.setPalette(true)}>{t("palette.open")}</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled={lang === "en"} onSelect={() => setLang("en")}>
+                {t("lang.name.en")}
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={lang === "tr"} onSelect={() => setLang("tr")}>
+                {t("lang.name.tr")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
+                {resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+      {role === "mod" && (
+        <span className="inline-flex self-start rounded-full border border-muted-foreground/45 px-2 text-caption tracking-normal text-muted-foreground select-none">
+          {t("masthead.moderating")}
+        </span>
+      )}
+      {subtitle && <p className="text-body text-muted-foreground">{subtitle}</p>}
+      <p style={e0.style} className={cn("text-meta text-muted-foreground", e0.className)}>
+        <span suppressHydrationWarning>{day}</span>
+        {" · "}
+        {time ? t("dateline.live", { time }) : t("dateline.offline")}
+        {" · "}
+        {t("dateline.waiting", { n: waiting })}
+      </p>
     </header>
   );
 }

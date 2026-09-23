@@ -23,7 +23,7 @@ export function ResponsiveDialog({
   if (mobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="max-h-[90dvh] gap-4 rounded-t-2xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+        <SheetContent side="bottom" {...(description ? {} : { "aria-describedby": undefined })} className="max-h-[90dvh] gap-4 rounded-t-2xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] [&_[data-slot=sheet-close]]:size-11">
           <SheetHeader className="p-0">
             <SheetTitle className="font-serif text-title font-normal">{title}</SheetTitle>
             {description && <SheetDescription>{description}</SheetDescription>}
@@ -36,7 +36,7 @@ export function ResponsiveDialog({
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-4 rounded-2xl p-6 sm:max-w-md">
+      <DialogContent className="gap-4 rounded-2xl p-6 sm:max-w-md" {...(description ? {} : { "aria-describedby": undefined })}>
         <DialogHeader>
           <DialogTitle className="font-serif text-title font-normal">{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

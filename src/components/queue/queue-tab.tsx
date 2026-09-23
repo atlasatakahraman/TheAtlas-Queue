@@ -7,6 +7,7 @@ import { useCanWrite, useQueue } from "@/components/queue/store";
 import { enter, SearchRefContext, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useStored } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
@@ -74,11 +75,8 @@ export function QueueTab() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div
-            role="group"
-            aria-label={t("filter.label")}
-            className="flex gap-1 overflow-x-auto rounded-lg bg-muted p-1 select-none max-md:w-full"
-          >
+          <ScrollArea className="rounded-lg bg-muted max-md:w-full">
+          <div role="group" aria-label={t("filter.label")} className="flex w-max gap-1 p-1 select-none">
             {FILTERS.map((f) => (
               <button
                 key={f}
@@ -87,7 +85,8 @@ export function QueueTab() {
                 onClick={() => setFilter(f)}
                 className={cn(
                   "flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-control outline-none focus-visible:ring-2 focus-visible:ring-ring/40 max-md:h-11",
-                  filter === f ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground",
+                  // Kâğıt's track and hover share one value, so the active pill steps up to the card.
+                  filter === f ? "bg-card text-foreground shadow-xs dark:bg-accent" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t(`filter.${f}`)}
@@ -95,6 +94,8 @@ export function QueueTab() {
               </button>
             ))}
           </div>
+          <ScrollBar orientation="horizontal" />
+          </ScrollArea>
           <div className="relative ml-auto max-md:ml-0 max-md:w-full">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <Input
@@ -244,11 +245,13 @@ function MobileFeed() {
           setSeen(newest);
         }}
       >
-        <SheetContent side="bottom" className="max-h-[80dvh] gap-4 overflow-y-auto rounded-t-2xl p-6">
+        <SheetContent side="bottom" className="h-[80dvh] gap-4 rounded-t-2xl p-6 [&_[data-slot=sheet-close]]:size-11" aria-describedby={undefined}>
           <SheetHeader className="p-0">
             <SheetTitle className="font-serif text-title font-normal">{t("feed.title")}</SheetTitle>
           </SheetHeader>
-          <Feed />
+          <ScrollArea className="min-h-0 flex-1">
+            <Feed />
+          </ScrollArea>
         </SheetContent>
       </Sheet>
     </div>

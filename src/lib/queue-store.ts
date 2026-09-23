@@ -60,7 +60,8 @@ export function createQueueStore(initial: QueueState, me: number) {
   let view: QueueView = {
     ...initial,
     conn: "connecting",
-    online: typeof navigator === "undefined" ? true : navigator.onLine,
+    // Read on connect: the server render (Bun defines navigator, without onLine) assumes online.
+    online: true,
     lost: false,
     arrived: {},
     reverted: {},
@@ -204,6 +205,7 @@ export function createQueueStore(initial: QueueState, me: number) {
       .channel(`ch:${channelId}`, { config: { private: true } })
       .on("broadcast", { event: "change" }, ({ payload }) => apply(payload as ChangeEvent, true));
     let closed = false;
+    if (!navigator.onLine) set({ ...view, online: false });
     void db().realtime.setAuth().then(() => {
       if (closed) return;
       topic.subscribe((status) => {

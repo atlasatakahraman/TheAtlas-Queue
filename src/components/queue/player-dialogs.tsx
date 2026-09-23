@@ -135,10 +135,13 @@ function AddPlayerForm({ onDone }: { onDone: () => void }) {
       }}
     >
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="add-name">{t("player.name")}</Label>
-        <Command shouldFilter={false} className="rounded-xl! border border-input bg-background p-0">
+        {/* cmdk sets its own id on the input, so the label names it through aria-label. */}
+        <Label asChild>
+          <span>{t("player.name")}</span>
+        </Label>
+        <Command shouldFilter={false} className="bg-transparent p-0 [&_[data-slot=command-input-wrapper]]:p-0 [&_[data-slot=input-group]]:h-9! max-md:[&_[data-slot=input-group]]:h-11!">
           <CommandInput
-            id="add-name"
+            aria-label={t("player.name")}
             autoFocus
             value={name}
             onValueChange={(v) => {

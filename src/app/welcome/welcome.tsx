@@ -1,30 +1,37 @@
 "use client";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { useT } from "@/components/i18n";
+import { LangSwitch } from "@/components/lang-switch";
+import { ThemeButton } from "@/components/theme-button";
+import { Typewriter } from "@/components/typewriter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import type { LabelKey } from "@/lib/i18n";
 import { db } from "@/lib/supabase/browser";
+import { cn } from "@/lib/utils";
 import type { Onboarded, OnboardSettings } from "@/types";
 
-// DESIGN.md § Onboarding: three stacked steps, each finishing in place. Stage 3 ships it
-// working; Stage 4 moves these English strings to label keys and the look to the DESIGN.md tokens.
-const REGIONS = ["tr1", "euw1", "eun1", "me1", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ru", "ph2", "sg2", "th2", "tw2", "vn2"];
-const FAILED: Record<Exclude<Onboarded, { ok: true }>["error"], string> = {
-  auth: "Your sign-in has expired. Sign in with Kick again.",
-  kick: "Couldn't reach Kick to read your channel.",
-  slug: "Another channel still uses this address. Try again in a minute.",
-  db: "Couldn't save your channel.",
-};
+// DESIGN.md § Onboarding: three stacked steps, each finishing in place. No wizard, no Next.
+const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 
 type Row = { _t: string; kick_username?: string; riot_id?: string | null };
 
 function Step({ n, title, done, children }: { n: number; title: string; done: boolean; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border bg-card p-5">
-      <h2 className="mb-3 flex items-center gap-3 font-medium">
-        <span className={`flex size-7 items-center justify-center rounded-full text-sm ${done ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{n}</span>
+    <section className="flex flex-col gap-4 rounded-xl bg-card p-6 max-md:p-4">
+      <h2 className="flex items-center gap-3 font-serif text-team">
+        <span
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-full border font-serif text-numeral tabular-nums select-none",
+            done ? "border-success/45 text-success" : "border-row-edge text-muted-foreground",
+          )}
+        >
+          {n}
+        </span>
         {title}
       </h2>
       {children}
@@ -33,16 +40,20 @@ function Step({ n, title, done, children }: { n: number; title: string; done: bo
 }
 
 export function Welcome({ username, setup }: { username: string; setup: () => Promise<Onboarded> }) {
+  const { t } = useT();
   const [channel, setChannel] = useState<Onboarded | null>(null);
   const [form, setForm] = useState<OnboardSettings | null>(null);
   const [save, setSave] = useState<"idle" | "saving" | "saved" | string>("idle");
   const [first, setFirst] = useState<{ name: string; riot: string | null } | null>(null);
 
   const load = useCallback(() => {
-    setup().then((r) => {
-      setChannel(r);
-      if (r.ok) setForm(r.settings);
-    }, () => setChannel({ ok: false, error: "db" }));
+    setup().then(
+      (r) => {
+        setChannel(r);
+        if (r.ok) setForm(r.settings);
+      },
+      () => setChannel({ ok: false, error: "db" }),
+    );
   }, [setup]);
   useEffect(load, [load]);
   const run = () => {
@@ -86,109 +97,155 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
   };
 
   return (
-    <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-12">
-      <h1 className="font-serif text-3xl">Welcome</h1>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-8 py-12 max-md:px-4 max-md:py-8">
+      <header className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-serif text-display max-md:text-title">
+            <Typewriter text={t("welcome.title")} />
+          </h1>
+          <p className="text-muted-foreground">{t("welcome.hint")}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1 animate-enter" style={{ animationDelay: "70ms" }}>
+          <LangSwitch />
+          <ThemeButton />
+        </div>
+      </header>
 
-      <Step n={1} title="Your channel" done={!!channel?.ok}>
-        <p>Signed in as <strong>{username}</strong>.</p>
-        {!channel && <p className="text-muted-foreground">Setting up your channel…</p>}
+      <Step n={1} title={t("welcome.step.channel")} done={!!channel?.ok}>
+        <p>{t("welcome.signed_in", { name: username })}</p>
+        {!channel && <p className="text-muted-foreground">{t("welcome.setting_up")}</p>}
         {channel && !channel.ok && (
-          <div className="mt-2 flex items-center gap-3">
-            <p className="text-destructive">{FAILED[channel.error]}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-destructive selection:bg-destructive selection:text-background">{t(`welcome.error.${channel.error}`)}</p>
             {channel.error === "auth" ? (
-              <a className="underline" href="/login?callbackUrl=/welcome">Sign in</a>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/?callbackUrl=/welcome">{t("welcome.sign_in")}</Link>
+              </Button>
             ) : (
-              <Button size="sm" variant="outline" onClick={run}>Retry</Button>
+              <Button size="lg" variant="outline" onClick={run}>
+                {t("common.retry")}
+              </Button>
             )}
           </div>
         )}
         {channel?.ok && (
-          <p className="mt-1 text-muted-foreground">
-            kick.com/{channel.slug}
+          <p className="flex flex-wrap items-center gap-x-2 text-meta text-muted-foreground">
+            <span className="font-mono text-code">kick.com/{channel.slug}</span>
+            <span aria-hidden>·</span>
             {channel.subscriptionError ? (
               <>
-                {" · "}<span className="text-destructive">Couldn&apos;t connect to your chat yet.</span>{" "}
-                <Button size="sm" variant="link" onClick={run}>Retry</Button>
+                <span className="text-destructive">{t("welcome.not_connected")}</span>
+                <Button size="sm" variant="link" className="h-auto p-0" onClick={run}>
+                  {t("common.retry")}
+                </Button>
               </>
             ) : (
-              " · listening to your chat"
+              <span className="text-success">{t("welcome.listening")}</span>
             )}
           </p>
         )}
       </Step>
 
-      <Step n={2} title="How viewers join" done={save === "saved"}>
+      <Step n={2} title={t("welcome.step.join")} done={save === "saved"}>
         {form ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="join">Queue command</Label>
-              <Input id="join" className="font-mono" value={form.join_command} onChange={(e) => set({ join_command: e.target.value })} />
-              <p className="text-sm text-muted-foreground">What viewers type in chat to join, followed by their Riot ID.</p>
+              <Label htmlFor="join">{t("settings.join_command")}</Label>
+              <Input
+                id="join"
+                className="h-9 max-w-60 font-mono text-code max-md:h-11"
+                value={form.join_command}
+                spellCheck={false}
+                aria-invalid={save === "join_command" || save === "commands"}
+                onChange={(e) => set({ join_command: e.target.value.trim() })}
+              />
+              <p className="text-meta text-muted-foreground">{t("welcome.join.hint")}</p>
               {(save === "join_command" || save === "commands") && (
-                <p className="text-sm text-destructive">Use ! followed by a word, different from your other commands.</p>
+                <p className="text-meta text-destructive">{t("settings.commands.clash")}</p>
               )}
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <Label htmlFor="riot">Require Riot ID</Label>
-                <p className="text-sm text-muted-foreground">Turn away a join without Name#TAG.</p>
-              </div>
-              <Switch id="riot" checked={form.require_riot_id} onCheckedChange={(v) => set({ require_riot_id: v })} />
+            <div className="flex items-start justify-between gap-4">
+              <Label htmlFor="riot" className="flex min-h-11 cursor-pointer flex-col items-start gap-0.5 leading-normal md:min-h-0">
+                <span className="text-control">{t("settings.require_riot_id")}</span>
+                <span className="text-meta font-normal text-muted-foreground">{t("settings.require_riot_id.hint")}</span>
+              </Label>
+              <Switch id="riot" checked={form.require_riot_id} onCheckedChange={(v) => set({ require_riot_id: v })} className="mt-0.5" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
               <div className="flex flex-col gap-1.5">
-                <Label>Riot region</Label>
+                <Label>{t("settings.riot_region")}</Label>
                 <Select value={form.riot_region} onValueChange={(v) => set({ riot_region: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9! w-full max-md:h-11!">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {REGIONS.map((r) => <SelectItem key={r} value={r}>{r.toUpperCase()}</SelectItem>)}
+                    {REGIONS.map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {t(`region.${r}` as LabelKey)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">Where ranks are looked up.</p>
+                <p className="text-meta text-muted-foreground">{t("settings.riot_region.hint")}</p>
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label>Stream language</Label>
+                <Label>{t("settings.stream_locale")}</Label>
                 <Select value={form.stream_locale} onValueChange={(v) => set({ stream_locale: v as "en" | "tr" })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9! w-full max-md:h-11!">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="tr">Türkçe</SelectItem>
+                    <SelectItem value="en">{t("lang.name.en")}</SelectItem>
+                    <SelectItem value="tr">{t("lang.name.tr")}</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">For the overlay and chat replies.</p>
+                <p className="text-meta text-muted-foreground">{t("settings.stream_locale.hint")}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button onClick={saveSettings} disabled={save === "saving"}>Save</Button>
-              {save === "saved" && <span className="text-sm text-muted-foreground">Saved</span>}
-              {save === "form" && <span className="text-sm text-destructive">Couldn&apos;t save. Try again.</span>}
+            <div className="flex items-center justify-end gap-3">
+              {save === "saved" && <span className="text-meta text-muted-foreground">{t("common.saved")}</span>}
+              {save === "form" && <span className="text-meta text-destructive">{t("error.generic")}</span>}
+              {/* One primary per view: Save until the first join arrives, then Open the dashboard. */}
+              <Button size="lg" variant={first ? "outline" : "default"} className="max-md:h-11" onClick={saveSettings} disabled={save === "saving"}>
+                {t("common.save")}
+              </Button>
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground">Available once your channel is set up.</p>
+          <p className="text-muted-foreground">{t("welcome.after_channel")}</p>
         )}
       </Step>
 
-      <Step n={3} title="Try it" done={!!first}>
+      <Step n={3} title={t("welcome.step.try")} done={!!first}>
         {channel?.ok && form ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {first ? (
-              <div className="flex items-center justify-between rounded-xl border px-4 py-3">
-                <span className="font-medium">{first.name}</span>
-                <span className="font-mono text-sm text-muted-foreground">{first.riot ?? ""}</span>
+              <div className="flex items-center gap-3 rounded-xl border border-l-[3px] border-row-edge bg-background px-4 py-3 animate-arrive">
+                <span className="w-7 font-serif text-numeral text-muted-foreground tabular-nums">1</span>
+                <span className="text-name">{first.name}</span>
+                {first.riot && <span className="ml-auto font-mono text-code text-muted-foreground">{first.riot}</span>}
               </div>
             ) : (
               <p>
-                Type <code className="font-mono">{form.join_command} Name#TAG</code> in your chat now. Waiting for it…
+                {t("welcome.try.before")}{" "}
+                <code className="font-mono text-code select-all">{form.join_command} Name#TAG</code>{" "}
+                {t("welcome.try.after")}
               </p>
             )}
             <div className="flex items-center gap-4">
-              {first && <Button asChild><a href={`/c/${channel.slug}`}>Open the dashboard</a></Button>}
-              {!first && <a className="text-sm text-muted-foreground underline" href={`/c/${channel.slug}`}>Skip</a>}
+              {first ? (
+                <Button asChild size="lg">
+                  <a href={`/c/${channel.slug}`}>{t("welcome.open")}</a>
+                </Button>
+              ) : (
+                <a className="text-meta text-muted-foreground underline underline-offset-4 hover:text-foreground" href={`/c/${channel.slug}`}>
+                  {t("welcome.skip")}
+                </a>
+              )}
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground">Available once your channel is set up.</p>
+          <p className="text-muted-foreground">{t("welcome.after_channel")}</p>
         )}
       </Step>
     </main>

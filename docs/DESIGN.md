@@ -472,8 +472,9 @@ wheel.
 - Icon-only controls carry `aria-label`. Invalid controls use `aria-invalid`.
 - **Shortcut hints never appear on the page.** The shortcuts work everywhere, but their hints
   appear in exactly two places, both of them menus: the **right-click menu**
-  (`ContextMenuShortcut`) and the **command palette** (`CommandShortcut`). No kbd chips in
-  toolbars, buttons, headings, tooltips or empty states.
+  (`ContextMenuShortcut`) and the **command palette** (`CommandShortcut`), each key drawn with
+  shadcn's `Kbd` inside that slot. No kbd chips in toolbars, buttons, headings, tooltips or
+  empty states.
 
 **Global keys** fire only when no text input has focus and no row has keyboard focus.
 
@@ -936,7 +937,12 @@ commit, with its contrast numbers.
 **Deliberate divergences, tracked here.** A future `bunx --bun shadcn@latest add` overwrites
 these; re-apply them after:
 
-- *(none yet)*
+- `ui/kbd.tsx` imports `cn` from `@/lib/utils`. The CLI wrote `from "cn"` and installed an
+  unrelated npm package named `cn`; that package is not a dependency here.
+- `ui/scroll-area.tsx`, same import. Its scrollbar is 6px at rest and widens to shadcn's 10px
+  under the pointer (`data-vertical:w-1.5 … hover:w-2.5`, the same for horizontal), and its
+  thumb is `bg-row-edge` (stock `bg-border` is a hairline, near invisible on Mürekkep). The page
+  scrolls inside this `ScrollArea` (root layout), so no native scrollbar is ever drawn.
 
 **Ported, not generated:** `src/components/typewriter.tsx` is TheAtlas's, copied verbatim. It is
 not a shadcn file and is never regenerated; it is re-copied from upstream.

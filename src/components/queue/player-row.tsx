@@ -22,6 +22,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Kbd } from "@/components/ui/kbd";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useIsTouch } from "@/components/use-client-state";
@@ -185,7 +186,11 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
         >
           {it.swatch && <span className={cn("size-2.5 rounded-full", it.swatch)} aria-hidden />}
           {it.label}
-          {it.shortcut && <K.Short>{it.shortcut}</K.Short>}
+          {it.shortcut && (
+            <K.Short className="tracking-normal">
+              <Kbd className="border border-row-edge bg-transparent">{it.shortcut}</Kbd>
+            </K.Short>
+          )}
         </K.Item>
       ))}
     </div>

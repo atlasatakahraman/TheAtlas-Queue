@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { cookies, headers } from "next/headers";
 import { I18nProvider } from "@/components/i18n";
+import { PageScrollKeys } from "@/components/page-scroll-keys";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { LANG_COOKIE, langFromHeader, parseLang } from "@/lib/i18n";
 import "./globals.css";
 
@@ -54,9 +56,16 @@ export default async function RootLayout({
       className={`${newsreader.variable} ${hanken.variable} ${jetbrains.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      {/* The page scrolls inside shadcn's ScrollArea, not the browser's scrollbar. Radix wraps the
+          content in a display:table div, which would let long text widen the page; it is a block. */}
+      <body className="h-dvh overflow-hidden">
         <I18nProvider lang={lang}>
-          <Providers nonce={nonce}>{children}</Providers>
+          <Providers nonce={nonce}>
+            <ScrollArea id="page-scroll" className="h-dvh [&>[data-slot=scroll-area-viewport]>div]:block!">
+              <div className="flex min-h-dvh flex-col">{children}</div>
+            </ScrollArea>
+            <PageScrollKeys />
+          </Providers>
         </I18nProvider>
       </body>
     </html>

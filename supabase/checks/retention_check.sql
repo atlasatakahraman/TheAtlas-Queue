@@ -10,6 +10,8 @@ insert into public.channel_members (channel_id, kick_user_id, role, source, last
   ('c0000000-0000-4000-8000-000000000009', -902, 'mod', 'badge', now() - interval '31 days'),
   ('c0000000-0000-4000-8000-000000000009', -903, 'mod', 'badge', now() - interval '29 days'),
   ('c0000000-0000-4000-8000-000000000009', -904, 'mod', 'manual', now() - interval '90 days');
+insert into public.channel_members (channel_id, kick_user_id, role, source, blocked, last_seen_at) values
+  ('c0000000-0000-4000-8000-000000000009', -905, 'mod', 'badge', true, now() - interval '31 days');
 insert into public.players (channel_id, kick_username, source, deleted_at) values
   ('c0000000-0000-4000-8000-000000000009', 'gone', 'manual', now() - interval '11 minutes'),
   ('c0000000-0000-4000-8000-000000000009', 'undoable', 'manual', now() - interval '5 minutes'),
@@ -55,8 +57,8 @@ begin
     raise exception 'perk_uses: window + 1 day rule wrong';
   end if;
   if (select array_agg(kick_user_id order by kick_user_id desc) from public.channel_members where channel_id = ch)
-     <> array[-901, -903, -904]::bigint[] then
-    raise exception 'channel_members: badge 30-day rule wrong';
+     <> array[-901, -903, -904, -905]::bigint[] then
+    raise exception 'channel_members: badge 30-day rule wrong (a blocked badge member stays)';
   end if;
   if exists (select 1 from public.riot_cache where puuid = 'qa-old')
      or not exists (select 1 from public.riot_cache where puuid = 'qa-new') then

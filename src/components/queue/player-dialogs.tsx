@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
 import { ResponsiveDialog } from "@/components/queue/responsive-dialog";
-import { useAct, useCanWrite, useErrorText, useQueue } from "@/components/queue/store";
+import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNow } from "@/components/use-now";
 import { isError, type RpcError } from "@/lib/queue-store";
-import { lookupRank } from "@/lib/server/dashboard";
 import { ago } from "@/lib/time";
 
 const NAME = /^\S{1,40}$/;
@@ -79,6 +78,7 @@ function AddPlayerForm({ onDone }: { onDone: () => void }) {
   const act = useAct();
   const canWrite = useCanWrite();
   const fieldErrors = useFieldErrors();
+  const { lookupRank } = useServerActions();
   const now = useNow();
   const channelId = useQueue((v) => v.channel.id);
   const required = useQueue((v) => v.settings.require_riot_id);
@@ -211,6 +211,7 @@ function EditPlayerForm() {
   const act = useAct();
   const canWrite = useCanWrite();
   const fieldErrors = useFieldErrors();
+  const { lookupRank } = useServerActions();
   const channelId = useQueue((v) => v.channel.id);
   const required = useQueue((v) => v.settings.require_riot_id);
   const riotEnabled = useQueue((v) => v.settings.riot_enabled);

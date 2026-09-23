@@ -18,11 +18,11 @@ import { enter, type SanctionDraft, SearchRefContext, UiContext } from "@/compon
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Labels } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { Player, QueueState } from "@/types/queue";
+import type { DashboardActions, Player, QueueState } from "@/types/queue";
 
-export function Dashboard({ initial, me, tab }: { initial: QueueState; me: number; tab: Tab }) {
+export function Dashboard({ initial, me, tab, actions }: { initial: QueueState; me: number; tab: Tab; actions: DashboardActions }) {
   return (
-    <QueueProvider initial={initial} me={me}>
+    <QueueProvider initial={initial} me={me} actions={actions}>
       <ChannelLabels>
         <Shell initialTab={tab} />
       </ChannelLabels>

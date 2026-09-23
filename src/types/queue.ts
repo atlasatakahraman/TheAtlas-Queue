@@ -130,6 +130,15 @@ export type QueueState = {
   members: Member[];
 };
 
+// The dashboard's server actions (src/lib/server/dashboard.ts), handed down by the server page
+// so no client file imports the server folder (check:secrets).
+export type FoundKickUser = { ok: true; id: number; username: string } | { ok: false; error: "auth" | "not_found" | "kick" };
+export type DashboardActions = {
+  lookupRank: (channelId: string, riotId: string) => Promise<boolean>;
+  findKickUser: (channelId: string, username: string) => Promise<FoundKickUser>;
+  reconnect: (channelId: string) => Promise<string | null>;
+};
+
 // One realtime event, and every mutating RPC's return value.
 export type Row = { _t: string; _deleted?: true } & Record<string, unknown>;
 export type ChangeEvent = { v: number; kind: string; rows: Row[]; actor: string | null };

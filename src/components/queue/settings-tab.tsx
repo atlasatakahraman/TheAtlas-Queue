@@ -3,7 +3,7 @@ import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useT } from "@/components/i18n";
 import { Tag } from "@/components/queue/player-row";
-import { useAct, useCanWrite, useErrorText, useQueue } from "@/components/queue/store";
+import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,6 @@ import { CURATED_KEYS, type LabelKey } from "@/lib/i18n";
 import { en } from "@/lib/i18n/en";
 import { tr } from "@/lib/i18n/tr";
 import { isError } from "@/lib/queue-store";
-import { findKickUser } from "@/lib/server/dashboard";
 import { cn } from "@/lib/utils";
 import type { Settings, WatchSection } from "@/types/queue";
 
@@ -265,6 +264,7 @@ function ModeratorsSection() {
   const channelId = useQueue((v) => v.channel.id);
   const members = useQueue((v) => v.members);
   const [name, setName] = useState("");
+  const { findKickUser } = useServerActions();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
 

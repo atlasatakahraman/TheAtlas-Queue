@@ -2,11 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
-import { useQueue, useStore } from "@/components/queue/store";
+import { useQueue, useServerActions, useStore } from "@/components/queue/store";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNow } from "@/components/use-now";
-import { reconnect } from "@/lib/server/dashboard";
 import { ago, span } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Channel } from "@/types/queue";
@@ -40,6 +39,7 @@ export function ConnectionPill() {
   const now = useNow();
   const state = health(channel, now);
   const [busy, setBusy] = useState(false);
+  const { reconnect } = useServerActions();
 
   // Only Not connected ever raises a toast (DESIGN.md § Connection health).
   const prev = useRef(state);

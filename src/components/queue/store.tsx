@@ -4,14 +4,31 @@ import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { isLabelKey, type LabelKey, type Vars } from "@/lib/i18n";
 import { createQueueStore, isError, type QueueStore, type QueueView, type RpcError } from "@/lib/queue-store";
-import type { ChangeEvent, Player, QueueState } from "@/types/queue";
+import type { ChangeEvent, DashboardActions, Player, QueueState } from "@/types/queue";
 
 const Ctx = createContext<QueueStore | null>(null);
+const ActionsCtx = createContext<DashboardActions | null>(null);
 
-export function QueueProvider({ initial, me, children }: { initial: QueueState; me: number; children: React.ReactNode }) {
+export function QueueProvider({ initial, me, actions, children }: {
+  initial: QueueState;
+  me: number;
+  actions: DashboardActions;
+  children: React.ReactNode;
+}) {
   const [store] = useState(() => createQueueStore(initial, me));
   useEffect(() => store.connect(), [store]);
-  return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={store}>
+      <ActionsCtx.Provider value={actions}>{children}</ActionsCtx.Provider>
+    </Ctx.Provider>
+  );
+}
+
+// Riot and Kick lookups run as server actions, passed in by the server page.
+export function useServerActions(): DashboardActions {
+  const a = useContext(ActionsCtx);
+  if (!a) throw new Error("useServerActions outside QueueProvider");
+  return a;
 }
 
 export function useStore(): QueueStore {

@@ -5,6 +5,7 @@ import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
 import { ensureSubscriptions, kickUserBySlug } from "@/lib/server/kick";
 import { kickUser } from "@/lib/server/profile";
+import type { FoundKickUser } from "@/types/queue";
 
 // Server actions the dashboard calls for what the browser cannot do itself (Riot, Kick). Each
 // one re-checks the session and the caller's membership with the secret key: a server action
@@ -43,8 +44,6 @@ export async function lookupRank(channelId: string, riotId: string): Promise<boo
   if (error) console.error(JSON.stringify({ route: "action/lookupRank", error: error.message }));
   return !error;
 }
-
-export type FoundKickUser = { ok: true; id: number; username: string } | { ok: false; error: "auth" | "not_found" | "kick" };
 
 // Settings → Moderators: the owner adds a moderator by Kick username before they chat.
 export async function findKickUser(channelId: string, username: string): Promise<FoundKickUser> {

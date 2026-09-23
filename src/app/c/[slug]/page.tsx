@@ -6,6 +6,7 @@ import { Dashboard } from "@/components/queue/dashboard";
 import { NotMember } from "@/components/queue/not-member";
 import { TAB_COOKIE, TABS, type Tab } from "@/components/queue/tabs";
 import { auth } from "@/lib/auth";
+import { findKickUser, lookupRank, reconnect } from "@/lib/server/dashboard";
 import { LANG_COOKIE, parseLang, translate } from "@/lib/i18n";
 import { ensureProfile, kickUser } from "@/lib/server/profile";
 import { userDb } from "@/lib/server/user-db";
@@ -43,5 +44,5 @@ export default async function ChannelPage({ params, searchParams }: Props) {
   const state = data as QueueState;
   let tab = await tabOf(searchParams);
   if (tab === "settings" && state.role !== "owner") tab = "queue";
-  return <Dashboard initial={state} me={user.kickUserId} tab={tab} />;
+  return <Dashboard initial={state} me={user.kickUserId} tab={tab} actions={{ lookupRank, findKickUser, reconnect }} />;
 }

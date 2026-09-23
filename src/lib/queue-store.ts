@@ -37,7 +37,7 @@ export function markPlayed(id: string) {
   } catch {}
 }
 
-const byJoined = (a: Player, b: Player) => a.joined_at.localeCompare(b.joined_at);
+const byOrder = (a: Player, b: Player) => a.sort_key - b.sort_key || a.joined_at.localeCompare(b.joined_at);
 
 function upsert<T>(list: T[], row: T, same: (x: T) => boolean): T[] {
   const i = list.findIndex(same);
@@ -59,6 +59,8 @@ function toError(e: { code?: string; message: string; details?: string | null })
 export function createQueueStore(initial: QueueState, me: number) {
   let view: QueueView = {
     ...initial,
+    // get_state lists by join time; the dashboard shows the drag order (0017).
+    players: [...initial.players].sort(byOrder),
     conn: "connecting",
     // Read on connect: the server render (Bun defines navigator, without onLine) assumes online.
     online: true,
@@ -88,7 +90,7 @@ export function createQueueStore(initial: QueueState, me: number) {
           const had = next.players.some((x) => x.id === p.id);
           if (p.deleted_at) next.players = next.players.filter((x) => x.id !== p.id);
           else {
-            next.players = upsert(next.players, p, (x) => x.id === p.id).sort(byJoined);
+            next.players = upsert(next.players, p, (x) => x.id === p.id).sort(byOrder);
             if (!had && remote) next.arrived = { ...next.arrived, [p.id]: now };
           }
           break;
@@ -154,7 +156,7 @@ export function createQueueStore(initial: QueueState, me: number) {
       const s = data as QueueState;
       // A draw that landed while this tab was away still reveals if it is fresh.
       const reveal = s.draw && s.draw.id !== view.draw?.id && revealable(s.draw) ? s.draw : view.reveal;
-      set({ ...view, ...s, reveal });
+      set({ ...view, ...s, players: s.players.sort(byOrder), reveal });
     })().finally(() => (inflight = undefined));
     return inflight;
   }
@@ -187,11 +189,13 @@ export function createQueueStore(initial: QueueState, me: number) {
   function optimistic(ids: string[], patch: (p: Player) => Player | null) {
     set({
       ...view,
-      players: view.players.flatMap((p) => {
-        if (!ids.includes(p.id)) return [p];
-        const q = patch(p);
-        return q ? [q] : [];
-      }),
+      players: view.players
+        .flatMap((p) => {
+          if (!ids.includes(p.id)) return [p];
+          const q = patch(p);
+          return q ? [q] : [];
+        })
+        .sort(byOrder),
     });
   }
   async function revert(ids: string[]) {

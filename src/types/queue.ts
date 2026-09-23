@@ -29,6 +29,8 @@ export type Player = {
   badges: string[];
   games_played: number;
   joined_at: string;
+  // The place in the order (0017): a drag moves it; the joined time stays.
+  sort_key: number;
   source: "chat" | "manual";
   deleted_at: string | null;
   changed_v: number;

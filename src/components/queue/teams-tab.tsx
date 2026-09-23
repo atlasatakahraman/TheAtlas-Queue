@@ -207,7 +207,8 @@ export function TeamsTab() {
             id="fair-play"
             checked={fairPlay}
             disabled={!canWrite}
-            onCheckedChange={(on) => act("set_fair_play", { p_on: on }, { done: on ? "done.fair_on" : "done.fair_off" })}
+            // No toast: set_fair_play stores no inverse, and the switch itself shows the state.
+            onCheckedChange={(on) => act("set_fair_play", { p_on: on })}
             className="mt-0.5"
           />
           {/* The whole text is the switch's label, so the touch target is the block, not 18px. */}

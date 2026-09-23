@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/ranks", "/TheAtlas"];
+// The webhook proves itself with Kick's signature, the health route with its bearer.
+const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/ranks", "/TheAtlas", "/api/kick/webhook", "/api/cron/"];
 const PUBLIC_EXACT = new Set(["/login"]);
 
 function csp(nonce: string) {

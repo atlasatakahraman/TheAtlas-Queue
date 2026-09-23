@@ -177,3 +177,41 @@ export async function fetchPlayerData(
     winRate: totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0,
   };
 }
+
+let pausedUntil = 0;
+
+/**
+ * Rank for a Riot ID, for the webhook's after() (spec § Flows → Join). Null when the account is
+ * not found or Riot is unavailable; never throws. 429 is honoured inside riotFetchWithMeta; a
+ * 401/403 (expired or revoked key) pauses Riot on this instance for 10 minutes with one log line.
+ */
+export async function fetchRank(riotId: string, region: string) {
+  if (!RIOT_API_KEY || Date.now() < pausedUntil) return null;
+  const [gameName, tagLine] = riotId.split("#");
+  const routing = REGION_TO_ROUTING[region as RiotRegion] ?? "europe";
+  const account = await riotFetchWithMeta<RiotAccountData>(
+    `${REGIONAL_BASE(routing)}/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+  );
+  if (account.status === 401 || account.status === 403) {
+    pausedUntil = Date.now() + 10 * 60_000;
+    console.error(JSON.stringify({ route: "riot", error: account.status, paused: "10m" }));
+    return null;
+  }
+  if (!account.data) return null;
+
+  const platform = region as RiotRegion;
+  const [summoner, entries] = await Promise.all([
+    getSummonerByPuuid(account.data.puuid, platform),
+    getRankedEntries(account.data.puuid, platform),
+  ]);
+  const best = entries.find((e) => e.queueType === "RANKED_SOLO_5x5") ?? entries.find((e) => e.queueType === "RANKED_FLEX_SR");
+  return {
+    puuid: account.data.puuid,
+    gameName: account.data.gameName,
+    tagLine: account.data.tagLine,
+    tier: best?.tier ?? null,
+    division: best?.rank ?? null,
+    lp: best?.leaguePoints ?? null,
+    icon: summoner?.profileIconId ?? null,
+  };
+}

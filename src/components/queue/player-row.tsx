@@ -332,6 +332,7 @@ export function PlayerRow({
       <ContextMenuTrigger asChild>
         <div
           data-row
+          data-player={player.id}
           tabIndex={0}
           onKeyDown={onKeyDown}
           style={enterStyle?.style}

@@ -370,6 +370,14 @@ export const en = {
   "labelname.chat.rejected.duplicate": "Chat reply: already in",
   "labelname.chat.position": "Chat reply: position",
   "labelname.chat.perk": "Chat reply: protected picks",
+  // Command palette.
+  "palette.hint": "Run an action, find a player or go to a tab.",
+  "palette.placeholder": "Type a command or a player's name",
+  "palette.empty": "Nothing matches.",
+  "palette.actions": "Actions",
+  "palette.players": "Players",
+  "palette.goto": "Go to",
+  "palette.prefs": "Preferences",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

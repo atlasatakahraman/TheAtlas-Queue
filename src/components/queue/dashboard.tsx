@@ -5,6 +5,7 @@ import { I18nProvider, useT } from "@/components/i18n";
 import { Masthead } from "@/components/queue/masthead";
 import { ModerationTab } from "@/components/queue/moderation-tab";
 import { NotMember } from "@/components/queue/not-member";
+import { Hotkeys, Palette } from "@/components/queue/palette";
 import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dialogs";
 import { QueueTab } from "@/components/queue/queue-tab";
 import { RevealDriver } from "@/components/queue/reveal";
@@ -119,6 +120,8 @@ function Shell({ initialTab }: { initialTab: Tab }) {
       <AddPlayerDialog />
       <EditPlayerDialog />
       <SanctionDialog />
+      <Palette />
+      <Hotkeys />
       <RevealDriver />
 
       {/* Mobile: the tabs move to a bottom bar (DESIGN.md § Mobile). */}

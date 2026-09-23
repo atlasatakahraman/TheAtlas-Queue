@@ -362,4 +362,11 @@ export const tr: Record<LabelKey, string> = {
   "labelname.chat.rejected.duplicate": "Sohbet yanıtı: zaten sırada",
   "labelname.chat.position": "Sohbet yanıtı: sıra",
   "labelname.chat.perk": "Sohbet yanıtı: korumalı haklar",
+  "palette.hint": "Bir işlem çalıştır, oyuncu bul ya da bir sekmeye git.",
+  "palette.placeholder": "Bir komut ya da oyuncu adı yaz",
+  "palette.empty": "Eşleşen bir şey yok.",
+  "palette.actions": "İşlemler",
+  "palette.players": "Oyuncular",
+  "palette.goto": "Git",
+  "palette.prefs": "Tercihler",
 };

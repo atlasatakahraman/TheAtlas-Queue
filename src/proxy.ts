@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // The webhook proves itself with Kick's signature, the health route with its bearer.
-const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/ranks", "/TheAtlas", "/api/kick/webhook", "/api/cron/"];
-const PUBLIC_EXACT = new Set(["/login"]);
+const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/TheAtlas", "/api/kick/webhook", "/api/cron/"];
+// `/` is the home page and the sign-in page.
+const PUBLIC_EXACT = new Set(["/"]);
 
 function csp(nonce: string) {
   const dev = process.env.NODE_ENV !== "production";
@@ -12,10 +13,9 @@ function csp(nonce: string) {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://ddragon.leagueoflegends.com https://*.kick.com",
+    "img-src 'self' data: blob: https://*.kick.com",
     "font-src 'self'",
-    // Pusher + kick.com serve the August chat listener; they leave in Stage 4.
-    `connect-src 'self' wss://ws-us2.pusher.com https://kick.com${supabase ? ` ${supabase} ${supabase.replace("https://", "wss://")}` : ""}`,
+    `connect-src 'self'${supabase ? ` ${supabase} ${supabase.replace("https://", "wss://")}` : ""}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self' https://id.kick.com",
@@ -34,9 +34,9 @@ export function proxy(request: NextRequest) {
     const session =
       request.cookies.get("authjs.session-token") ?? request.cookies.get("__Secure-authjs.session-token");
     if (!session) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+      const home = new URL("/", request.url);
+      home.searchParams.set("callbackUrl", pathname + request.nextUrl.search);
+      return NextResponse.redirect(home);
     }
   }
 
@@ -51,7 +51,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: "/((?!_next/static|_next/image|favicon.ico|ranks/).*)",
+      source: "/((?!_next/static|_next/image|favicon.ico).*)",
       missing: [{ type: "header", key: "next-router-prefetch" }],
     },
   ],

@@ -9,7 +9,16 @@ let inflight: Promise<string | null> | undefined;
 async function accessToken(): Promise<string | null> {
   if (cached && cached.exp - 60 > Date.now() / 1000) return cached.token;
   inflight ??= fetch("/api/supabase-token", { method: "POST" })
-    .then(async (r) => (r.ok ? (cached = (await r.json()) as { token: string; exp: number }).token : null))
+    .then(async (r) => {
+      // Signed out (spec § Error handling → Token 401): back to sign-in, returning here after.
+      if (r.status === 401) {
+        // A full load on purpose: this runs outside React, and sign-in starts over on the server.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = `/?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return null;
+      }
+      return r.ok ? (cached = (await r.json()) as { token: string; exp: number }).token : null;
+    })
     .catch(() => null)
     .finally(() => (inflight = undefined));
   return inflight;

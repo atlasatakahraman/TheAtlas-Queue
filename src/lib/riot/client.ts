@@ -114,17 +114,6 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Account API — regional routing */
-export async function getAccountByRiotId(
-  gameName: string,
-  tagLine: string,
-  region: RiotRegion,
-): Promise<RiotAccountData | null> {
-  const routing = REGION_TO_ROUTING[region];
-  const url = `${REGIONAL_BASE(routing)}/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
-  return riotFetch<RiotAccountData>(url);
-}
-
 /** Summoner-v4 — platform routing */
 export async function getSummonerByPuuid(
   puuid: string,
@@ -142,40 +131,6 @@ export async function getRankedEntries(
   const url = `${PLATFORM_BASE(region)}/lol/league/v4/entries/by-puuid/${puuid}`;
   const data = await riotFetch<RiotRankedEntry[]>(url);
   return data ?? [];
-}
-
-/** Fetch player data for queue (backward-compat wrapper) */
-export async function fetchPlayerData(
-  gameName: string,
-  tagLine: string,
-  opts: { apiKey?: string; region: RiotRegion },
-) {
-  const account = await getAccountByRiotId(gameName, tagLine, opts.region);
-  if (!account) return null;
-
-  const summoner = await getSummonerByPuuid(account.puuid, opts.region);
-  if (!summoner) return null;
-
-  const entries = await getRankedEntries(account.puuid, opts.region);
-
-  const soloQ = entries.find((e) => e.queueType === "RANKED_SOLO_5x5");
-  const flexQ = entries.find((e) => e.queueType === "RANKED_FLEX_SR");
-  const bestQ = soloQ ?? flexQ;
-
-  const wins = bestQ?.wins ?? 0;
-  const losses = bestQ?.losses ?? 0;
-  const totalGames = wins + losses;
-
-  return {
-    profileIconId: summoner.profileIconId,
-    summonerLevel: summoner.summonerLevel,
-    rankedTier: bestQ?.tier ?? "UNRANKED",
-    rankedDivision: bestQ?.rank ?? "IV",
-    leaguePoints: bestQ?.leaguePoints ?? 0,
-    wins,
-    losses,
-    winRate: totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0,
-  };
 }
 
 let pausedUntil = 0;

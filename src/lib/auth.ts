@@ -8,7 +8,9 @@ const kickProvider = {
   authorization: {
     url: "https://id.kick.com/oauth/authorize",
     params: {
-      scope: "user:read channel:read chat:read chat:write events:subscribe",
+      // Sign-in reads who you are, nothing else (spec § Security → Auth). chat:write is asked
+      // for separately when chat replies are switched on (Stage 6).
+      scope: "user:read",
       response_type: "code",
     },
   },
@@ -48,8 +50,6 @@ const kickProvider = {
       name: profile.name as string | null,
       email: profile.email as string | null,
       image: profile.profile_picture as string | null,
-      // Chatroom ID will be resolved client-side for maximum reliability
-      chatroomId: null, 
     };
   },
   checks: ["pkce", "state"] as ("pkce" | "state" | "none")[],
@@ -59,36 +59,17 @@ const kickProvider = {
 
 export const authConfig: NextAuthConfig = {
   providers: [kickProvider],
-  pages: {
-    signIn: "/login",
-  },
+  // The home page is the sign-in page; proxy.ts sends signed-out requests there.
+  pages: { signIn: "/" },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isOnLogin = nextUrl.pathname.startsWith("/login");
-
-      if (isOnLogin) {
-        if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
-        return true;
-      }
-
-      if (!isLoggedIn) {
-        return Response.redirect(new URL("/login", nextUrl));
-      }
-
-      return true;
-    },
+    // The session carries who the user is and nothing else: no Kick access token.
     jwt({ token, user, account }) {
       if (user) {
         token.kickId = user.id;
         token.kickUsername = user.name;
         token.kickImage = user.image;
-        token.chatroomId = (user as any).chatroomId;
       }
-      if (account) {
-        token.accessToken = account.access_token;
-        token.kickUserId = account.providerAccountId;
-      }
+      if (account) token.kickUserId = account.providerAccountId;
       return token;
     },
     session({ session, token }) {
@@ -96,9 +77,7 @@ export const authConfig: NextAuthConfig = {
         session.user.id = token.kickId as string;
         session.user.name = token.kickUsername as string;
         session.user.image = token.kickImage as string;
-        (session.user as any).chatroomId = token.chatroomId;
       }
-      (session as unknown as Record<string, unknown>).accessToken = token.accessToken;
       (session as unknown as Record<string, unknown>).kickUserId = token.kickUserId;
       return session;
     },

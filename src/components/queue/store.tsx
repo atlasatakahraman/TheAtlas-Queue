@@ -72,8 +72,11 @@ export function useAct() {
       if (isError(r)) {
         if (opts.optimistic) void store.revert(opts.optimistic.ids);
         if (opts.silent) return r;
+        // Retry only helps when the failure was the connection or unknown; a rule the server
+        // enforced (queue.duplicate, undo.changed…) would refuse again.
+        const retryable = r.key === "network" || !r.key.includes(".");
         toast.error(r.key === "network" ? t("error.network") : errorText(r), {
-          action: { label: t("common.retry"), onClick: () => void act(rpc, args, opts) },
+          action: retryable ? { label: t("common.retry"), onClick: () => void act(rpc, args, opts) } : undefined,
         });
         if (process.env.NODE_ENV !== "production") console.error(rpc, r);
         return r;

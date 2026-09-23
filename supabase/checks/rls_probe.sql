@@ -114,6 +114,29 @@ begin
   end;
   reset role;
 
+  -- Server RPCs (Stage 3): only the secret key (service_role) may call them.
+  if exists (select 1 from pg_proc p
+             where p.pronamespace = 'public'::regnamespace
+               and p.proname in ('webhook_context', 'ingest_chat', 'sync_member_badge', 'set_live', 'set_riot_rank',
+                                 'onboard_channel', 'set_subscription_state', 'cron_secret_ok')
+               and (has_function_privilege('anon', p.oid, 'execute')
+                    or has_function_privilege('authenticated', p.oid, 'execute')
+                    or not has_function_privilege('service_role', p.oid, 'execute'))) then
+    raise exception 'a server RPC is callable by a client role, or not by service_role';
+  end if;
+  if (select count(*) from pg_proc p where p.pronamespace = 'public'::regnamespace
+      and p.proname in ('webhook_context', 'ingest_chat', 'sync_member_badge', 'set_live', 'set_riot_rank',
+                        'onboard_channel', 'set_subscription_state', 'cron_secret_ok')) <> 8 then
+    raise exception 'server RPC list out of date';
+  end if;
+  begin
+    set local role authenticated;
+    perform public.ingest_chat(-9, 'probe', 'join', null, -9, 'probe', '{}');
+    raise exception 'authenticated: ingest_chat callable' using errcode = 'XX000';
+  exception when insufficient_privilege then null;
+  end;
+  reset role;
+
   delete from public.channels where id = ch;
   delete from public.profiles where id in (owner_p, other_p, blocked_p, mod_p);
   raise notice 'rls ok';

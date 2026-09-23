@@ -296,6 +296,52 @@ begin
   if (public.get_state(ch) -> 'respect' ->> 'old_timer')::int <> 93 then raise exception 'respect: decay port wrong'; end if;
 end $$;
 
+-- Owner-only settings and membership.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000001';
+  owner constant text := '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+  modr  constant text := '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+  r     jsonb;
+  d     text;
+begin
+  perform set_config('request.jwt.claims', modr, true);
+  perform pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"team_size":3}'), 'auth.role');
+  perform pg_temp.expect(format('select public.add_member(%L, -104, %L, gen_random_uuid())', ch, 'new_mod'), 'auth.role');
+  perform pg_temp.expect(format('select public.remove_member(%L, -101, gen_random_uuid())', ch), 'auth.role');
+
+  perform set_config('request.jwt.claims', owner, true);
+  perform pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"labels":{"en":{"bogus.key":"x"}}}'), 'settings.label_invalid');
+  d := pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"join_command":"!a","leave_command":"!a"}'), 'settings.invalid');
+  if d::jsonb ->> 'field' <> 'commands' then raise exception 'settings: clash reported as %', d; end if;
+  d := pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"team_size":9}'), 'settings.invalid');
+  if d::jsonb ->> 'field' <> 'team_size' then raise exception 'settings: team_size reported as %', d; end if;
+  perform pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"nope":1}'), 'settings.invalid');
+  perform pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"team_size":"abc"}'), 'settings.invalid');
+  perform pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"team_size":null}'), 'settings.invalid');
+  r := public.update_settings(ch, '{"team_size":3,"watch_enabled":true,"watch_sections":["teams"],"labels":{"tr":{"team.1":"Kurtlar"}}}', gen_random_uuid());
+  if not exists (select 1 from pg_temp.rows_of(r, 'settings') e
+                 where (e ->> 'team_size')::int = 3 and e -> 'labels' -> 'tr' ->> 'team.1' = 'Kurtlar'
+                   and e -> 'watch_sections' = '["teams"]'::jsonb and e ->> 'join_command' = '!sıra') then
+    raise exception 'update_settings: patch not applied, or it touched other keys: %', r;
+  end if;
+
+  perform public.add_member(ch, -104, 'new_mod', gen_random_uuid());
+  if not exists (select 1 from public.channel_members where channel_id = ch and kick_user_id = -104 and source = 'manual' and role = 'mod') then
+    raise exception 'add_member: row missing';
+  end if;
+  perform pg_temp.expect(format('select public.set_member_blocked(%L, -101, true, gen_random_uuid())', ch), 'auth.role');
+  perform pg_temp.expect(format('select public.remove_member(%L, -101, gen_random_uuid())', ch), 'auth.role');
+  perform public.remove_member(ch, -104, gen_random_uuid());
+
+  -- A blocked mod loses access at once.
+  perform public.set_member_blocked(ch, -102, true, gen_random_uuid());
+  perform set_config('request.jwt.claims', modr, true);
+  perform pg_temp.expect(format('select public.get_state(%L)', ch), 'auth.not_member');
+  perform set_config('request.jwt.claims', owner, true);
+  perform public.set_member_blocked(ch, -102, false, gen_random_uuid());
+end $$;
+
 -- One write, one event: each fixture channel's version equals its number of writes.
 do $$
 begin

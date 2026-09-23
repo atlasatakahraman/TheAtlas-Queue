@@ -197,3 +197,14 @@ export const TIER_LABELS: Record<RankedTier, string> = {
   IRON: "Demir",
   UNRANKED: "Derecesiz",
 };
+
+// /welcome step 1 (Stage 3): what the onboarding server action returns to the page.
+export type OnboardSettings = {
+  join_command: string;
+  require_riot_id: boolean;
+  riot_region: string;
+  stream_locale: "en" | "tr";
+};
+export type Onboarded =
+  | { ok: true; channelId: string; slug: string; subscriptionError: string | null; settings: OnboardSettings }
+  | { ok: false; error: "auth" | "kick" | "slug" | "db" };

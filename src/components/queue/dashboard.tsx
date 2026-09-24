@@ -147,23 +147,23 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
             ref={track}
             variant="line"
             style={e2.style}
-            className={cn("relative w-full gap-1 rounded-xl! bg-muted p-1 max-md:hidden dark:bg-card", e2.className)}
+            className={cn("relative h-auto! w-full gap-1.5 rounded-xl! bg-muted p-1.5 max-md:hidden dark:bg-card", e2.className)}
           >
-            <span ref={box} aria-hidden className={cn(SLIDE, "inset-y-1 rounded-lg bg-card shadow-sm ring-1 ring-border dark:bg-accent")} />
+            <span ref={box} aria-hidden className={cn(SLIDE, "inset-y-1.5 rounded-lg bg-card shadow-sm ring-1 ring-border dark:bg-accent")} />
             {tabs.map((k) => {
               const Icon = ICONS[k];
               return (
                 <TabsTrigger
                   key={k}
                   value={k}
-                  className="group/tab h-10 flex-1 gap-2 rounded-lg px-4 text-control text-muted-foreground select-none after:hidden hover:text-foreground data-[state=active]:text-foreground"
+                  className="group/tab h-12 flex-1 gap-2 rounded-lg px-5 text-body text-muted-foreground select-none after:hidden hover:text-foreground data-[state=active]:text-foreground"
                 >
                   {/* The gold line under the label (icon, name, count) grows from its centre when the
                       tab turns active; the stock full-width underline stays hidden (after:hidden). */}
-                  <span className="relative inline-flex items-center gap-2 after:absolute after:inset-x-0 after:-bottom-1.5 after:h-0.5 after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[state=active]/tab:after:scale-x-100 motion-reduce:after:transition-none">
+                  <span className="relative inline-flex items-center gap-2.5 after:absolute after:inset-x-0 after:-bottom-2 after:h-0.5 after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[state=active]/tab:after:scale-x-100 motion-reduce:after:transition-none">
                     <Icon
                       aria-hidden
-                      className="size-4 transition-[rotate,scale,color] duration-200 ease-out group-hover/tab:-rotate-6 group-hover/tab:scale-115 group-data-[state=active]/tab:text-brand motion-reduce:transition-none"
+                      className="size-4.5 transition-[rotate,scale,color] duration-200 ease-out group-hover/tab:-rotate-6 group-hover/tab:scale-115 group-data-[state=active]/tab:text-brand motion-reduce:transition-none"
                     />
                     {t(`tab.${k}`)}
                     {counts[k] > 0 && (

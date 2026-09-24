@@ -584,7 +584,8 @@ languages, without the providers.
 removed (spec D14).
 
 **Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
-2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs; a raised card slides
+2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs, 48px high with 18px
+icons on a 6px track padding (the stock `h-8` on the list is overridden, `h-auto!`); a raised card slides
 under the active tab (`useSlide`, 300ms ease-out-expo, the same motion as the filter pills); a
 gold line under the active label (icon, name, count) grows from its centre; each tab carries its
 icon, gold when active, turning −6° and ×1.15 over 200ms on hover, and a live count when above

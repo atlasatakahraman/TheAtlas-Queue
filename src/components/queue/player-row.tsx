@@ -446,9 +446,11 @@ function useReorder() {
 }
 
 // The queue table's columns (August): #, player, Kick, rank, win rate, joined, actions. Under
-// 768px the row keeps #, player and actions; under 1024px win rate and joined go too.
+// 768px the row keeps #, player and actions; under 1024px win rate and joined go too. The actions
+// column is a fixed 8rem (three quick actions and the menu), so the header row, whose last cell
+// is empty, lines up with the rows.
 export const TABLE_COLS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1.6fr)_minmax(0,1fr)_8.5rem_auto] lg:grid-cols-[2rem_minmax(0,1.6fr)_minmax(0,1fr)_8.5rem_4.5rem_6rem_auto]";
+  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1.6fr)_minmax(0,1fr)_8.5rem_8rem] lg:grid-cols-[2rem_minmax(0,1.6fr)_minmax(0,1fr)_8.5rem_4.5rem_6rem_8rem]";
 
 // A player row (DESIGN.md § Recipes → Queue row). "table" is the Queue tab's row; "roster" is a
 // team card's row: number, avatar, name#tag, rank, menu, on the floor colour.

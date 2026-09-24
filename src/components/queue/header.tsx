@@ -84,7 +84,8 @@ export function TopBar() {
         <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
         <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
         {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas. */}
-        <span className="truncate font-serif text-title max-md:text-body">
+        {/* On phones the tile alone: next to the pill the wordmark only truncates. */}
+        <span className="truncate font-serif text-title max-md:text-body max-sm:hidden">
           <Typewriter text="TheAtlas" />{" "}
           <span className="text-brand italic selection:bg-foreground selection:text-background">
             <Typewriter text="Queue" startDelay={9 * 40} />

@@ -583,7 +583,16 @@ languages, without the providers.
 **Footer.** "Atlas Ata KAHRAMAN", muted caption, centred. August's hover easter egg on it stays
 removed (spec D14).
 
-**Tabs.** shadcn `Tabs`, underline style, in this order. These are the current tabs minus Maç
+**Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
+2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs; a raised card slides
+under the active tab (`useSlide`, 300ms ease-out-expo, the same motion as the filter pills); a
+gold line under the active label (icon, name, count) grows from its centre; each tab carries its
+icon, gold when active, turning −6° and ×1.15 over 200ms on hover, and a live count when above
+zero (players, in teams, active sanctions). A switched-to panel fades in from the side the
+indicator moved (±16px, 220ms, `.tab-in`). The phone bottom bar slides a pill behind the active
+icon. No motion under reduced motion. Tailwind v4's `rotate-`/`scale-`/`translate-` set their
+own properties, so their transitions name them (`transition-[rotate,scale,…]`), not
+`transform`. In this order. These are the current tabs minus Maç
 Geçmişi; do not add to them without a reason written here.
 
 | Tab | Contents |

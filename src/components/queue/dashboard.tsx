@@ -19,6 +19,8 @@ import { LAST_CHANNEL_COOKIE, TAB_COOKIE, type Tab } from "@/components/queue/ta
 import { enter, type SanctionDraft, SearchRefContext, UiContext } from "@/components/queue/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Labels } from "@/lib/i18n";
+import { useNow } from "@/components/use-now";
+import { SLIDE, useSlide } from "@/components/use-slide";
 import { cn } from "@/lib/utils";
 import type { DashboardActions, Player, QueueState } from "@/types/queue";
 
@@ -47,6 +49,7 @@ function ChannelLabels({ children }: { children: React.ReactNode }) {
 }
 
 const ICONS = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, settings: Settings2 } as const;
+const ORDER: Tab[] = ["queue", "teams", "moderation", "settings"];
 
 function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const { t } = useT();
@@ -54,6 +57,14 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const slug = useQueue((v) => v.channel.slug);
   const lost = useQueue((v) => v.lost);
   const count = useQueue((v) => v.players.length);
+  const playing = useQueue((v) => v.players.filter((p) => p.status === "playing").length);
+  const moderation = useQueue((v) => v.moderation);
+  const now = useNow();
+  const sanctions = now
+    ? moderation.filter(
+        (m) => !m.revoked_at && (!m.expires_at || Date.parse(m.expires_at) > now) && (m.games_left === null || m.games_left > 0),
+      ).length
+    : 0;
   const offline = useQueue((v) => !v.online || v.conn === "down");
   const [tab, setTabState] = useState<Tab>(initialTab);
   const [palette, setPalette] = useState(false);
@@ -68,6 +79,11 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const [sanction, setSanction] = useState<SanctionDraft | null>(null);
   const [entering, setEntering] = useState(true);
   const search = useRef<HTMLInputElement>(null);
+  // The tab indicator slides to the active tab; a switched-to panel slides in from the side the
+  // pointer travelled (dir), so the movement reads as one gesture.
+  const { track, box } = useSlide(tab);
+  const tabRef = useRef(initialTab);
+  const [dir, setDir] = useState(0);
   const focusSearch = () => {
     setTab("queue");
     requestAnimationFrame(() => search.current?.focus());
@@ -85,6 +101,8 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
 
   // ?tab= in the URL, and a cookie so the server renders the same tab next time.
   const setTab = useCallback((next: Tab) => {
+    setDir(Math.sign(ORDER.indexOf(next) - ORDER.indexOf(tabRef.current)));
+    tabRef.current = next;
     setTabState(next);
     document.cookie = `${TAB_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
     const url = new URL(window.location.href);
@@ -97,7 +115,10 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   // Settings is not a tab (owner, 2026-09-23): the top bar's gear, the account menu, the page menu
   // and the palette open it.
   const tabs: Tab[] = ["queue", "teams", "moderation"];
+  const counts: Record<Tab, number> = { queue: count, teams: playing, moderation: sanctions, settings: 0 };
   const e2 = enter(entering, 2);
+  const panel = entering || dir === 0 ? {} : { className: "tab-in", style: { "--tab-from": `${dir * 16}px` } as React.CSSProperties };
+  const active = tabs.indexOf(tab);
 
   return (
     <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, editing, setEditing, sanction, setSanction, focusSearch, entering, account }}>
@@ -118,25 +139,54 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
           </div>
         )}
         <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="gap-6">
-          <TabsList variant="underline" style={e2.style} className={cn("w-full justify-start max-md:hidden", e2.className)}>
-            {tabs.map((k) => (
-              <TabsTrigger key={k} value={k} className="flex-none px-4 py-2.5 text-control select-none">
-                {t(`tab.${k}`)}
-                {k === "queue" && <span className="text-muted-foreground tabular-nums">{count}</span>}
-              </TabsTrigger>
-            ))}
+          {/* Full width, equal tabs (August). A raised card slides under the active tab; each tab
+              carries its icon (gold when active, tilting on hover like the buttons) and a live count
+              (players, in teams, active sanctions) when there is one. Arrow keys move between tabs
+              (Radix). */}
+          <TabsList
+            ref={track}
+            variant="line"
+            style={e2.style}
+            className={cn("relative w-full gap-1 rounded-xl! bg-muted p-1 max-md:hidden dark:bg-card", e2.className)}
+          >
+            <span ref={box} aria-hidden className={cn(SLIDE, "inset-y-1 rounded-lg bg-card shadow-sm ring-1 ring-border dark:bg-accent")} />
+            {tabs.map((k) => {
+              const Icon = ICONS[k];
+              return (
+                <TabsTrigger
+                  key={k}
+                  value={k}
+                  className="group/tab h-10 flex-1 gap-2 rounded-lg px-4 text-control text-muted-foreground select-none after:hidden hover:text-foreground data-[state=active]:text-foreground"
+                >
+                  {/* The gold line under the label (icon, name, count) grows from its centre when the
+                      tab turns active; the stock full-width underline stays hidden (after:hidden). */}
+                  <span className="relative inline-flex items-center gap-2 after:absolute after:inset-x-0 after:-bottom-1.5 after:h-0.5 after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[state=active]/tab:after:scale-x-100 motion-reduce:after:transition-none">
+                    <Icon
+                      aria-hidden
+                      className="size-4 transition-[rotate,scale,color] duration-200 ease-out group-hover/tab:-rotate-6 group-hover/tab:scale-115 group-data-[state=active]/tab:text-brand motion-reduce:transition-none"
+                    />
+                    {t(`tab.${k}`)}
+                    {counts[k] > 0 && (
+                      <span className="min-w-5 rounded-full bg-background/70 px-1.5 text-center text-caption tracking-normal normal-case tabular-nums text-muted-foreground transition-colors group-data-[state=active]/tab:text-foreground">
+                        {counts[k]}
+                      </span>
+                    )}
+                  </span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
-          <TabsContent value="queue">
+          <TabsContent value="queue" {...panel}>
             <QueueTab />
           </TabsContent>
-          <TabsContent value="teams">
+          <TabsContent value="teams" {...panel}>
             <TeamsTab />
           </TabsContent>
-          <TabsContent value="moderation">
+          <TabsContent value="moderation" {...panel}>
             <ModerationTab />
           </TabsContent>
           {role === "owner" && (
-            <TabsContent value="settings">
+            <TabsContent value="settings" {...panel}>
               <SettingsTab />
             </TabsContent>
           )}
@@ -160,6 +210,14 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
         aria-label={t("tab.nav")}
         className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
       >
+        {/* A pill slides behind the active icon (a third of the bar per tab); it fades on Settings. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-0 left-0 w-1/3 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
+          style={{ transform: `translateX(${Math.max(active, 0) * 100}%)`, opacity: active < 0 ? 0 : 1 }}
+        >
+          <span className="mx-auto mt-1.5 block h-8 w-14 rounded-full bg-accent" />
+        </span>
         {tabs.map((k) => {
           const Icon = ICONS[k];
           return (
@@ -169,11 +227,14 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
               aria-current={tab === k ? "page" : undefined}
               onClick={() => setTab(k)}
               className={cn(
-                "flex h-16 flex-1 flex-col items-center justify-center gap-1 text-caption tracking-normal normal-case select-none",
+                "relative flex h-16 flex-1 flex-col items-center justify-center gap-1 text-caption tracking-normal normal-case transition-colors select-none active:scale-95",
                 tab === k ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-5" aria-hidden />
+              <Icon
+                aria-hidden
+                className={cn("size-5 transition-[translate,color] duration-200 ease-out motion-reduce:transition-none", tab === k && "-translate-y-px text-brand")}
+              />
               {t(`tab.${k}`)}
             </button>
           );

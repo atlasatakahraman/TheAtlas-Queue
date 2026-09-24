@@ -325,6 +325,23 @@
 
 /* Reduced motion removes the entrance, the fades and the typing. The arrival highlight stays:
    it is information, not decoration. */
+/* A switched-to tab panel slides in from the side the tab indicator moved to (dashboard.tsx
+   sets --tab-from to +-16px) and fades up; 220ms on the ease-out-expo of the sliding tabs. */
+@keyframes tab-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--tab-from, 0));
+  }
+}
+.tab-in {
+  animation: tab-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-in {
+    animation: none;
+  }
+}
+
 /* Every button hovers and presses, and its icon moves like TheAtlas's sidebar (nav-item.tsx:
    -6deg and x1.15 over 150ms). Stock shadcn's default button only hovers as a link, and its
    press skips menu triggers (aria-haspopup). Recorded in DESIGN.md § Divergences. */
@@ -336,7 +353,7 @@
     translate: 0 1px;
   }
   [data-slot="button"] > svg {
-    transition: transform 150ms ease-out;
+    transition: transform 200ms ease-out;
   }
   [data-slot="button"]:not(:disabled):hover > svg {
     transform: rotate(-6deg) scale(1.15);

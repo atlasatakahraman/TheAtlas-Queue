@@ -217,8 +217,8 @@ begin
   -- Picks: only from waiting, no duplicates, fewer waiting than N picks them all, nobody moves.
   perform public.move_player(ch, (select id from public.players where channel_id = ch and kick_username = 'p03'), 'away', null, gen_random_uuid());
   perform public.move_player(ch, (select id from public.players where channel_id = ch and kick_username = 'p04'), 'playing', 1::smallint, gen_random_uuid());
-  perform pg_temp.expect(format('select public.pick_players(%L, 0, 'waiting', null, gen_random_uuid())', ch), 'request.invalid');
-  perform pg_temp.expect(format('select public.pick_players(%L, 11, 'waiting', null, gen_random_uuid())', ch), 'request.invalid');
+  perform pg_temp.expect(format('select public.pick_players(%L, 0, %L, null, gen_random_uuid())', ch, 'waiting'), 'request.invalid');
+  perform pg_temp.expect(format('select public.pick_players(%L, 11, %L, null, gen_random_uuid())', ch, 'waiting'), 'request.invalid');
   r := public.pick_players(ch, 10, 'waiting', null, gen_random_uuid());
   select array_agg((e ->> 'id')::uuid) into picked
   from pg_temp.rows_of(r, 'draws') d, jsonb_array_elements(d -> 'result' -> 'picked') e;

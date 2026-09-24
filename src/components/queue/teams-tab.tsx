@@ -216,6 +216,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
       onDragOver={(e) => {
         if (!takes(draggedPlayer())) return;
         e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
         setOver(true);
       }}
       onDragLeave={(e) => {
@@ -229,7 +230,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
         void moveTo(d, team);
       }}
       className={cn(
-        "flex min-w-0 flex-col overflow-hidden rounded-xl bg-card transition-shadow",
+        "flex min-w-0 flex-col overflow-hidden rounded-xl bg-card",
         over && (team === 1 ? "ring-2 ring-team-1/60" : "ring-2 ring-team-2/60"),
       )}
     >

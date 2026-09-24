@@ -480,6 +480,7 @@ export function PlayerRow({
   const touch = useIsTouch();
   const reorder = useReorder();
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
+  const [lifted, setLifted] = useState(false);
   // A roster row takes drops from its own team only; the other team's rows go to the card.
   const accepts = (d: Player | null): d is Player => !!d && d.id !== player.id && (table || (d.status === "playing" && d.team === player.team));
 
@@ -530,14 +531,21 @@ export function PlayerRow({
           draggable={canWrite && !touch}
           onDragStart={(e) => {
             dragging = player;
+            setLifted(true);
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", player.kick_username);
           }}
-          onDragEnd={() => (dragging = null)}
+          onDragEnd={() => {
+            dragging = null;
+            setLifted(false);
+          }}
           onDragOver={(e) => {
             if (!accepts(dragging)) return;
             e.preventDefault();
             e.stopPropagation();
+            // Say "move" outright: left to guess, Chrome can treat the drop as refused and fly the
+            // ghost back to where it started before the row moves.
+            e.dataTransfer.dropEffect = "move";
             const r = e.currentTarget.getBoundingClientRect();
             setDropAt(e.clientY < r.top + r.height / 2 ? "before" : "after");
           }}
@@ -560,6 +568,8 @@ export function PlayerRow({
             recent(arrivedAt) && "animate-arrive",
             recent(revertedAt) && "animate-highlight",
             canWrite && !touch && "cursor-grab active:cursor-grabbing",
+            // The row picked up dims at once, so the drag reads as started with no pause.
+            lifted && "opacity-40",
             dropAt === "before" && "shadow-[0_-3px_0_0_var(--ring)]",
             dropAt === "after" && "shadow-[0_3px_0_0_var(--ring)]",
             enterStyle?.className,

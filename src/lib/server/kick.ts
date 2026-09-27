@@ -100,7 +100,7 @@ export async function ensureSubscriptions(broadcasterId: number): Promise<string
     );
     const missing = EVENTS.filter((e) => !have.has(e));
     if (missing.length === 0) return null;
-    await kick(`${API}/events/subscriptions`, {
+    const made = await kick(`${API}/events/subscriptions`, {
       method: "POST",
       body: JSON.stringify({
         broadcaster_user_id: broadcasterId,
@@ -108,7 +108,12 @@ export async function ensureSubscriptions(broadcasterId: number): Promise<string
         method: "webhook",
       }),
     });
-    return null;
+    // A 200 can still refuse single events: each result carries its own error.
+    const results = ((await made.json()) as { data?: unknown }).data;
+    const failed = Array.isArray(results)
+      ? (results as { name?: string; error?: string }[]).find((r) => r.error)
+      : undefined;
+    return failed ? `kick ${failed.name}: ${failed.error}`.slice(0, 200) : null;
   } catch (e) {
     return String(e instanceof Error ? e.message : e).slice(0, 200);
   }

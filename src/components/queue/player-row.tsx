@@ -211,6 +211,9 @@ function useMenu(p: Player): Item[][] {
   const ui = useUi();
   const store = useStore();
   const teamAdd = useContext(TeamAddContext);
+  const size = useQueue((v) => v.settings.team_size);
+  const full1 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 1).length >= size);
+  const full2 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 2).length >= size);
   // Add player above / below (D37): a team row opens its card's add list on the row; a queue row
   // opens Add player. Either lands at the key beside this row.
   const addBeside = (at: "before" | "after") => () => {
@@ -236,12 +239,10 @@ function useMenu(p: Player): Item[][] {
       { label: t("menu.add_below"), icon: ArrowDownToLine, onSelect: addBeside("after"), write: true, disabled: teamAdd?.full },
     ],
     [
-      ...(p.team !== 1
-        ? [{ label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true }]
-        : []),
-      ...(p.team !== 2
-        ? [{ label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true }]
-        : []),
+      // Both teams always listed, disabled when already there or full, so the menu keeps its shape
+      // (owner, 2026-09-27).
+      { label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true, disabled: p.team === 1 || full1 },
+      { label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true, disabled: p.team === 2 || full2 },
       ...(p.status === "playing" ? [{ label: t("menu.to_waiting"), icon: Undo2, onSelect: a.toWaiting, write: true }] : []),
       ...(p.status !== "playing"
         ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, onSelect: a.toggleAway, write: true }]
@@ -451,27 +452,31 @@ function QuickActions({ player }: { player: Player }) {
   const a = usePlayerActions(player);
   const canWrite = useCanWrite();
   const touch = useIsTouch();
+  const size = useQueue((v) => v.settings.team_size);
+  const full1 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 1).length >= size);
+  const full2 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 2).length >= size);
+  const full = (n: 1 | 2) => (n === 1 ? full1 : full2);
   if (touch) return null;
   const btn = "size-8 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 focus-visible:opacity-100";
   const tone = (n: 1 | 2) => (n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2");
   // In a team (owner, 2026-09-27): swap to the other team and back to waiting, not "add to" a
   // team they are already in; waiting or away: add to either team.
-  const moves: { label: string; icon: LucideIcon; tone: string; run: () => unknown }[] = player.team
+  const moves: { label: string; icon: LucideIcon; tone: string; run: () => unknown; off?: boolean }[] = player.team
     ? [
-        { label: t("menu.move_to", { team: t(`team.${player.team === 1 ? 2 : 1}`) }), icon: ArrowLeftRight, tone: tone(player.team === 1 ? 2 : 1), run: () => a.moveTo(player.team === 1 ? 2 : 1) },
+        { label: t("menu.move_to", { team: t(`team.${player.team === 1 ? 2 : 1}`) }), icon: ArrowLeftRight, tone: tone(player.team === 1 ? 2 : 1), run: () => a.moveTo(player.team === 1 ? 2 : 1), off: full(player.team === 1 ? 2 : 1) },
         { label: t("menu.to_waiting"), icon: Undo2, tone: "text-muted-foreground", run: a.toWaiting },
       ]
-    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n) }));
+    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n), off: full(n) }));
   moves.push({ label: t("menu.remove"), icon: X, tone: "text-muted-foreground", run: a.remove });
   return (
     <span className="flex items-center max-md:hidden">
-      {moves.map(({ label, icon: Icon, tone, run }) => (
+      {moves.map(({ label, icon: Icon, tone, run, off }) => (
         <Button
           key={label}
           variant="ghost"
           size="icon"
           className={cn(btn, tone)}
-          disabled={!canWrite}
+          disabled={!canWrite || off}
           aria-label={label}
           title={label}
           onClick={() => void run()}

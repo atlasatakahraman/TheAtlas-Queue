@@ -1069,7 +1069,10 @@ sits between them (D25).
   opens the same list on itself (6.12).
 - **Roster** as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name
   `#TAG` with its tags, rank, the in-team row buttons, menu. **Always team-size slots**; free
-  ones are dashed rows reading *Empty slot*, so the card keeps its height.
+  ones are dashed rows reading *Empty slot*, so the card keeps its height. While a draw lands
+  they keep their icon, disabled, so nothing shifts when adding comes back (7.46).
+- **A row's menu lists both teams** always: *Add to Team N* is disabled, never hidden, when the
+  player is already there or the team is full, and so are the hover buttons (7.47).
 - **Right-click on the card** (not a player): the team's menu: *Team N · n of size*, Add from
   waiting ▸, Add a new player…, Shuffle current teams, Clear teams.
 - **Victory (Stage 10, D27):** under the roster, a plain outline button in the team colour,

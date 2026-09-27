@@ -573,8 +573,8 @@ players less anyone banned or punished. A size the pool cannot fill is not shown
 ×1 stays, disabled, when the pool is empty.
 
 **Page menu.** Right-click anywhere on the dashboard, kept short (owner, 2026-09-23): a header
-*Queue management (N players)*, **Reload page** first, then Add player, Draw teams, Pick 1, Clear
-queue, Search and commands, theme. Everything else is in the toolbar, the top bar or the account
+*Queue management (N players)*, **Add player** first, then Draw teams, Pick 1, Clear queue,
+Search and commands, theme, and **Reload page** last (owner, 2026-09-27). Everything else is in the toolbar, the top bar or the account
 menu. Rows and team cards keep their own menus; text fields keep the browser's.
 
 **Errors.** A crash or a failed load shows Retry and **Reload page** where the content would be,

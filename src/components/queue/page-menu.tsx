@@ -71,11 +71,6 @@ function PageMenuContent() {
         <ListOrdered className="size-4" aria-hidden />
         {t("menu.page.title", { n: players.length })}
       </ContextMenuLabel>
-      <ContextMenuItem onSelect={() => window.location.reload()}>
-        <RotateCw aria-hidden />
-        {t("menu.reload")}
-      </ContextMenuItem>
-      <ContextMenuSeparator />
       <ContextMenuItem disabled={!canWrite} onSelect={() => ui.setAdding(true)}>
         <UserPlus aria-hidden />
         {t("action.add")}
@@ -102,6 +97,11 @@ function PageMenuContent() {
       <ContextMenuItem onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
         {resolvedTheme === "dark" ? <Sun aria-hidden /> : <Moon aria-hidden />}
         {resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
+      </ContextMenuItem>
+      <ContextMenuSeparator />
+      <ContextMenuItem onSelect={() => window.location.reload()}>
+        <RotateCw aria-hidden />
+        {t("menu.reload")}
       </ContextMenuItem>
     </ContextMenuContent>
   );

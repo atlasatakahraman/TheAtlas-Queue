@@ -887,9 +887,9 @@ The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs,
 
 ```
   #↺  PLAYER ▾                                  KICK        RANK ▾          WIN RATE ▾  JOINED ▾
-⠿ 3   (◉) brkdmr          ♥ 96  ◆ In game  ★ Sub    brkdmr_tv   ▍ Platinum IV   56%         21:40   [1] [2] [×] [⋯]
+⠿ 3   (◉) brkdmr          96 ♥  ◆ In game  ★ Sub    brkdmr_tv   ▍ Platinum IV   56%         21:40   [1] [2] [×] [⋯]
 │ │    │  #TR1              │     └ tags: icon + word, fold to icons under 20rem of line
-│ │    │                    └ respect: ♥ and the score, success ≥ 80, warning ≥ 50, destructive below
+│ │    │                    └ respect: the score then ♥, success ≥ 80, warning ≥ 50, destructive below
 │ │    └ Riot profile icon (the initial when none); the name truncates before any tag moves
 │ └ queue number, Newsreader, tabular
 └ grip (GripVertical, muted), pointer devices with write access only
@@ -960,7 +960,7 @@ bg-popover p-4 shadow-md`.
 │ ⛨ Platinum IV · 42 LP                         │  shield in the tier colour (an emblem), text foreground
 │ 128 W · 110 L   ▲ 53.8 %   ▓▓▓▓▓▓░░░░░         │  win rate success ≥ 50 %, a 4px bar under it
 │ This channel: 7 W · 3 L · won 3 in a row      │  Stage 10 (D27)
-│ ♥ 96 respect · joined 21:40 from chat · 2 games│
+│ 96 ♥ respect · joined 21:40 from chat · 2 games│
 ├──────────────────────────────────────────────┤
 │ brkdmr_tv ⧉                   [↻ Refresh rank] │  Kick name copies; Refresh via the server action
 └──────────────────────────────────────────────┘
@@ -1065,7 +1065,7 @@ the name's line; the name truncates first, and when the line is under 20rem (con
 | First game | `Sparkles` | success | Fair-play is on and they have not played this session |
 | Warned | `TriangleAlert` | warning | Management |
 | Banned | `Ban` | destructive | Management |
-| Respect | `Heart` and the score | success / warning / destructive | Beside the name in the queue table |
+| Respect | The score, then `Heart` on its right | success / warning / destructive | Beside the name in the queue table |
 
 Management rows and Settings → Moderators use the same form (warned `TriangleAlert`, punished
 `Hourglass`, banned `Ban`, lifted `Undo2`, served `Check`; streamer `Video`, from chat

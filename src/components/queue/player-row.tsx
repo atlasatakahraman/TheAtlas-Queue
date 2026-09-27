@@ -308,7 +308,8 @@ function RespectBadge({ player }: { player: Player }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="tabular-nums">
+        {/* The score, then the heart (owner, 2026-09-27): the figure is what the eye compares. */}
+        <span className="tabular-nums [&>span]:flex-row-reverse">
           <Tag tone={score >= 80 ? "success" : score >= 50 ? "warning" : "destructive"} icon={Heart}>
             {score}
           </Tag>

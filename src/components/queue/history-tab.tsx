@@ -50,6 +50,7 @@ const LOOK: Record<string, [LucideIcon, string, Exclude<Kind, "all">]> = {
   add_player: [UserPlus, "text-brand", "queue"],
   update_player: [Pencil, "text-muted-foreground", "queue"],
   move_player: [ArrowLeftRight, "text-muted-foreground", "queue"],
+  move_players: [ArrowLeftRight, "text-muted-foreground", "teams"],
   remove_players: [UserMinus, "text-muted-foreground", "queue"],
   reorder_player: [ArrowUpDown, "text-muted-foreground", "queue"],
   clear_queue: [ListX, "text-destructive", "queue"],
@@ -177,7 +178,8 @@ function category(a: Activity): Exclude<Kind, "all"> | undefined {
 
 function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) {
   const { t } = useT();
-  const toTeam = a.action === "move_player" && a.payload.status === "playing" ? (a.payload.team === 2 ? 2 : 1) : null;
+  const toTeam =
+    (a.action === "move_player" && a.payload.status === "playing") || a.action === "move_players" ? (a.payload.team === 2 ? 2 : 1) : null;
   const [Icon, tone] = LOOK[a.action] ?? UNDO;
   const where = toTeam
     ? t(`team.${toTeam}`)

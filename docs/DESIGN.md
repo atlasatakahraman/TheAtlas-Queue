@@ -488,8 +488,12 @@ the reveal can never disagree with what `/watch` and `/overlay` show.
 transition, and this is a sequence of ten. Faster reads as a flash, slower drags on stream.
 
 **Pick** (the toolbar, the Teams tab, the page menu or the palette): the same cadence in a `Dialog` titled with the
-`action.pick` label, listing the N picked names. The dialog closes on Escape or a click outside;
-the picked players are already marked in the queue behind it.
+`action.pick` label, listing the N picked names. The dialog closes on Escape or a click outside.
+Each name carries its moves (owner, 2026-09-27): *Move to Team 1 / 2*, *Back to waiting*, *Remove
+from queue*, disabled (never hidden) when they cannot happen, and the name shows its new state; two
+or more names add **All to Team 1 / 2**, one write (`move_players`) and one Undo, disabled when
+the team lacks room for all of them. A pick moves nobody, so its toast offers Undo only when it
+used a protection, which Undo gives back.
 
 **Everywhere at once.** `/watch` and `/overlay` play the same reveal when a new draw arrives.
 Each device plays a given draw **once**; a viewer who opens `/watch` afterwards sees the result

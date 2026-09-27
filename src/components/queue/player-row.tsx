@@ -155,6 +155,14 @@ export function PlayerTags({ player, showState = true }: { player: Player; showS
 }
 
 // The row's actions, shared by the menu, the row keys and the command palette.
+// Free places on a team: the menu, the hover buttons and Pick disable a move that would not fit.
+export function useTeamRoom() {
+  const size = useQueue((v) => v.settings.team_size);
+  const n1 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 1).length);
+  const n2 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 2).length);
+  return (n: 1 | 2) => size - (n === 1 ? n1 : n2);
+}
+
 export function usePlayerActions(p: Player) {
   const { t } = useT();
   const act = useAct();
@@ -211,9 +219,7 @@ function useMenu(p: Player): Item[][] {
   const ui = useUi();
   const store = useStore();
   const teamAdd = useContext(TeamAddContext);
-  const size = useQueue((v) => v.settings.team_size);
-  const full1 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 1).length >= size);
-  const full2 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 2).length >= size);
+  const room = useTeamRoom();
   // Add player above / below (D37): a team row opens its card's add list on the row; a queue row
   // opens Add player. Either lands at the key beside this row.
   const addBeside = (at: "before" | "after") => () => {
@@ -241,8 +247,8 @@ function useMenu(p: Player): Item[][] {
     [
       // Both teams always listed, disabled when already there or full, so the menu keeps its shape
       // (owner, 2026-09-27).
-      { label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true, disabled: p.team === 1 || full1 },
-      { label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true, disabled: p.team === 2 || full2 },
+      { label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true, disabled: p.team === 1 || room(1) < 1 },
+      { label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true, disabled: p.team === 2 || room(2) < 1 },
       ...(p.status === "playing" ? [{ label: t("menu.to_waiting"), icon: Undo2, onSelect: a.toWaiting, write: true }] : []),
       ...(p.status !== "playing"
         ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, onSelect: a.toggleAway, write: true }]
@@ -452,10 +458,7 @@ function QuickActions({ player }: { player: Player }) {
   const a = usePlayerActions(player);
   const canWrite = useCanWrite();
   const touch = useIsTouch();
-  const size = useQueue((v) => v.settings.team_size);
-  const full1 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 1).length >= size);
-  const full2 = useQueue((v) => v.players.filter((x) => x.status === "playing" && x.team === 2).length >= size);
-  const full = (n: 1 | 2) => (n === 1 ? full1 : full2);
+  const room = useTeamRoom();
   if (touch) return null;
   const btn = "size-8 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 focus-visible:opacity-100";
   const tone = (n: 1 | 2) => (n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2");
@@ -463,10 +466,10 @@ function QuickActions({ player }: { player: Player }) {
   // team they are already in; waiting or away: add to either team.
   const moves: { label: string; icon: LucideIcon; tone: string; run: () => unknown; off?: boolean }[] = player.team
     ? [
-        { label: t("menu.move_to", { team: t(`team.${player.team === 1 ? 2 : 1}`) }), icon: ArrowLeftRight, tone: tone(player.team === 1 ? 2 : 1), run: () => a.moveTo(player.team === 1 ? 2 : 1), off: full(player.team === 1 ? 2 : 1) },
+        { label: t("menu.move_to", { team: t(`team.${player.team === 1 ? 2 : 1}`) }), icon: ArrowLeftRight, tone: tone(player.team === 1 ? 2 : 1), run: () => a.moveTo(player.team === 1 ? 2 : 1), off: room(player.team === 1 ? 2 : 1) < 1 },
         { label: t("menu.to_waiting"), icon: Undo2, tone: "text-muted-foreground", run: a.toWaiting },
       ]
-    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n), off: full(n) }));
+    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n), off: room(n) < 1 }));
   moves.push({ label: t("menu.remove"), icon: X, tone: "text-muted-foreground", run: a.remove });
   return (
     <span className="flex items-center max-md:hidden">

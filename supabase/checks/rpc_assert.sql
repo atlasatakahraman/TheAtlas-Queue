@@ -135,6 +135,17 @@ begin
   end if;
   perform pg_temp.expect(format('select public.move_player(%L, %L, %L, null, gen_random_uuid(), %L::double precision)', ch, bob, 'waiting', 'Infinity'), 'request.invalid');
   perform pg_temp.expect(format('select public.add_player(%L, %L, null, gen_random_uuid(), %L::double precision)', ch, 'erin', 'NaN'), 'request.invalid');
+
+  -- move_players (Pick's All to Team N): one write, one undo; a team without room for all of
+  -- them refuses and nobody moves; players already on that team are not a move.
+  perform pg_temp.expect(format('select public.move_players(%L, %L::uuid[], 2::smallint, gen_random_uuid())', ch, array[bob, (select id from public.players where channel_id = ch and kick_username = 'dave')]), 'draw.team_full');
+  if (select status from public.players where id = bob) <> 'waiting' then raise exception 'move_players: moved on refusal'; end if;
+  r := public.move_players(ch, array[bob], 2::smallint, gen_random_uuid());
+  if (select status <> 'playing' or team <> 2 from public.players where id = bob) then raise exception 'move_players: bob not on team 2'; end if;
+  select (e ->> 'id')::bigint into act from pg_temp.rows_of(r, 'activity') e;
+  perform public.undo(ch, act, gen_random_uuid());
+  if (select status <> 'waiting' or team is not null from public.players where id = bob) then raise exception 'undo: move_players not restored'; end if;
+  perform pg_temp.expect(format('select public.move_players(%L, %L::uuid[], 1::smallint, gen_random_uuid())', ch, array[alice]), 'request.invalid');
   perform set_config('request.jwt.claims', owner, true);
 end $$;
 

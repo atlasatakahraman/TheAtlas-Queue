@@ -69,6 +69,8 @@ type ActOptions = {
   // Success toast with Undo (DESIGN.md § Undo, not confirm).
   done?: LabelKey;
   vars?: Vars;
+  // Whether this result offers Undo (default yes); the toast still shows without it.
+  undoable?: (r: ChangeEvent) => boolean;
   // Forms show errors inline under the field instead of a toast (spec § Error handling).
   silent?: boolean;
 };
@@ -102,10 +104,10 @@ export function useAct() {
       if (opts.done && activity && r.kind !== "replay") {
         toast(t(opts.done, opts.vars), {
           duration: 5000,
-          action: {
-            label: t("common.undo"),
-            onClick: () => void act("undo", { p_activity: activity.id }),
-          },
+          action:
+            opts.undoable && !opts.undoable(r)
+              ? undefined
+              : { label: t("common.undo"), onClick: () => void act("undo", { p_activity: activity.id }) },
         });
       }
       return r;

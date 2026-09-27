@@ -52,7 +52,13 @@ export function useDrawActions() {
     reroll: () => act("draw_teams", { p_base: base(), p_reroll: true }, { done: "done.reroll" }).then(stale),
     shuffle: () => act("shuffle_teams", { p_base: base() }, { done: "done.shuffle_teams" }).then(stale),
     pick: (n: number, source: PickSource = "waiting") =>
-      act("pick_players", { p_n: n, p_source: source, p_base: base() }, { done: `done.pick.${source}`, vars: { n } }).then(stale),
+      // A pick moves nobody; the only thing Undo gives back is a protection it used (owner,
+      // 2026-09-27), and those players are the only rows it changes.
+      act("pick_players", { p_n: n, p_source: source, p_base: base() }, {
+        done: `done.pick.${source}`,
+        vars: { n },
+        undoable: (r) => r.rows.some((row) => row._t === "players"),
+      }).then(stale),
     // The clears ask first (owner, 2026-09-27), wherever they are pressed from.
     clearTeams: async () => {
       const n = store.get().players.filter((p) => p.status === "playing").length;
@@ -238,7 +244,7 @@ function AddToTeam({ team, at, place, onClose }: { team: 1 | 2; at: HTMLElement 
 }
 
 // One name landing: typed in with Typewriter, its protected tag rising with it.
-export function LandingName({ entry, at }: { entry: DrawEntry; at: number }) {
+export function LandingName({ entry, at, children }: { entry: DrawEntry; at: number; children?: React.ReactNode }) {
   const { t } = useT();
   return (
     <div className={cn("flex items-center gap-2 rounded-xl border border-row-edge bg-background px-4 py-3", SLOT)}>
@@ -248,6 +254,7 @@ export function LandingName({ entry, at }: { entry: DrawEntry; at: number }) {
           <Tag tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>
         </span>
       )}
+      {children}
     </div>
   );
 }

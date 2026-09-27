@@ -1,5 +1,6 @@
 "use client";
 import {
+  ArrowLeftRight,
   Ban,
   Clock,
   Coffee,
@@ -388,36 +389,32 @@ function QuickActions({ player }: { player: Player }) {
   const touch = useIsTouch();
   if (touch) return null;
   const btn = "size-8 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 focus-visible:opacity-100";
-  const to = (n: 1 | 2) => t("menu.move_to", { team: t(`team.${n}`) });
+  const tone = (n: 1 | 2) => (n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2");
+  // In a team (owner, 2026-09-27): swap to the other team and back to waiting, not "add to" a
+  // team they are already in; waiting or away: add to either team.
+  const moves: { label: string; icon: LucideIcon; tone: string; run: () => unknown }[] = player.team
+    ? [
+        { label: t("menu.move_to", { team: t(`team.${player.team === 1 ? 2 : 1}`) }), icon: ArrowLeftRight, tone: tone(player.team === 1 ? 2 : 1), run: () => a.moveTo(player.team === 1 ? 2 : 1) },
+        { label: t("menu.to_waiting"), icon: Undo2, tone: "text-muted-foreground", run: a.toWaiting },
+      ]
+    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n) }));
+  moves.push({ label: t("menu.remove"), icon: X, tone: "text-muted-foreground", run: a.remove });
   return (
     <span className="flex items-center max-md:hidden">
-      {([1, 2] as const).map((n) =>
-        player.team === n ? null : (
-          <Button
-            key={n}
-            variant="ghost"
-            size="icon"
-            className={cn(btn, n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
-            disabled={!canWrite}
-            aria-label={to(n)}
-            title={to(n)}
-            onClick={() => void a.moveTo(n)}
-          >
-            <UserPlus aria-hidden />
-          </Button>
-        ),
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(btn, "text-muted-foreground")}
-        disabled={!canWrite}
-        aria-label={t("menu.remove")}
-        title={t("menu.remove")}
-        onClick={() => void a.remove()}
-      >
-        <X aria-hidden />
-      </Button>
+      {moves.map(({ label, icon: Icon, tone, run }) => (
+        <Button
+          key={label}
+          variant="ghost"
+          size="icon"
+          className={cn(btn, tone)}
+          disabled={!canWrite}
+          aria-label={label}
+          title={label}
+          onClick={() => void run()}
+        >
+          <Icon aria-hidden />
+        </Button>
+      ))}
     </span>
   );
 }

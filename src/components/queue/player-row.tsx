@@ -547,6 +547,17 @@ export function PlayerRow({
             setLifted(true);
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", player.kick_username);
+            // The browser would drag a picture of the whole row: a name chip with the row's edge
+            // follows the cursor instead (owner, 2026-09-27; the Stage 7 design refines it, D25).
+            const chip = document.createElement("div");
+            chip.textContent = player.riot_id?.split("#")[0] ?? player.kick_username;
+            chip.className = cn(
+              "fixed -top-96 left-0 max-w-64 truncate rounded-lg border border-l-[3px] border-row-edge bg-card px-3 py-1.5 text-name text-foreground",
+              edge,
+            );
+            document.body.append(chip);
+            e.dataTransfer.setDragImage(chip, 16, chip.offsetHeight / 2);
+            requestAnimationFrame(() => chip.remove());
           }}
           onDragEnd={() => {
             dragging = null;

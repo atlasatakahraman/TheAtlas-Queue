@@ -191,11 +191,11 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
   return (
     <li
       className={cn(
-        "grid grid-cols-[3rem_1rem_minmax(0,1fr)_auto] items-baseline gap-x-3 px-4 py-2 text-body transition-colors hover:bg-accent/60",
+        "grid grid-cols-[4.25rem_1rem_minmax(0,1fr)_auto] items-baseline gap-x-3 px-4 py-2 text-body transition-colors hover:bg-accent/60",
         a.undone_at && "text-muted-foreground",
       )}
     >
-      <time dateTime={a.created_at} className="text-meta text-muted-foreground tabular-nums">
+      <time dateTime={a.created_at} className="text-meta whitespace-nowrap text-muted-foreground tabular-nums">
         {clock?.format(new Date(a.created_at))}
       </time>
       <Icon aria-hidden className={cn("size-4 translate-y-0.5 self-start", toTeam ? team : tone, a.undone_at && "opacity-50")} />

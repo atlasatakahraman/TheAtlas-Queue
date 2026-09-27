@@ -428,6 +428,13 @@ export function useMoveTo() {
     });
 }
 
+// Whether dropping d on that side of row puts it back in its own slot (the rows as drawn).
+function inPlace(row: HTMLElement, d: Player, at: "before" | "after") {
+  const rows = Array.from(row.closest("[data-rows]")?.querySelectorAll<HTMLElement>("[data-row]") ?? []);
+  const i = rows.indexOf(row);
+  return rows[at === "before" ? i - 1 : i + 1]?.dataset.player === d.id;
+}
+
 // The new place is the midpoint between the target and its neighbour on that side.
 function useReorder() {
   const act = useAct();
@@ -547,7 +554,13 @@ export function PlayerRow({
             // ghost back to where it started before the row moves.
             e.dataTransfer.dropEffect = "move";
             const r = e.currentTarget.getBoundingClientRect();
-            setDropAt(e.clientY < r.top + r.height / 2 ? "before" : "after");
+            const at = e.clientY < r.top + r.height / 2 ? "before" : "after";
+            // Beside its own row the drop would leave it where it is: refused, with no line.
+            if (inPlace(e.currentTarget, dragging, at)) {
+              e.dataTransfer.dropEffect = "none";
+              return setDropAt(null);
+            }
+            setDropAt(at);
           }}
           onDragLeave={() => setDropAt(null)}
           onDrop={(e) => {

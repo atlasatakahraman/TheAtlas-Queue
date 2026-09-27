@@ -75,7 +75,8 @@ async function kick(url: string, init: RequestInit = {}): Promise<Response> {
     cache: "no-store",
   });
   if (res.status === 401) app = undefined;
-  if (!res.ok) throw new Error(`kick ${new URL(url).pathname} ${res.status}`);
+  // Kick's body says why (a 400 on subscribe only made sense with it); ensureSubscriptions caps it.
+  if (!res.ok) throw new Error(`kick ${new URL(url).pathname} ${res.status} ${(await res.text()).trim()}`.trim());
   return res;
 }
 

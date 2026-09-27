@@ -1334,6 +1334,10 @@ under reduced motion. And Mürekkep's `--muted` is `--ink-hover`, as Kâğıt's 
 button's edge turns gold. Unlayered in `globals.css`, because the variants' own utilities
 outrank `@layer components`.
 
+**Tooltips follow the theme** (owner, 2026-09-27): stock shadcn inverts them (a foreground
+fill); `globals.css` gives `[data-slot=tooltip-content]` the popover's fill, text and hairline
+edge, `text-meta`, and hides the arrow. `ui/tooltip.tsx` is untouched.
+
 **Settings save on blur.** A text field saves its section when it loses focus; switches and
 selects keep the section's Save button.
 

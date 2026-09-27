@@ -313,7 +313,7 @@ function RespectBadge({ player }: { player: Player }) {
           </Tag>
         </span>
       </TooltipTrigger>
-      <TooltipContent>{t("mod.respect")}</TooltipContent>
+      <TooltipContent>{t("mod.respect", { n: score })}</TooltipContent>
     </Tooltip>
   );
 }

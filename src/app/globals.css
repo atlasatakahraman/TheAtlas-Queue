@@ -413,6 +413,22 @@
   border-color: var(--input);
 }
 
+/* Tooltips follow the theme (owner, 2026-09-27): stock inverts them (foreground fill), which
+   read as a foreign object on both grounds. They are a small popover: card fill, hairline edge,
+   meta text, no arrow. */
+[data-slot="tooltip-content"] {
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+[data-slot="tooltip-content"] > span:last-child:has(> svg),
+[data-slot="tooltip-content"] > svg {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-slot="button"] > svg,
   [data-slot="button"]:hover > svg {

@@ -658,12 +658,17 @@ The masthead pill reports whether **commands from chat are reaching Queue**. It 
 the server from the Kick event subscriptions and the last event received, never from a browser
 socket.
 
-| State | Dot | Text | Meaning |
+Three **signal bars** (owner, 2026-09-27) carry the state: how many light, and in which colour.
+They bounce once, left to right, when a command lands (`--animate-signal`, off under reduced
+motion) and never move otherwise. The text says *Chat*, never *Live*: "Live" read as "the stream
+is on air", which the dateline already reports.
+
+| State | Bars | Text | Meaning |
 |---|---|---|---|
-| Live | `--success`, with a soft ring | "Live · last command 12 s ago" | Subscriptions active, a command in the last 10 min |
-| Listening | `--muted-foreground` | "Listening · quiet for 14 min" | Subscriptions active, chat simply quiet. **Not an error** |
-| Delayed | `--warning` | "Delays possible" | Kick reported failed deliveries or a health check failed |
-| Not connected | `--destructive` | "Not connected" + **Reconnect** | Subscriptions missing or revoked |
+| Live | 3, `--success` | "Chat · last command 12 s ago" | Subscriptions active, a command in the last 10 min |
+| Listening | 2, `--muted-foreground` | "Chat · quiet for 14 min" | Subscriptions active, chat simply quiet. **Not an error** |
+| Delayed | 1, `--warning` | "Delays possible" | Kick reported failed deliveries or a health check failed |
+| Not connected | 3 hollow, `--destructive` outlines | "Not connected" + **Reconnect** | Subscriptions missing or revoked |
 
 Clicking the pill opens a popover with the details: subscription state, last event, last check.
 Only *Not connected* ever raises a toast.

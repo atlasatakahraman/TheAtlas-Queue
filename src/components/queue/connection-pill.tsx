@@ -25,12 +25,28 @@ export function health(c: Channel, now: number): Health {
   return "listening";
 }
 
-const DOT: Record<Health, string> = {
-  live: "bg-success ring-4 ring-success/25",
-  listening: "bg-muted-foreground",
-  delayed: "bg-warning",
-  down: "bg-destructive",
-};
+// Signal bars (owner, 2026-09-27): how many light, and in what colour, is the state; down is
+// three hollow red outlines. They bounce once when a command lands, and never otherwise.
+const LIT: Record<Health, number> = { live: 3, listening: 2, delayed: 1, down: 0 };
+const FILL: Record<Health, string> = { live: "bg-success", listening: "bg-muted-foreground", delayed: "bg-warning", down: "" };
+
+function SignalBars({ state, beat }: { state: Health; beat: string | false }) {
+  return (
+    <span key={beat || undefined} aria-hidden className="flex h-3.5 items-end gap-0.5">
+      {[45, 72, 100].map((h, i) => (
+        <span
+          key={h}
+          style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }}
+          className={cn(
+            "w-[3px] origin-bottom rounded-full transition-colors duration-150 ease-out",
+            state === "down" ? "border border-destructive" : i < LIT[state] ? FILL[state] : "bg-muted-foreground/25",
+            beat && "animate-signal",
+          )}
+        />
+      ))}
+    </span>
+  );
+}
 
 // Re-creates the Kick subscriptions now; the pill and the page's right-click menu both offer it.
 export function useReconnect() {
@@ -72,6 +88,10 @@ export function ConnectionPill() {
           : t("pill.listening.never")
         : t(`pill.${state}`);
   const short = t(`pill.short.${state}`);
+  // The clock ticks every 15 s, so a command newer than it reads as just landed: the bars remount
+  // on its timestamp and bounce once. A page opened long after the last command stays still.
+  const last = channel.last_command_at;
+  const beat = !!now && !!last && Date.parse(last) > now - 3000 && last;
 
   return (
     <Popover>
@@ -80,7 +100,7 @@ export function ConnectionPill() {
           type="button"
           className="flex h-9 items-center gap-2 rounded-full border border-input px-3 text-control outline-none select-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 max-md:h-11"
         >
-          <span className={cn("size-2 rounded-full", DOT[state])} aria-hidden />
+          <SignalBars state={state} beat={beat} />
           <span className="max-md:hidden">{long}</span>
           <span className="md:hidden">{short}</span>
         </button>

@@ -153,6 +153,8 @@ export const tr: Record<LabelKey, string> = {
   "menu.open": "{name} için işlemler",
   "menu.copy_riot": "Riot ID'yi kopyala",
   "menu.copy_name": "Kick adını kopyala",
+  "menu.add_above": "Üstüne oyuncu ekle",
+  "menu.add_below": "Altına oyuncu ekle",
   "menu.edit": "Oyuncuyu düzenle",
   "menu.move_to": "{team} takımına taşı",
   "menu.to_waiting": "Beklemeye al",

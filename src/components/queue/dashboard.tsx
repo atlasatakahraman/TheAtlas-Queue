@@ -72,10 +72,14 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const [palette, setPalette] = useState(false);
   const [adding, setAddingState] = useState(false);
   const [addTo, setAddTo] = useState<1 | 2 | null>(null);
-  // Closing Add player forgets its team, so the toolbar's Add adds to waiting again.
+  const [addAt, setAddAt] = useState<number | null>(null);
+  // Closing Add player forgets its team and place, so the toolbar's Add adds to the end again.
   const setAdding = useCallback((open: boolean) => {
     setAddingState(open);
-    if (!open) setAddTo(null);
+    if (!open) {
+      setAddTo(null);
+      setAddAt(null);
+    }
   }, []);
   const [editing, setEditing] = useState<Player | null>(null);
   const [sanction, setSanction] = useState<SanctionDraft | null>(null);
@@ -126,7 +130,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const active = tabs.indexOf(tab);
 
   return (
-    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, editing, setEditing, sanction, setSanction, focusSearch, entering, account }}>
+    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, addAt, setAddAt, editing, setEditing, sanction, setSanction, focusSearch, entering, account }}>
       <SearchRefContext.Provider value={search}>
       <PageMenu>
       {/* The top bar runs the full width on its own ground (August's header); its content keeps

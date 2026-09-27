@@ -16,6 +16,9 @@ export type Ui = {
   // Add player straight into a team (a team card's Add); null adds to waiting.
   addTo: 1 | 2 | null;
   setAddTo: (team: 1 | 2 | null) => void;
+  // The queue-order key Add player lands at (D37: Add player above / below); null is the end.
+  addAt: number | null;
+  setAddAt: (key: number | null) => void;
   editing: Player | null;
   setEditing: (p: Player | null) => void;
   sanction: SanctionDraft | null;

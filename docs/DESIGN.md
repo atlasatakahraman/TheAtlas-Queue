@@ -954,7 +954,7 @@ Native HTML drag and drop, no library (`@dnd-kit` stays removed).
   | Over | Shows | Drop does |
   |---|---|---|
   | Between two queue rows | a 3px `--ring` line at that edge | takes that place in the queue |
-  | Between two roster rows of a team (D37) | a 3px line **in that team's colour** | joins that team **at that place**, from the queue or the other team, one write with `p_key` |
+  | Between two roster rows of a team (D37, built 7.33) | a 3px line **in that team's colour** | joins that team **at that place**, from the queue or the other team, one write with `p_key`; a full team's rows refuse it |
   | A team card elsewhere | the card rings in its team colour | joins at the end of the team |
   | A full team | the card's header reads *{team} is full* in `--destructive`, no ring | refused (`dropEffect = none`) |
   | Its own slot (either side of itself) | nothing | refused, no write (6.9) |
@@ -1005,7 +1005,7 @@ has its lucide icon. Groups:
 2. **Add player above** (`ArrowUpToLine`) · **Add player below** (`ArrowDownToLine`) (D37). On a
    roster row they open the team add list (waiting players, then *Add a new player…*) anchored
    on that row; on a queue row they open Add player, and the new player lands at that place.
-   One write, one Undo.
+   One write, one Undo. Disabled on a full team. Built in Stage 7 (7.33, migration `0018_place`).
 3. move (the row buttons' set, with the team's **current name** and colour)
 4. mark away · protection (*Remove protection*, only on a protected sub)
 5. moderation (warn and punish in warning, ban) · remove

@@ -158,6 +158,8 @@ export const en = {
   "menu.open": "Actions for {name}",
   "menu.copy_riot": "Copy Riot ID",
   "menu.copy_name": "Copy Kick name",
+  "menu.add_above": "Add player above",
+  "menu.add_below": "Add player below",
   "menu.edit": "Edit player",
   "menu.move_to": "Move to {team}",
   "menu.to_waiting": "Back to waiting",

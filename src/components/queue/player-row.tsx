@@ -1,6 +1,8 @@
 "use client";
 import {
+  ArrowDownToLine,
   ArrowLeftRight,
+  ArrowUpToLine,
   Ban,
   Clock,
   Coffee,
@@ -21,7 +23,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
@@ -199,18 +201,40 @@ type Item = {
   // A team item's icon and label take the team colour (August's blue/red "add to team").
   tone?: string;
   write?: boolean;
+  disabled?: boolean;
 };
 
 function useMenu(p: Player): Item[][] {
   const { t } = useT();
   const a = usePlayerActions(p);
   const riot = useRiot();
+  const ui = useUi();
+  const store = useStore();
+  const teamAdd = useContext(TeamAddContext);
+  // Add player above / below (D37): a team row opens its card's add list on the row; a queue row
+  // opens Add player. Either lands at the key beside this row.
+  const addBeside = (at: "before" | "after") => () => {
+    const key = placeKey(store.get().players, p.id, at);
+    if (teamAdd) {
+      const row = document.querySelector<HTMLElement>(`[data-player="${p.id}"]`);
+      // The closing menu would hand focus back to its trigger and dismiss the list it opened.
+      keepFocus = true;
+      if (row) teamAdd.open(row, key);
+      return;
+    }
+    ui.setAddAt(key);
+    ui.setAdding(true);
+  };
   const groups: Item[][] = [
     [
       ...(riot && p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, onSelect: a.copyRiot }] : []),
       { label: t("menu.copy_name"), icon: Gamepad2, onSelect: a.copyName },
+      { label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true },
     ],
-    [{ label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true }],
+    [
+      { label: t("menu.add_above"), icon: ArrowUpToLine, onSelect: addBeside("before"), write: true, disabled: teamAdd?.full },
+      { label: t("menu.add_below"), icon: ArrowDownToLine, onSelect: addBeside("after"), write: true, disabled: teamAdd?.full },
+    ],
     [
       ...(p.team !== 1
         ? [{ label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true }]
@@ -250,7 +274,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
         <K.Item
           key={it.label}
           variant={it.destructive ? "destructive" : "default"}
-          disabled={it.write && !canWrite}
+          disabled={(it.write && !canWrite) || it.disabled}
           onSelect={it.onSelect}
           className={cn(it.tone, it.tone && "focus:text-current [&_svg]:text-current!")}
         >
@@ -271,7 +295,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
   );
   if (kit === "context")
     return (
-      <ContextMenuContent className="min-w-60 p-1.5">
+      <ContextMenuContent className="min-w-60 p-1.5" onCloseAutoFocus={releaseFocus}>
         {header}
         {items}
       </ContextMenuContent>
@@ -283,7 +307,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
           <Ellipsis aria-hidden />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-60 p-1.5">
+      <DropdownMenuContent align="end" className="min-w-60 p-1.5" onCloseAutoFocus={releaseFocus}>
         {header}
         {items}
       </DropdownMenuContent>
@@ -465,12 +489,23 @@ function QuickActions({ player }: { player: Player }) {
 let dragging: Player | null = null;
 export const draggedPlayer = () => dragging;
 
+// Set when a menu item opens a team's add list, so the menu does not take focus back on close.
+let keepFocus = false;
+const releaseFocus = (e: Event) => {
+  if (keepFocus) e.preventDefault();
+  keepFocus = false;
+};
+
+// A team card's add list, for its rows' Add player above / below (D37). Null outside a card.
+export const TeamAddContext = createContext<{ open: (row: HTMLElement, key: number) => void; full: boolean } | null>(null);
+
+// Into a team, at key in the order when given (D37: one write, one Undo).
 export function useMoveTo() {
   const { t } = useT();
   const act = useAct();
-  return (p: Player, team: 1 | 2) =>
-    act("move_player", { p_player: p.id, p_status: "playing", p_team: team }, {
-      optimistic: { ids: [p.id], patch: (x) => ({ ...x, status: "playing", team }) },
+  return (p: Player, team: 1 | 2, key?: number) =>
+    act("move_player", { p_player: p.id, p_status: "playing", p_team: team, p_key: key ?? null }, {
+      optimistic: { ids: [p.id], patch: (x) => ({ ...x, status: "playing", team, sort_key: key ?? x.sort_key }) },
       done: "done.move_team",
       vars: { name: p.kick_username, team: t(`team.${team}`) },
     });
@@ -484,14 +519,20 @@ function inPlace(row: HTMLElement, d: Player, at: "before" | "after") {
 }
 
 // The new place is the midpoint between the target and its neighbour on that side.
+// The key between target and its neighbour on that side, leaving out the player being moved.
+export function placeKey(players: Player[], targetId: string, at: "before" | "after", movingId?: string) {
+  const list = players.filter((p) => p.id !== movingId);
+  const i = list.findIndex((p) => p.id === targetId);
+  const target = list[i];
+  const nb = list[at === "before" ? i - 1 : i + 1];
+  return nb ? (target.sort_key + nb.sort_key) / 2 : target.sort_key + (at === "before" ? -1 : 1);
+}
+
 function useReorder() {
   const act = useAct();
   const store = useStore();
   return (d: Player, target: Player, at: "before" | "after") => {
-    const list = store.get().players.filter((p) => p.id !== d.id);
-    const i = list.findIndex((p) => p.id === target.id);
-    const nb = list[at === "before" ? i - 1 : i + 1];
-    const key = nb ? (target.sort_key + nb.sort_key) / 2 : target.sort_key + (at === "before" ? -1 : 1);
+    const key = placeKey(store.get().players, target.id, at, d.id);
     return act("reorder_player", { p_player: d.id, p_key: key }, {
       optimistic: { ids: [d.id], patch: (x) => ({ ...x, sort_key: key }) },
       done: "done.reorder",
@@ -547,10 +588,15 @@ export function PlayerRow({
   const seen = useMemo(() => (riot ? player : { ...player, riot_id: null, rank: null }), [riot, player]);
   const touch = useIsTouch();
   const reorder = useReorder();
+  const moveTo = useMoveTo();
+  const store = useStore();
+  const teamAdd = useContext(TeamAddContext);
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
   const [lifted, setLifted] = useState(false);
-  // A roster row takes drops from its own team only; the other team's rows go to the card.
-  const accepts = (d: Player | null): d is Player => !!d && d.id !== player.id && (table || (d.status === "playing" && d.team === player.team));
+  // A roster row takes its own team's players (a reorder) and, while the team has room, anyone
+  // else, who joins the team at that row (D37, owner 2026-09-27).
+  const sameTeam = (d: Player) => d.status === "playing" && d.team === player.team;
+  const accepts = (d: Player | null): d is Player => !!d && d.id !== player.id && (table || sameTeam(d) || !teamAdd?.full);
 
   // Row keys fire only while the row itself has focus (DESIGN.md § Focus and keyboard).
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -634,7 +680,8 @@ export function PlayerRow({
             if (!accepts(d) || !at) return;
             e.preventDefault();
             e.stopPropagation();
-            void reorder(d, player, at);
+            if (table || sameTeam(d)) void reorder(d, player, at);
+            else void moveTo(d, player.team === 2 ? 2 : 1, placeKey(store.get().players, player.id, at, d.id));
           }}
           style={enterStyle?.style}
           className={cn(
@@ -649,8 +696,9 @@ export function PlayerRow({
             canWrite && !touch && "cursor-grab active:cursor-grabbing",
             // The row picked up dims at once, so the drag reads as started with no pause.
             lifted && "opacity-40",
-            dropAt === "before" && "shadow-[0_-3px_0_0_var(--ring)]",
-            dropAt === "after" && "shadow-[0_3px_0_0_var(--ring)]",
+            // The drop line: gold in the queue, the team's colour on a roster (D37).
+            dropAt === "before" && (table ? "shadow-[0_-3px_0_0_var(--ring)]" : player.team === 2 ? "shadow-[0_-3px_0_0_var(--team-2)]" : "shadow-[0_-3px_0_0_var(--team-1)]"),
+            dropAt === "after" && (table ? "shadow-[0_3px_0_0_var(--ring)]" : player.team === 2 ? "shadow-[0_3px_0_0_var(--team-2)]" : "shadow-[0_3px_0_0_var(--team-1)]"),
             enterStyle?.className,
           )}
         >

@@ -74,12 +74,12 @@ export function AddPlayerDialog() {
       onOpenChange={ui.setAdding}
       title={ui.addTo ? t("teams.add", { team: t(`team.${ui.addTo}`) }) : t("action.add")}
     >
-      {ui.adding && <AddPlayerForm team={ui.addTo} onDone={() => ui.setAdding(false)} />}
+      {ui.adding && <AddPlayerForm team={ui.addTo} at={ui.addAt} onDone={() => ui.setAdding(false)} />}
     </ResponsiveDialog>
   );
 }
 
-function AddPlayerForm({ team, onDone }: { team: 1 | 2 | null; onDone: () => void }) {
+function AddPlayerForm({ team, at, onDone }: { team: 1 | 2 | null; at: number | null; onDone: () => void }) {
   const { t } = useT();
   const act = useAct();
   const canWrite = useCanWrite();
@@ -124,7 +124,7 @@ function AddPlayerForm({ team, onDone }: { team: 1 | 2 | null; onDone: () => voi
     setBusy(true);
     const res = await act(
       "add_player",
-      { p_kick_username: n, p_riot_id: r || null },
+      { p_kick_username: n, p_riot_id: r || null, p_key: at },
       { done: "done.add", vars: { name: n }, silent: true },
     );
     setBusy(false);

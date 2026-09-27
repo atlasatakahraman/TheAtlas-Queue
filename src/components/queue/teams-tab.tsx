@@ -3,7 +3,7 @@ import { ChevronDown, ShieldCheck, Shuffle, UserPlus, UsersRound } from "lucide-
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
-import { draggedPlayer, PlayerRow, RankText, Tag, useMoveTo } from "@/components/queue/player-row";
+import { draggedPlayer, PlayerRow, RankText, Tag, useMoveTo, useRiot } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typewriter } from "@/components/typewriter";
@@ -164,6 +164,7 @@ function AddToTeam({ team, at, onClose }: { team: 1 | 2; at: HTMLElement | null;
   const { t } = useT();
   const ui = useUi();
   const moveTo = useMoveTo();
+  const riot = useRiot();
   // Select the stable array and filter outside: a selector that builds a new array makes
   // useSyncExternalStore see a new snapshot every render and loop.
   const players = useQueue((v) => v.players);
@@ -195,7 +196,7 @@ function AddToTeam({ team, at, onClose }: { team: 1 | 2; at: HTMLElement | null;
                   <CommandItem key={p.id} value={`${p.kick_username} ${p.riot_id ?? ""}`} onSelect={pick(() => void moveTo(p, team))}>
                     {/* Kick names run to 25 characters: both halves truncate rather than overflow. */}
                     <span className="truncate text-name">{p.kick_username}</span>
-                    {p.riot_id && <span className="min-w-0 truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
+                    {riot && p.riot_id && <span className="min-w-0 truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -326,6 +327,7 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
   const waiting = useMemo(() => players.filter((p) => p.status === "waiting"), [players]);
   const playing = players.length - waiting.length - players.filter((p) => p.status === "away").length;
   const { shuffle, clearTeams } = useDrawActions();
+  const riot = useRiot();
   return (
     <ContextMenuContent className="min-w-60 p-1.5">
       <ContextMenuLabel className={cn("font-normal", team === 1 ? "text-team-1" : "text-team-2")}>
@@ -343,7 +345,7 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
             waiting.map((p) => (
               <ContextMenuItem key={p.id} onSelect={() => void moveTo(p, team)}>
                 <span className="truncate">{p.kick_username}</span>
-                {p.riot_id && <span className="ml-auto truncate pl-3 font-mono text-code text-muted-foreground">{p.riot_id}</span>}
+                {riot && p.riot_id && <span className="ml-auto truncate pl-3 font-mono text-code text-muted-foreground">{p.riot_id}</span>}
               </ContextMenuItem>
             ))
           )}
@@ -432,6 +434,7 @@ export function TeamsTab() {
   const landing = useLanding(revealing, rosters);
   const e3 = enter(ui.entering, 3);
   const e4 = enter(ui.entering, 4);
+  const riot = useRiot();
 
   return (
     <div className="flex flex-col gap-6">
@@ -448,7 +451,7 @@ export function TeamsTab() {
       <div style={e4.style} className={cn("grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1", e4.className)}>
         {landing && <RevealEnd key={revealing!.id} duration={landing.duration} />}
         {rosters.map((roster, i) => (
-          <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && <Avg players={roster} />} addable={!landing}>
+          <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && riot && <Avg players={roster} />} addable={!landing}>
             {roster.map((p, n) => {
               const at = landing?.at.get(p.id);
               return (

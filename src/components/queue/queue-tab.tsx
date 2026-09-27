@@ -3,7 +3,7 @@ import { MessageSquareText, Search } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
 import { FilterPills } from "@/components/queue/filter-pills";
-import { PlayerRow, TableHeader } from "@/components/queue/player-row";
+import { PlayerRow, TableHeader, useRiot } from "@/components/queue/player-row";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { enter, SearchRefContext, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
@@ -173,6 +173,7 @@ function Feed() {
   const { t } = useT();
   const lines = useChatLines();
   const now = useNow();
+  const riot = useRiot();
   if (lines.length === 0) return <p className="text-meta text-muted-foreground">{t("feed.empty")}</p>;
   return (
     <ol className="flex flex-col gap-2.5">
@@ -195,7 +196,7 @@ function Feed() {
               {a.action === "stream_offline" && t("feed.offline")}
             </span>
             <span className="flex gap-2 text-muted-foreground">
-              {typeof a.payload.riot_id === "string" && <code className="font-mono text-code select-all">{a.payload.riot_id}</code>}
+              {riot && typeof a.payload.riot_id === "string" && <code className="font-mono text-code select-all">{a.payload.riot_id}</code>}
               <span>{now ? ago(a.created_at, now, t) : ""}</span>
             </span>
           </li>

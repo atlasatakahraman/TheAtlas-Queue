@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useSetLang, useT } from "@/components/i18n";
+import { useRiot } from "@/components/queue/player-row";
 import { useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { signOutNow } from "@/components/queue/header";
 import { useDrawActions, usePick } from "@/components/queue/teams-tab";
@@ -48,6 +49,7 @@ export function Palette() {
   const canWrite = useCanWrite();
   const role = useQueue((v) => v.role);
   const players = useQueue((v) => v.players);
+  const riot = useRiot();
   const standingTeams = useQueue((v) => v.draw?.kind === "teams");
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
@@ -107,7 +109,7 @@ export function Palette() {
                     })}
                   >
                     <span className="text-name">{p.kick_username}</span>
-                    {p.riot_id && <span className="font-mono text-code text-muted-foreground">{p.riot_id}</span>}
+                    {riot && p.riot_id && <span className="font-mono text-code text-muted-foreground">{p.riot_id}</span>}
                   </CommandItem>
                 ))}
               </CommandGroup>

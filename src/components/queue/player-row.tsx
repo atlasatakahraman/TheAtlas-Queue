@@ -21,7 +21,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
@@ -65,6 +65,8 @@ const TIER_MARK: Record<string, string> = {
   GRANDMASTER: "bg-rank-grandmaster", CHALLENGER: "bg-rank-challenger",
 };
 const APEX = new Set(["MASTER", "GRANDMASTER", "CHALLENGER"]);
+
+export const useRiot = () => useQueue((v) => v.settings.riot_enabled);
 
 export function RankText({ player, className }: { player: Player; className?: string }) {
   const { t } = useT();
@@ -202,9 +204,10 @@ type Item = {
 function useMenu(p: Player): Item[][] {
   const { t } = useT();
   const a = usePlayerActions(p);
+  const riot = useRiot();
   const groups: Item[][] = [
     [
-      ...(p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, onSelect: a.copyRiot }] : []),
+      ...(riot && p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, onSelect: a.copyRiot }] : []),
       { label: t("menu.copy_name"), icon: Gamepad2, onSelect: a.copyName },
     ],
     [{ label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true }],
@@ -235,6 +238,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
   const { t } = useT();
   const groups = useMenu(player);
   const canWrite = useCanWrite();
+  const riot = useRiot();
   const K =
     kit === "context"
       ? { Item: ContextMenuItem, Sep: ContextMenuSeparator, Short: ContextMenuShortcut, Label: ContextMenuLabel }
@@ -263,7 +267,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
   ));
   // The header names who the menu acts on: the Riot ID when there is one (August's menu header).
   const header = (
-    <K.Label className="truncate font-mono text-code font-normal text-muted-foreground">{player.riot_id ?? player.kick_username}</K.Label>
+    <K.Label className="truncate font-mono text-code font-normal text-muted-foreground">{(riot && player.riot_id) || player.kick_username}</K.Label>
   );
   if (kit === "context")
     return (
@@ -348,7 +352,7 @@ function Joined({ player }: { player: Player }) {
 function PlayerName({ player, stacked, typeAt }: { player: Player; stacked: boolean; typeAt?: number }) {
   const { t } = useT();
   const touch = useIsTouch();
-  const required = useQueue((v) => v.settings.require_riot_id);
+  const required = useQueue((v) => v.settings.riot_enabled && v.settings.require_riot_id);
   const fairPlay = useQueue((v) => v.settings.fair_play);
   const now = useNow();
   const [game, tag] = player.riot_id ? player.riot_id.split("#") : [player.kick_username, null];
@@ -503,6 +507,9 @@ function useReorder() {
 // The actions column is its four 24px buttons (6rem); the player column takes twice the Kick
 // column, since its name shares the line with the respect score and tags (at 1280×720 the name
 // had 53px of 175, owner 2026-09-27).
+// With Riot off (owner, 2026-09-27) the Kick, Rank and Win rate columns go: the name is the Kick
+// name and there is no rank to show.
+export const TABLE_COLS_PLAIN = "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_6rem] lg:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6rem]";
 export const TABLE_COLS =
   "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_6rem] lg:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_4.5rem_5.5rem_6rem]";
 
@@ -534,6 +541,10 @@ export function PlayerRow({
   const [mountedAt] = useState(() => Date.now());
   const recent = (at?: number) => !!at && at > mountedAt - 2000;
   const table = variant === "table";
+  const riot = useRiot();
+  // What the row shows: with Riot off, no Riot ID, rank or profile icon, though the player keeps
+  // them (actions and the edit dialog get the real player, so nothing stored is lost).
+  const seen = useMemo(() => (riot ? player : { ...player, riot_id: null, rank: null }), [riot, player]);
   const touch = useIsTouch();
   const reorder = useReorder();
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
@@ -586,7 +597,7 @@ export function PlayerRow({
             // The browser would drag a picture of the whole row: a name chip with the row's edge
             // follows the cursor instead (owner, 2026-09-27; the Stage 7 design refines it, D25).
             const chip = document.createElement("div");
-            chip.textContent = player.riot_id?.split("#")[0] ?? player.kick_username;
+            chip.textContent = seen.riot_id?.split("#")[0] ?? player.kick_username;
             chip.className = cn(
               "fixed -top-96 left-0 max-w-64 truncate rounded-lg border border-l-[3px] border-row-edge bg-card px-3 py-1.5 text-name text-foreground",
               edge,
@@ -629,7 +640,7 @@ export function PlayerRow({
           className={cn(
             "group/row grid items-center gap-x-3 rounded-xl border border-l-[3px] border-row-edge px-4 py-3 outline-none",
             "transition-colors duration-150 ease-out hover:bg-accent focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
-            table ? cn("bg-row", TABLE_COLS) : "grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] bg-background",
+            table ? cn("bg-row", riot ? TABLE_COLS : TABLE_COLS_PLAIN) : "grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] bg-background",
             edge,
             recent(arrivedAt) && "animate-arrive",
             recent(revertedAt) && "animate-highlight",
@@ -645,22 +656,24 @@ export function PlayerRow({
         >
           <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{number}</span>
           <div className="flex min-w-0 items-center gap-3">
-            <PlayerAvatar player={player} />
+            <PlayerAvatar player={seen} />
             {/* One line (D36): the name truncates first, then the tags fold to icons. */}
             <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
-              <PlayerName player={player} stacked={table} typeAt={landAt} />
+              <PlayerName player={seen} stacked={table} typeAt={landAt} />
               {table && <RespectBadge player={player} />}
               <PlayerTags player={player} showState={table} />
             </div>
           </div>
-          {table && <span className="truncate text-meta text-muted-foreground max-md:hidden">{player.kick_username}</span>}
+          {table && riot && <span className="truncate text-meta text-muted-foreground max-md:hidden">{player.kick_username}</span>}
           {/* Always a cell, so rows with and without a rank keep the next columns in place. */}
-          <span className={table ? "max-md:hidden" : "max-sm:hidden"}>
-            <RankText player={player} />
-          </span>
-          {table && (
+          {(riot || !table) && (
+            <span className={table ? "max-md:hidden" : "max-sm:hidden"}>
+              <RankText player={seen} />
+            </span>
+          )}
+          {table && riot && (
             <span className="max-lg:hidden">
-              <WinRate player={player} />
+              <WinRate player={seen} />
             </span>
           )}
           {table && (
@@ -682,14 +695,15 @@ export function PlayerRow({
 // The table's header row, on the same grid as the rows.
 export function TableHeader() {
   const { t } = useT();
+  const riot = useRiot();
   const th = "text-caption text-muted-foreground uppercase select-none";
   return (
-    <div aria-hidden className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", TABLE_COLS)}>
+    <div aria-hidden className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", riot ? TABLE_COLS : TABLE_COLS_PLAIN)}>
       <span className={th}>#</span>
       <span className={th}>{t("col.player")}</span>
-      <span className={th}>{t("col.kick")}</span>
-      <span className={th}>{t("col.rank")}</span>
-      <span className={cn(th, "max-lg:hidden")}>{t("col.winrate")}</span>
+      {riot && <span className={th}>{t("col.kick")}</span>}
+      {riot && <span className={th}>{t("col.rank")}</span>}
+      {riot && <span className={cn(th, "max-lg:hidden")}>{t("col.winrate")}</span>}
       <span className={cn(th, "max-lg:hidden")}>{t("col.joined")}</span>
       <span />
     </div>

@@ -905,8 +905,12 @@ The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs,
   unranked and no-games rows go last. Remembered per browser (`queue.sort`). *Kick* does not
   sort. **Sorting is a view**: Pick and the draw still use the queue order, and dragging is off
   while sorted (the grips go).
-- **Riot off** (`riot_enabled` false): *Kick*, *Rank* and *Win rate* leave the table; the player
-  cell already shows the Kick name.
+- **Riot off** (`riot_enabled` false): *Kick*, *Rank* and *Win rate* leave the table
+  (`TABLE_COLS_PLAIN`) and the player cell shows the Kick name. Nothing else that needs Riot shows
+  either (owner, 2026-09-27): the team card's average rank, the Riot ID card, *Copy Riot ID*,
+  Riot IDs in the palette, the add lists and the feed, Settings' *Require a Riot ID* and region,
+  and the watch page's *Riot IDs* switch. Players keep their stored Riot IDs; turning Riot back
+  on shows them again.
 - **Loading Riot (D25).** Rank and win-rate cells hold a `Skeleton` of their own width until the
   data lands; the Queue heading gets a muted *Loading ranks 3* counter that pulses. Nothing shifts.
 - **Row buttons (D34).** Visible, labelled, in this order before `⋯`, each with a tooltip:

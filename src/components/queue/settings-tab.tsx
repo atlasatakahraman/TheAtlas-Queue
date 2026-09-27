@@ -183,21 +183,26 @@ function RiotSection() {
   return (
     <Section title={t("settings.riot")} step={4} onAutosave={() => void s.save()}>
       <SwitchField id="riot_enabled" label={t("settings.riot_enabled")} hint={t("settings.riot_enabled.hint")} checked={s.draft.riot_enabled} onChange={(v) => s.set("riot_enabled", v)} />
-      <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => s.set("require_riot_id", v)} />
-      <Field label={t("settings.riot_region")} hint={t("settings.riot_region.hint")} error={s.errors.riot_region}>
-        <Select value={s.draft.riot_region} onValueChange={(v) => s.set("riot_region", v)}>
-          <SelectTrigger className={cn(triggerCls, "max-w-60")}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            {REGIONS.map((r) => (
-              <SelectItem key={r} value={r}>
-                {t(`region.${r}` as LabelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Field>
+      {/* The rest only means something with Riot on (owner, 2026-09-27). */}
+      {s.draft.riot_enabled && (
+        <>
+          <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => s.set("require_riot_id", v)} />
+          <Field label={t("settings.riot_region")} hint={t("settings.riot_region.hint")} error={s.errors.riot_region}>
+            <Select value={s.draft.riot_region} onValueChange={(v) => s.set("riot_region", v)}>
+              <SelectTrigger className={cn(triggerCls, "max-w-60")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {REGIONS.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {t(`region.${r}` as LabelKey)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </>
+      )}
       <SaveRow s={s} />
     </Section>
   );
@@ -349,12 +354,13 @@ function WatchSectionSettings() {
   const { t } = useT();
   const s = useSection(["watch_enabled", "watch_sections"] as const);
   const slug = useQueue((v) => v.channel.slug);
+  const riot = useQueue((v) => v.settings.riot_enabled);
   const toggle = (x: WatchSection, on: boolean) =>
     s.set("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
   return (
     <Section title={t("settings.watch")} step={7} onAutosave={() => void s.save()}>
       <SwitchField id="watch_enabled" label={t("settings.watch_enabled")} hint={t("settings.watch_enabled.hint")} checked={s.draft.watch_enabled} onChange={(v) => s.set("watch_enabled", v)} />
-      {SECTIONS.map((x) => (
+      {SECTIONS.filter((x) => riot || x !== "riot_ids").map((x) => (
         <SwitchField
           key={x}
           id={`watch-${x}`}

@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { CURATED_KEYS, type LabelKey } from "@/lib/i18n";
 import { en } from "@/lib/i18n/en";
 import { tr } from "@/lib/i18n/tr";
-import { isError } from "@/lib/queue-store";
+import { isError, type RpcError } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
 import type { Settings, WatchSection } from "@/types/queue";
 
@@ -26,7 +26,9 @@ const WATCH_ORIGIN = "https://theatlas-queue.vercel.app";
 type Errors = Record<string, string>;
 
 // One section's draft of the settings row: saves a patch of only the keys that changed, and puts
-// settings.invalid {field} under that field (spec § Error handling → Form).
+// settings.invalid {field} under that field (spec § Error handling → Form). Switches, selects and
+// pickers save the moment they change (put); text and numbers wait for Save, which stays disabled
+// until one of them changed (owner, 2026-09-27, superseding ADR 0022's save-on-blur).
 function useSection<K extends keyof Settings>(keys: readonly K[]) {
   const settings = useQueue((v) => v.settings);
   const act = useAct();
@@ -35,7 +37,14 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
   const [draft, setDraft] = useState(() => Object.fromEntries(keys.map((k) => [k, settings[k]])) as Pick<Settings, K>);
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   const [errors, setErrors] = useState<Errors>({});
-  const changed = keys.filter((k) => JSON.stringify(draft[k]) !== JSON.stringify(settings[k]));
+  // Keys that save on change never count as unsaved, so Save does not wake while one is in flight.
+  const [instant] = useState(() => new Set<K>());
+  const changed = keys.filter((k) => !instant.has(k) && JSON.stringify(draft[k]) !== JSON.stringify(settings[k]));
+  const failed = (res: RpcError) => {
+    const field =
+      res.key === "settings.label_invalid" ? "labels" : typeof res.detail.field === "string" ? res.detail.field : "form";
+    setErrors({ [field]: res.key === "network" ? t("error.network") : errorText(res) });
+  };
 
   const set = <X extends K>(k: X, v: Settings[X]) => {
     setDraft((d) => ({ ...d, [k]: v }));
@@ -48,23 +57,29 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
     const res = await act("update_settings", { p_patch: Object.fromEntries(changed.map((k) => [k, draft[k]])) }, { silent: true });
     if (isError(res)) {
       setState("idle");
-      const field =
-        res.key === "settings.label_invalid" ? "labels" : typeof res.detail.field === "string" ? res.detail.field : "form";
-      return setErrors({ [field]: res.key === "network" ? t("error.network") : errorText(res) });
+      return failed(res);
     }
     setState("saved");
   }
-  return { draft, set, dirty: changed.length > 0, save, state, errors };
+  // Saves this one key now; a refusal puts the control back to the saved value.
+  async function put<X extends K>(k: X, v: Settings[X]) {
+    instant.add(k);
+    set(k, v);
+    const res = await act("update_settings", { p_patch: { [k]: v } }, { silent: true });
+    if (isError(res)) {
+      setDraft((d) => ({ ...d, [k]: settings[k] }));
+      return failed(res);
+    }
+    setState("saved");
+  }
+  return { draft, set, put, dirty: changed.length > 0, save, state, errors };
 }
 
-// A text field saves its section when it loses focus (owner, 2026-09-23); switches and selects
-// keep the section's Save. save() does nothing when nothing changed.
-function Section({ title, hint, children, step, onAutosave }: {
+function Section({ title, hint, children, step }: {
   title: string;
   hint?: string;
   children: React.ReactNode;
   step: number;
-  onAutosave?: () => void;
 }) {
   const ui = useUi();
   const e = enter(ui.entering, step);
@@ -78,12 +93,7 @@ function Section({ title, hint, children, step, onAutosave }: {
         {/* Only where the section has a rule its controls do not show (D21: subtitles went). */}
         {hint && <p className="text-meta text-muted-foreground">{hint}</p>}
       </div>
-      <div
-        className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4"
-        onBlur={(e) => {
-          if (onAutosave && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) onAutosave();
-        }}
-      >
+      <div className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4">
         {children}
       </div>
     </section>
@@ -121,16 +131,20 @@ function SwitchField({ id, label, hint, checked, onChange, disabled }: {
   );
 }
 
-function SaveRow({ s }: { s: { dirty: boolean; save: () => Promise<unknown> | void; state: string; errors: Errors } }) {
+// Save for the typed fields; a section of switches and selects only reports (manual false).
+function SaveRow({ s, manual = true }: { s: { dirty: boolean; save: () => Promise<unknown> | void; state: string; errors: Errors }; manual?: boolean }) {
   const { t } = useT();
   const canWrite = useCanWrite();
+  if (!manual && !s.errors.form && s.state !== "saved") return null;
   return (
-    <div className="flex items-center justify-end gap-3">
+    <div className="flex min-h-9 items-center justify-end gap-3">
       {s.errors.form && <p className="mr-auto text-meta text-destructive">{s.errors.form}</p>}
       {s.state === "saved" && !s.dirty && <span className="text-meta text-muted-foreground">{t("common.saved")}</span>}
-      <Button variant="outline" size="lg" className="max-md:h-11" disabled={!s.dirty || s.state === "saving" || !canWrite} onClick={() => void s.save()}>
-        {t("common.save")}
-      </Button>
+      {manual && (
+        <Button variant="outline" size="lg" className="max-md:h-11" disabled={!s.dirty || s.state === "saving" || !canWrite} onClick={() => void s.save()}>
+          {t("common.save")}
+        </Button>
+      )}
     </div>
   );
 }
@@ -142,7 +156,7 @@ function QueueSection() {
   const { t } = useT();
   const s = useSection([...COMMANDS, "team_size"] as const);
   return (
-    <Section title={t("settings.queue")} step={3} onAutosave={() => void s.save()}>
+    <Section title={t("settings.queue")} step={3}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         {COMMANDS.map((k) => (
           <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]}>
@@ -157,7 +171,7 @@ function QueueSection() {
           </Field>
         ))}
         <Field label={t("settings.team_size")} error={s.errors.team_size}>
-          <Select value={String(s.draft.team_size)} onValueChange={(v) => s.set("team_size", Number(v))}>
+          <Select value={String(s.draft.team_size)} onValueChange={(v) => void s.put("team_size", Number(v))}>
             <SelectTrigger className={triggerCls}>
               <SelectValue />
             </SelectTrigger>
@@ -181,14 +195,14 @@ function RiotSection() {
   const { t } = useT();
   const s = useSection(["riot_enabled", "require_riot_id", "riot_region"] as const);
   return (
-    <Section title={t("settings.riot")} step={4} onAutosave={() => void s.save()}>
-      <SwitchField id="riot_enabled" label={t("settings.riot_enabled")} hint={t("settings.riot_enabled.hint")} checked={s.draft.riot_enabled} onChange={(v) => s.set("riot_enabled", v)} />
+    <Section title={t("settings.riot")} step={4}>
+      <SwitchField id="riot_enabled" label={t("settings.riot_enabled")} hint={t("settings.riot_enabled.hint")} checked={s.draft.riot_enabled} onChange={(v) => void s.put("riot_enabled", v)} />
       {/* The rest only means something with Riot on (owner, 2026-09-27). */}
       {s.draft.riot_enabled && (
         <>
-          <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => s.set("require_riot_id", v)} />
+          <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => void s.put("require_riot_id", v)} />
           <Field label={t("settings.riot_region")} hint={t("settings.riot_region.hint")} error={s.errors.riot_region}>
-            <Select value={s.draft.riot_region} onValueChange={(v) => s.set("riot_region", v)}>
+            <Select value={s.draft.riot_region} onValueChange={(v) => void s.put("riot_region", v)}>
               <SelectTrigger className={cn(triggerCls, "max-w-60")}>
                 <SelectValue />
               </SelectTrigger>
@@ -203,7 +217,7 @@ function RiotSection() {
           </Field>
         </>
       )}
-      <SaveRow s={s} />
+      <SaveRow s={s} manual={false} />
     </Section>
   );
 }
@@ -222,9 +236,9 @@ function DrawsSection() {
     />
   );
   return (
-    <Section title={t("settings.draws")} step={5} onAutosave={() => void s.save()}>
+    <Section title={t("settings.draws")} step={5}>
       <Field label={t("settings.draw_reveal")} hint={t("settings.draw_reveal.hint")}>
-        <Select value={s.draft.draw_reveal} onValueChange={(v) => s.set("draw_reveal", v as Settings["draw_reveal"])}>
+        <Select value={s.draft.draw_reveal} onValueChange={(v) => void s.put("draw_reveal", v as Settings["draw_reveal"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
             <SelectValue />
           </SelectTrigger>
@@ -234,7 +248,7 @@ function DrawsSection() {
           </SelectContent>
         </Select>
       </Field>
-      <SwitchField id="perk_enabled" label={t("settings.perk_enabled")} hint={t("settings.perk_enabled.hint")} checked={s.draft.perk_enabled} onChange={(v) => s.set("perk_enabled", v)} />
+      <SwitchField id="perk_enabled" label={t("settings.perk_enabled")} hint={t("settings.perk_enabled.hint")} checked={s.draft.perk_enabled} onChange={(v) => void s.put("perk_enabled", v)} />
       {s.draft.perk_enabled && (
         <>
           <div className="grid grid-cols-2 gap-4">
@@ -248,7 +262,7 @@ function DrawsSection() {
           <BadgePicker
             label={t("settings.perk_badges")}
             value={s.draft.perk_badges}
-            onChange={(v) => s.set("perk_badges", v)}
+            onChange={(v) => void s.put("perk_badges", v)}
             result={(who) => t("settings.perk.viewer", { who, uses: s.draft.perk_uses, days: s.draft.perk_window_days })}
           />
         </>
@@ -356,10 +370,10 @@ function WatchSectionSettings() {
   const slug = useQueue((v) => v.channel.slug);
   const riot = useQueue((v) => v.settings.riot_enabled);
   const toggle = (x: WatchSection, on: boolean) =>
-    s.set("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
+    void s.put("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
   return (
-    <Section title={t("settings.watch")} step={7} onAutosave={() => void s.save()}>
-      <SwitchField id="watch_enabled" label={t("settings.watch_enabled")} hint={t("settings.watch_enabled.hint")} checked={s.draft.watch_enabled} onChange={(v) => s.set("watch_enabled", v)} />
+    <Section title={t("settings.watch")} step={7}>
+      <SwitchField id="watch_enabled" label={t("settings.watch_enabled")} hint={t("settings.watch_enabled.hint")} checked={s.draft.watch_enabled} onChange={(v) => void s.put("watch_enabled", v)} />
       {SECTIONS.filter((x) => riot || x !== "riot_ids").map((x) => (
         <SwitchField
           key={x}
@@ -377,7 +391,7 @@ function WatchSectionSettings() {
         <dt className="text-muted-foreground">{t("settings.watch.overlay")}</dt>
         <dd className="font-mono text-code break-all select-all">{`${WATCH_ORIGIN}/overlay/${slug}?view=teams`}</dd>
       </dl>
-      <SaveRow s={s} />
+      <SaveRow s={s} manual={false} />
     </Section>
   );
 }
@@ -395,9 +409,9 @@ function LabelsSection() {
     s.set("labels", { ...s.draft.labels, [lang]: next });
   };
   return (
-    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} step={8} onAutosave={() => void s.save()}>
+    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} step={8}>
       <Field label={t("settings.stream_locale")} hint={t("settings.stream_locale.hint")}>
-        <Select value={s.draft.stream_locale} onValueChange={(v) => s.set("stream_locale", v as Settings["stream_locale"])}>
+        <Select value={s.draft.stream_locale} onValueChange={(v) => void s.put("stream_locale", v as Settings["stream_locale"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
             <SelectValue />
           </SelectTrigger>

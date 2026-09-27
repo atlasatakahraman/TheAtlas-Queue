@@ -751,8 +751,9 @@ Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fa
 - A section is a `bg-card rounded-xl p-6` of fields; a field is label, control, and one muted
   line only where the control's effect is not obvious; every section title links to its help
   page (`?` icon, D33).
-- Text saves on blur, switches and selects with the section's Save (as today); errors under
-  their field.
+- Switches, selects and pickers save the moment they change; text and numbers wait for the
+  section's Save, disabled until one of them changed (owner, 2026-09-27, ADR 0033); errors
+  under their field.
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).
@@ -1356,8 +1357,10 @@ outrank `@layer components`.
 fill); `globals.css` gives `[data-slot=tooltip-content]` the popover's fill, text and hairline
 edge, `text-meta`, and hides the arrow. `ui/tooltip.tsx` is untouched.
 
-**Settings save on blur.** A text field saves its section when it loses focus; switches and
-selects keep the section's Save button.
+**Settings save on change, text on Save** (ADR 0033, superseding 0022). A switch, select or
+picker saves its key the moment it changes (`useSection().put`), and a refusal puts it back.
+Text and number fields wait for the section's Save, disabled until one changed. A section with
+nothing to type shows no Save, only *Saved* and any error.
 
 **Ported, not generated:** `src/components/typewriter.tsx` is TheAtlas's, copied verbatim. It is
 not a shadcn file and is never regenerated; it is re-copied from upstream.

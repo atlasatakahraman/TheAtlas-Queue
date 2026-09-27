@@ -415,14 +415,15 @@ justified exception and is documented in [The draw reveal](#the-draw-reveal).
 The first mount of a page is choreographed, the way a scroll-crafted page reveals itself. After
 that, nothing moves unless the data did.
 
-1. **The channel name types itself** with `Typewriter`, the component TheAtlas's dashboard
-   greeting uses: each character lands out of a `0.12em` blur, 40ms apart, each taking 200ms to
-   sharpen, so a short trailing edge is always still resolving. Untyped characters are
-   `invisible`, not absent, so the line holds its final width from the first frame and nothing
-   beside it moves.
-   The gold italic *Queue* types on after it, one 40ms beat for the space: a second `Typewriter`
-   whose `startDelay` is the name's length plus one, times 40ms.
-2. The dateline, the header tools, the tabs, then the page heading rise 10px into place
+1. **The top bar's line types itself**, left to right, with `Typewriter`, the component
+   TheAtlas's dashboard greeting uses: each character lands out of a `0.12em` blur, 40ms apart,
+   each taking 200ms to sharpen, so a short trailing edge is always still resolving. Untyped
+   characters are `invisible`, not absent, so the line holds its final width from the first
+   frame and nothing beside it moves. *TheAtlas*, then the gold italic *Queue* one 40ms beat
+   later for the space, then the `/`, then **the channel name** (owner, 2026-09-27): each a
+   `Typewriter` whose `startDelay` is the characters before it, plus one beat per space, times
+   40ms. On phones, where only the channel shows, it types from 0.
+2. The header tools, the tabs, then the page heading rise 10px into place
    (`--animate-enter`), starting at 70ms and 45ms apart.
 3. Rows rise the same way, 45ms apart, **capped at the first 12**. Row 13 onwards is simply
    there, so a 60-player queue does not take three seconds to settle.
@@ -582,7 +583,7 @@ this document said before, the owner's choice wins.
 scrolls; its content keeps the page's 1440px (August's header). The TheAtlas tile (black on
 Kâğıt, white on Mürekkep) and the wordmark "TheAtlas *Queue*", **typed in by `Typewriter`**
 (*Queue* one 40ms beat after *TheAtlas*): it is the page's title. After it, a breadcrumb: a
-muted `/` and the **channel name** in Newsreader (owner, 2026-09-27: the dateline went, D21),
+muted `/` and the **channel name** in Newsreader, typed on after the wordmark (owner, 2026-09-27: the dateline went, D21),
 then *Moderating* as muted text for a moderator; on phones the channel stands in for the
 wordmark, and D19 makes it the way back to the selection page. Right: the [connection pill](#connection-health), the command palette button
 (a search icon, `aria-label`), the EN | TR switch, GitHub, the theme button, a settings gear

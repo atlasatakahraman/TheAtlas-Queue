@@ -8,6 +8,7 @@ import { LangSwitch } from "@/components/lang-switch";
 import { ConnectionPill } from "@/components/queue/connection-pill";
 import { useQueue } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
+import { useMedia } from "@/components/use-client-state";
 import { ThemeButton } from "@/components/theme-button";
 import { Typewriter } from "@/components/typewriter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -76,6 +77,8 @@ export function TopBar() {
   const ui = useUi();
   const role = useQueue((v) => v.role);
   const channel = useQueue((v) => v.channel.display_name);
+  // On phones the channel types first: the wordmark before it is hidden there.
+  const phone = useMedia("(max-width: 639px)");
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
   return (
@@ -84,7 +87,8 @@ export function TopBar() {
         {/* The black tile on paper, the white one on ink. */}
         <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
         <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
-        {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas. */}
+        {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
+            then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
         {/* On phones the tile alone: next to the pill the wordmark only truncates. */}
         <span className="truncate cap-center font-serif text-title max-md:text-body max-sm:hidden">
           <Typewriter text="TheAtlas" />{" "}
@@ -95,9 +99,11 @@ export function TopBar() {
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
             the way back to the selection page. On phones it stands in for the wordmark. */}
         <span className="cap-center font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden" aria-hidden>
-          /
+          <Typewriter text="/" startDelay={15 * 40} />
         </span>
-        <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">{channel}</span>
+        <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">
+          <Typewriter text={channel} startDelay={phone ? 0 : 17 * 40} />
+        </span>
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}
       </span>
       <div className="flex shrink-0 items-center gap-1">

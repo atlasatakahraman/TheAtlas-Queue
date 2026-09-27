@@ -130,7 +130,9 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
         )}
         {channel?.ok && (
           <p className="flex flex-wrap items-center gap-x-2 text-meta text-muted-foreground">
-            <span className="font-mono text-code">kick.com/{channel.slug}</span>
+            <a href={`https://kick.com/${channel.slug}`} target="_blank" rel="noreferrer" className="font-mono text-code underline-offset-2 hover:underline">
+              kick.com/{channel.slug}
+            </a>
             <span aria-hidden>·</span>
             {channel.subscriptionError ? (
               <>

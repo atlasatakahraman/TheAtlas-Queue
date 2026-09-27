@@ -32,8 +32,9 @@ function PaletteKeys() {
 const TEXT = "input, textarea, select, [contenteditable=true]";
 
 // Right-click anywhere on the dashboard (August's page menu). Rows keep their own menu (Radix
-// skips a trigger whose event was already handled); text fields and anything portalled out of
-// this area keep the browser's menu.
+// skips a trigger whose event was already handled); text fields, links, a click on selected text
+// (owner, 2026-09-27: Copy, Open link) and anything portalled out of this area keep the
+// browser's menu. Stopping the event here in capture keeps it from the rows' menus too.
 export function PageMenu({ children }: { children: React.ReactNode }) {
   return (
     <ContextMenu>
@@ -42,7 +43,13 @@ export function PageMenu({ children }: { children: React.ReactNode }) {
           className="flex flex-1 flex-col"
           onContextMenuCapture={(e) => {
             const el = e.target as HTMLElement;
-            if (!e.currentTarget.contains(el) || el.closest(TEXT)) e.stopPropagation();
+            const sel = window.getSelection();
+            const onSelection =
+              !!sel && !sel.isCollapsed &&
+              Array.from(sel.getRangeAt(0).getClientRects()).some(
+                (r) => e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom,
+              );
+            if (!e.currentTarget.contains(el) || el.closest(TEXT) || el.closest("a[href]") || onSelection) e.stopPropagation();
           }}
         >
           {children}

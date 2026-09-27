@@ -286,7 +286,6 @@ export const tr: Record<LabelKey, string> = {
   "settings.perk_command": "Kalan korumalı hak",
   "settings.away_command": "Uzakta",
   "settings.team_size": "Takım büyüklüğü",
-  "settings.team_size.n": "Takım başına {n}",
   "settings.commands.clash": "Her komut ! ve tek kelimedir; beşi de farklı olmalı.",
   "settings.riot": "Riot",
   "settings.riot_enabled": "Dereceleri getir",

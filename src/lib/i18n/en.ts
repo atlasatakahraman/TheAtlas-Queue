@@ -294,7 +294,6 @@ export const en = {
   "settings.perk_command": "Protected picks left",
   "settings.away_command": "Away",
   "settings.team_size": "Team size",
-  "settings.team_size.n": "{n} per team",
   "settings.commands.clash": "Each command is ! and one word, and all five must differ.",
   "settings.riot": "Riot",
   "settings.riot_enabled": "Look up ranks",

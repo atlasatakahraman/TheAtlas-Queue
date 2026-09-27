@@ -187,7 +187,7 @@ function QueueSection() {
             <SelectContent position="popper">
               {[1, 2, 3, 4, 5].map((n) => (
                 <SelectItem key={n} value={String(n)}>
-                  {t("settings.team_size.n", { n })}
+                  {n}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -396,9 +396,17 @@ function WatchSectionSettings() {
       ))}
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-meta">
         <dt className="text-muted-foreground">{t("settings.watch.link")}</dt>
-        <dd className="font-mono text-code break-all select-all">{`${WATCH_ORIGIN}/watch/${slug}`}</dd>
+        <dd className="font-mono text-code break-all">
+          <a href={`${WATCH_ORIGIN}/watch/${slug}`} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+            {`${WATCH_ORIGIN}/watch/${slug}`}
+          </a>
+        </dd>
         <dt className="text-muted-foreground">{t("settings.watch.overlay")}</dt>
-        <dd className="font-mono text-code break-all select-all">{`${WATCH_ORIGIN}/overlay/${slug}?view=teams`}</dd>
+        <dd className="font-mono text-code break-all">
+          <a href={`${WATCH_ORIGIN}/overlay/${slug}?view=teams`} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+            {`${WATCH_ORIGIN}/overlay/${slug}?view=teams`}
+          </a>
+        </dd>
       </dl>
       <SaveRow s={s} manual={false} />
     </Section>

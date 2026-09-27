@@ -25,6 +25,9 @@
   --ink-red: #e27a70;
   --ink-red-fill: #b3413a;
   --ink-green: #9cc98a;
+  --ink-pink: #ec94c4;
+  --ink-blue: #93aef2;
+  --ink-purple: #bba2f2;
 
   --paper-floor: #f4f0e6;
   --paper-card: #fffdf8;
@@ -41,6 +44,9 @@
   --paper-red: #b3261e;
   --paper-red-fill: #b3261e;
   --paper-green: #386e2e;
+  --paper-pink: #a2336c;
+  --paper-blue: #3a56a8;
+  --paper-purple: #6b45b8;
 
   --radius: 0.625rem;
 }
@@ -74,6 +80,10 @@
   --warning: var(--paper-gold);
   --team-1: var(--paper-teal);
   --team-2: var(--paper-orange);
+  /* Kick badge glyphs only (D32): the badge picker and the player card. */
+  --badge-vip: var(--paper-pink);
+  --badge-og: var(--paper-blue);
+  --badge-founder: var(--paper-purple);
   --selection: var(--paper-gold);
   --selection-foreground: var(--paper-card);
   --chart-1: var(--paper-teal);
@@ -123,6 +133,9 @@
   --warning: var(--ink-gold);
   --team-1: var(--ink-teal);
   --team-2: var(--ink-orange);
+  --badge-vip: var(--ink-pink);
+  --badge-og: var(--ink-blue);
+  --badge-founder: var(--ink-purple);
   --selection: var(--ink-gold);
   --selection-foreground: var(--ink-floor);
   --chart-1: var(--ink-teal);
@@ -174,6 +187,9 @@
   --color-warning: var(--warning);
   --color-team-1: var(--team-1);
   --color-team-2: var(--team-2);
+  --color-badge-vip: var(--badge-vip);
+  --color-badge-og: var(--badge-og);
+  --color-badge-founder: var(--badge-founder);
   --color-selection: var(--selection);
   --color-selection-foreground: var(--selection-foreground);
   --color-chart-1: var(--chart-1);

@@ -1,7 +1,8 @@
 "use client";
-import { Ban, Crown, MessageSquare, RotateCcw, UserPlus } from "lucide-react";
+import { Ban, MessageSquare, RotateCcw, UserPlus, Video } from "lucide-react";
 import { useState } from "react";
 import { useT } from "@/components/i18n";
+import { BadgePicker } from "@/components/queue/badge-picker";
 import { Tag } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
@@ -18,7 +19,6 @@ import { cn } from "@/lib/utils";
 import type { Settings, WatchSection } from "@/types/queue";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
-const BADGES = ["subscriber", "vip", "og", "founder", "sub_gifter"] as const;
 const SECTIONS: WatchSection[] = ["teams", "queue", "moderation", "riot_ids"];
 const COMMANDS = ["join_command", "leave_command", "position_command", "perk_command", "away_command"] as const;
 const WATCH_ORIGIN = "https://theatlas-queue.vercel.app";
@@ -240,31 +240,12 @@ function DrawsSection() {
               {num("perk_window_days")}
             </Field>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label>{t("settings.perk_badges")}</Label>
-            <div className="flex flex-wrap gap-2">
-              {BADGES.map((b) => {
-                const on = s.draft.perk_badges.includes(b);
-                return (
-                  <button
-                    key={b}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => s.set("perk_badges", on ? s.draft.perk_badges.filter((x) => x !== b) : [...s.draft.perk_badges, b])}
-                    className={cn(
-                      "h-8 rounded-full border px-3 text-control outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40 max-md:h-11",
-                      on ? "border-brand/45 text-brand" : "border-input text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {t(`badge.${b}`)}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-meta text-muted-foreground">
-              {t("settings.perk.viewer", { uses: s.draft.perk_uses, days: s.draft.perk_window_days })}
-            </p>
-          </div>
+          <BadgePicker
+            label={t("settings.perk_badges")}
+            value={s.draft.perk_badges}
+            onChange={(v) => s.set("perk_badges", v)}
+            result={(who) => t("settings.perk.viewer", { who, uses: s.draft.perk_uses, days: s.draft.perk_window_days })}
+          />
         </>
       )}
       <SaveRow s={s} />
@@ -308,7 +289,7 @@ function ModeratorsSection() {
             className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-row-edge bg-background px-4 py-3"
           >
             <span className="min-w-0 truncate text-name">{m.kick_username ?? `#${m.kick_user_id}`}</span>
-            <Tag tone={m.role === "owner" ? "brand" : "muted"} icon={{ owner: Crown, badge: MessageSquare, manual: UserPlus }[m.source]}>{t(`settings.mods.source.${m.source}`)}</Tag>
+            <Tag tone={m.role === "owner" ? "brand" : "muted"} icon={{ owner: Video, badge: MessageSquare, manual: UserPlus }[m.source]}>{t(`settings.mods.source.${m.source}`)}</Tag>
             {m.blocked && <Tag tone="destructive" icon={Ban}>{t("settings.mods.blocked")}</Tag>}
             {m.role !== "owner" && (
               <span className="ml-auto flex gap-1">

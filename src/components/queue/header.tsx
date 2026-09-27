@@ -75,6 +75,7 @@ export function TopBar() {
   const { t, lang } = useT();
   const ui = useUi();
   const role = useQueue((v) => v.role);
+  const channel = useQueue((v) => v.channel.display_name);
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
   return (
@@ -91,6 +92,13 @@ export function TopBar() {
             <Typewriter text="Queue" startDelay={9 * 40} />
           </span>
         </span>
+        {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
+            the way back to the selection page. On phones it stands in for the wordmark. */}
+        <span className="font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden" aria-hidden>
+          /
+        </span>
+        <span className="min-w-0 truncate font-serif text-title max-md:text-body">{channel}</span>
+        {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}
       </span>
       <div className="flex shrink-0 items-center gap-1">
         <ConnectionPill />

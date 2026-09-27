@@ -113,7 +113,7 @@ export const en = {
   "stat.waiting": "Waiting",
   "stat.playing": "In game",
   "stat.away": "Away",
-  "stat.games": "Games this stream",
+  "stat.total": "In the queue",
   "feed.title": "From chat",
   "feed.empty": "Nothing from chat yet.",
   "feed.joined": "joined",

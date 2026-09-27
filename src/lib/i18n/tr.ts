@@ -108,7 +108,7 @@ export const tr: Record<LabelKey, string> = {
   "stat.waiting": "Bekleyen",
   "stat.playing": "Oyunda",
   "stat.away": "Uzakta",
-  "stat.games": "Bu yayındaki oyunlar",
+  "stat.total": "Sıradaki herkes",
   "feed.title": "Sohbetten",
   "feed.empty": "Sohbetten henüz bir şey yok.",
   "feed.joined": "katıldı",

@@ -138,16 +138,15 @@ export function QueueTab() {
 function Stats({ players }: { players: Player[] }) {
   const { t } = useT();
   const s = useMemo(() => {
-    const c = { waiting: 0, playing: 0, away: 0, games: 0 };
-    for (const p of players) {
-      c[p.status]++;
-      c.games += p.games_played;
-    }
+    // No "games" tile until Stage 10 records games (D27): summing games_played counted every
+    // move into a team, once per player (owner, 2026-09-27).
+    const c = { waiting: 0, playing: 0, away: 0, total: players.length };
+    for (const p of players) c[p.status]++;
     return c;
   }, [players]);
   return (
     <dl className="grid grid-cols-2 gap-1.5">
-      {(["waiting", "playing", "away", "games"] as const).map((k) => (
+      {(["waiting", "playing", "away", "total"] as const).map((k) => (
         <div key={k} className="rounded-xl bg-card p-4">
           <dt className="text-meta text-muted-foreground">{t(`stat.${k}`)}</dt>
           <dd className="font-serif text-title tabular-nums">{s[k]}</dd>

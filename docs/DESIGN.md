@@ -845,7 +845,9 @@ reloads the source often, and a page that animates on every reload looks broken 
 Every view designs all of these, not only the full one.
 
 **Loading.** The dashboard and `/watch` are server-rendered with their data; while the server
-works, `loading.tsx` draws **the page being opened** ([Designed ahead](#designed-ahead-stage-7-d36)).
+works, `loading.tsx` draws **the page being opened** ([Designed ahead](#designed-ahead-stage-7-d36)):
+on `/c/<slug>`, the chrome and then the tab the page will render (Queue, Teams, Management, History
+or Settings, from the same `queue.tab` cookie), each in its own geometry (owner, 2026-09-27).
 Anything fetched later shows **skeleton rows**: the real row shape (`bg-row`,
 `row-edge`, `rounded-xl`) with `bg-muted` bars where the text goes, at most six, pulsing once a
 second, still under reduced motion. Never a centred spinner in a list.

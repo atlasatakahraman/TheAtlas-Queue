@@ -535,10 +535,13 @@ press mid-stream would reshuffle the teams.
 | Route | Who | Indexed | Theme | Language |
 |---|---|---|---|---|
 | `/` signed out | Anyone | **Yes** | System, with toggle | `?lang=`, else browser, else `en` |
-| `/c/<channel>` (signed-in `/` redirects here) | Streamer, moderators | No | Saved choice, default Mürekkep | Saved choice, default `en` |
+| `/c/<channel>` | Streamer, moderators | No | Saved choice, default Mürekkep | Saved choice, default `en` |
 | `/welcome` | A streamer's first sign-in | No | as above | as above |
 | `/watch/<channel>` | Viewers, no login | **Yes**, when enabled | System, with toggle | `?lang=`, else browser, else `en` |
-| `/overlay/<channel>` | OBS browser source | No | Always Mürekkep panels on transparent | Streamer's *stream language* setting |
+| `/overlay/<key>` (Stage 13) | OBS browser source | No | Always Mürekkep panels on transparent | The overlay's own language setting |
+| `/` signed in (Stage 12) | Streamers, moderators | No | Saved choice | Saved choice |
+| `/c/<channel>/settings` (Stage 12) | Streamer | No | Saved choice | Saved choice |
+| `/help` (Stage 15) | Anyone | **Yes** | System, with toggle | `?lang=`, else browser, else `en` |
 
 ### Home (`/`, signed out)
 
@@ -566,7 +569,7 @@ finishing in place. No wizard, no Next buttons.
 
 Finishing opens the dashboard with its entrance. Theme and UI language start from the browser.
 
-### Dashboard (`/`, signed in)
+### Dashboard (`/c/<channel>`)
 
 One column of chrome, then the active tab. Max width 1440px, centred (widened from 1180px at the owner's request, 2026-09-23, so the queue table and the feed sit side by side without crowding).
 
@@ -632,10 +635,151 @@ Geçmişi; do not add to them without a reason written here.
 |---|---|
 | **Queue** (with count) | Filters All / Waiting / In game / Away · search · the queue table · right: *From chat* feed and four stat tiles |
 | **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Reroll / Pick from waiting / Draw teams (primary) |
-| **Moderation** | **New action** (sanction a Kick name that is not in the queue) · **Clear history** (streamer only, undoable) · filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)) |
-| **Settings** | Streamer only, **not in the tab bar** (opened from the top bar). Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data |
+| **Moderation** | **New action** (sanction a Kick name that is not in the queue) · **Clear history** (streamer only, undoable) · filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)). Stage 9: [four tables](#moderation-tab-stage-9-d25) |
+| **Games** (Stage 10) | [This stream's score, Games and Stats](#games-tab-maçlar-stage-10-d27) |
+| **Settings** | Streamer only, **not in the tab bar** (opened from the top bar). Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data. Stage 12: [its own page](#settings-page-cchannelsettings-stage-12-d20-d30) |
 
 A **Watch page ↗** link sits at the tab bar's right edge.
+
+### Designed ahead (Stage 7, D36)
+
+Every screen below is designed before its stage builds it. Each lists its **states**; a stage
+that builds one builds all of them. Shared rules first.
+
+**Skeletons are the page being opened** (owner, 2026-09-27). `loading.tsx` and every later
+skeleton draw the current chrome (top bar with its breadcrumb, masthead toolbar, tab bar) and
+**the tab or page in the URL**, at the real sizes, so nothing moves when it lands: the Queue
+tab is the table header, six rows on the table grid and the feed column; Teams is the headline
+and two cards with their team-size slots; Moderation is its sub-tabs and table rows; Games is
+the score strip and game rows; Settings is the section list and the first section's card.
+Bars are `bg-muted`, pulsing once a second. Built in Stage 9 with D25; today's `loading.tsx`
+draws the Queue tab only.
+
+**Tooltips (D25).** One `TooltipProvider`, 200ms delay, instant between neighbours. Every
+icon-only button has one, and every **disabled** control says why (*Teams are full*, *Only the
+streamer can do this*, *Offline: actions are paused*). No native `title=`.
+
+#### Top bar: Live / Offline (Stage 9, D25)
+
+```
+[▣] TheAtlas Queue / HoustonHUB  ● Live 1:42        [▮▮▮ Chat]  🔍  EN|TR  ⌥  ◐  ⚙  (◉ Atlas)
+```
+
+After the breadcrumb: a 8px dot and a word, no capsule. **Live** in `--success` with the time
+on air (`live_since`, tabular, updated each minute), the dot pulsing (2s, off under reduced
+motion); **Offline** muted with a hollow dot. The tooltip holds the stream title. On phones the
+dot alone stays beside the channel.
+
+#### Moderation tab (Stage 9, D25)
+
+Sub-tabs **Warnings · Punishments · Bans · History**, the filter-pill control with a count each.
+Each is a table on the queue table's grid rules (header row, `bg-row` rows, 6px apart):
+
+| Sub-tab | Columns |
+|---|---|
+| Warnings | Player (name + tags) · Reason · Respect · Given (time, by whom) · `⋯` (turn into a punishment, lift) |
+| Punishments | Player · Length (*3 games left* / *until 22:10*) · Reason · Respect · Ends · `⋯` (edit length, lift) |
+| Bans | Player · Reason · Respect · Since · `⋯` (lift) |
+| History | Time · who did what, as a sentence (*mirayy moved kaanxd to Kurtlar*) · Undo when still possible |
+
+**New action** (primary on this tab) and **Clear history** (streamer only, undoable) sit right
+of the sub-tabs. Lifted and served sanctions stay in their table, dimmed, with *Lifted* /
+*Served* tags. States: empty per sub-tab (*No warnings this session.*), loading (six skeleton
+rows on the grid), offline (actions disabled with the reason).
+
+#### Games tab, *Maçlar* (Stage 10, D27)
+
+The fourth tab (`Trophy`, count of games this stream). Two views on the filter-pill control:
+**Games** and **Stats**, plus a search by name.
+
+```
+Kurtlar 3 – 2 Kartallar  ·  this stream                              [Games | Stats]  [🔍 name]
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│ 🏆 Kurtlar   21:40 → 22:12 · 32 min                                        [⋯]         │
+│  ■ brkdmr Plat IV · kaanxd Gold I · …        vs   ■ mirayy Gold II · …                 │
+└───────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+- A game is a row card (`bg-row rounded-xl`, 3px left edge in the **winner's** colour): trophy
+  and the winner's current name, start → end and length, then both rosters as inline name +
+  rank lists, the winner's first. `⋯`: *Remove this game* (undoable), *Copy result*.
+- **Stats**: a table (Player · Games · W · L · Win rate · Streak), sortable like the queue
+  table, minimum-games filter; *most wins* and *longest streak* lead in a two-tile strip.
+- Loads the last 20, then 50 more on scroll (keyset), a skeleton row while fetching.
+- States: empty (*No games yet. Press Victory on the winning team.*), loading, error with Retry,
+  offline.
+- Elsewhere: channel W / L beside each name in the queue table's player card and hover, and this
+  stream's score under the match headline on Teams.
+
+#### Selection page `/` signed in (Stage 12, D19)
+
+A page of its own, not a stock dashboard: the home page's wordmark and faces, then the choices.
+
+```
+                           TheAtlas Queue
+Continue ─────────────────────────────────────────────────────────────
+  (◉) HoustonHUB      Manage queue · 14 waiting · ● Live          [Continue →]
+      [ ] Open this automatically
+
+Your channels                           Watch a channel
+  (◉) HoustonHUB   [Manage] [Watch]       [ kick.com/… or channel name     ] [Watch →]
+  (◉) mirayy (moderator) [Manage]         Recently watched: kaanxd · brkdmr
+```
+
+- **Continue** is the place last left, first. *Open this automatically* is a `Switch`: on, `/`
+  redirects there (a cookie, so no flash) and every dashboard's breadcrumb leads back here.
+- Your channels: owner and moderator rows (`bg-row`), each with its live dot and waiting count.
+- Watch a channel: an input that takes a name or a Kick URL, and a short recent list (this
+  browser only, localStorage).
+- States: no channels yet (*Set up your channel* → `/welcome`), a channel that no longer
+  exists (the row says so, *Remove*), loading (the rows as skeletons).
+
+#### Settings page `/c/<channel>/settings` (Stage 12, D20, D30)
+
+Its own page with the dashboard's top bar; the breadcrumb reads *… / HoustonHUB / Settings* and
+**← Queue** leads back. Two columns from 1024px: a sticky **section list** (left, 14rem) and one
+section at a time (right, max 44rem); the section is in the URL (`/settings/riot`).
+
+Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fair play, reveal)
+· **Games** (after-game action, retention) · **Perks** (the badge picker) · **Watch** ·
+**Overlays** · **Moderators** · **Labels** · **Your data**.
+
+- A section is a `bg-card rounded-xl p-6` of fields; a field is label, control, and one muted
+  line only where the control's effect is not obvious; every section title links to its help
+  page (`?` icon, D33).
+- Text saves on blur, switches and selects with the section's Save (as today); errors under
+  their field.
+- Phones: the section list becomes the page; a section opens as its own screen with ← back.
+- States: loading (list + one card of skeleton fields), save error under the field, offline
+  (fields disabled, the reason in a tooltip).
+
+#### Overlays in Settings (Stage 13, D29)
+
+```
+Overlays                                                    [+ New overlay]
+┌ Teams, bottom bar     /overlay/•••• ⧉  ↻ key     [Edit] [⋯] ┐
+┌ Queue, right column   /overlay/•••• ⧉  ↻ key     [Edit] [⋯] ┐
+```
+
+- A list of overlays (`bg-row` rows): name, the URL **masked** (the key is a secret; ⧉ copies it,
+  never shown in full on screen, so a stream never leaks it), *Rotate key* (undo impossible, so
+  it asks by typing the overlay's name, the second `AlertDialog` after *Delete my data*), Edit,
+  Delete (undoable).
+- **Builder** (Edit): left, a live preview at 16:9 over a checkerboard (transparent) or a
+  grey still; right, the widgets list (queue, teams, stream score, last result, wins
+  leaderboard, respect leaderboard, draw reveal) with a switch and drag order each, then
+  position, size, theme, background, language. Leaderboards take a minimum-games number; the
+  respect board lists only the most respected.
+- States: none yet (*Add an overlay for OBS*), preview loading (the canvas with skeleton panels).
+
+#### Help `/help` (Stage 15, D33)
+
+A public wiki, prerendered per language. Top bar with the wordmark; left, the topic list (sticky,
+14rem); right, the article (max 42rem, `text-body`, Newsreader headings): getting started, chat
+commands, queue, teams and draws, games, moderation and respect, perks and badges, watch and
+overlays, settings, keyboard, privacy and *Delete my data*. A search box filters headings on the
+page. Facts (default commands, limits) render from `DEFAULTS`, never retyped. Phones: the topic
+list is a `Select` above the article. States: an unknown topic is a 404; no loading (static).
 
 ### `/watch/<channel>`
 
@@ -643,14 +787,17 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
 
 - The same masthead, minus the tools a viewer cannot use. The pill shows whether the **stream**
   is live, not the connection.
-- Sections, in order, each switchable by the streamer: **Teams** (when a draw exists), **Queue**
-  (rows without a menu; the player card only if the streamer shares Riot IDs),
-  **Moderation** (off by default; names and kind only, **never reasons**).
+- Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
+  this stream's score, rosters), **Queue** (rows without a menu; the player card only if the
+  streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results and the wins
+  board), **Moderation** (off by default; names and kind only, **never reasons**).
+- States: disabled (below), nothing yet (*Nothing here yet*), a missing channel (a real 404),
+  loading (each section's skeleton).
 - The draw reveal plays live; the entrance plays on load.
 - When the streamer turns the page off, it says so (`watch.disabled`) and is `noindex`.
 - Footer: "TheAtlas Queue", the source link, EN | TR, theme.
 
-### `/overlay/<channel>`
+### `/overlay/<key>`
 
 An OBS browser source at 1920×1080. **No interaction, no cursor, no toasts, no entrance**: OBS
 reloads the source often, and a page that animates on every reload looks broken on stream.
@@ -658,11 +805,14 @@ reloads the source often, and a page that animates on every reload looks broken 
 - The page background is **transparent**. Content sits on `rounded-xl` panels of `--ink-floor` at
   88% opacity, always Mürekkep regardless of theme, measured legible over any footage
   ([Contrast](#contrast)).
-- `?view=` picks what it shows: `teams` (both team panels side by side), `queue` (the next eight
-  waiting), `draw` (appears only for a reveal and fades out 20s later).
+- **Several overlays per channel** (D29, Stage 13), each its own URL with a random 128-bit key:
+  its widgets, order, position, size and language come from its configuration in Settings
+  (queue, teams, stream score, last result, wins and respect boards, the draw reveal, which
+  appears only for a reveal and fades out 20s later). An unknown or rotated key renders
+  **transparent and empty**, never an error on stream.
 - Sizes from the overlay rows of [The scale](#the-scale); nothing under 24px, so it survives a
   720p stream.
-- Language: the streamer's *stream language*, the same one chat replies use.
+- Language: the overlay's own setting, defaulting to the *stream language* chat replies use.
 
 ---
 
@@ -670,8 +820,9 @@ reloads the source often, and a page that animates on every reload looks broken 
 
 Every view designs all of these, not only the full one.
 
-**Loading.** The dashboard and `/watch` are server-rendered with their data, so a first load has
-no spinner. Anything fetched later shows **skeleton rows**: the real row shape (`bg-row`,
+**Loading.** The dashboard and `/watch` are server-rendered with their data; while the server
+works, `loading.tsx` draws **the page being opened** ([Designed ahead](#designed-ahead-stage-7-d36)).
+Anything fetched later shows **skeleton rows**: the real row shape (`bg-row`,
 `row-edge`, `rounded-xl`) with `bg-muted` bars where the text goes, at most six, pulsing once a
 second, still under reduced motion. Never a centred spinner in a list.
 

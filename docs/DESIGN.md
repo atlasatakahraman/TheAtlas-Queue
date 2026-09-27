@@ -587,7 +587,8 @@ icons on a 6px track padding (the stock `h-8` on the list is overridden, `h-auto
 under the active tab (`useSlide`, 300ms ease-out-expo, the same motion as the filter pills); a
 gold line under the active label (icon, name, count) grows from its centre; each tab carries its
 icon, gold when active, turning −6° and ×1.15 over 200ms on hover, and a live count when above
-zero (players, in teams, active sanctions). A switched-to panel fades in from the side the
+zero (players, in teams, active sanctions): a bare tabular figure, no capsule, gold on the active
+tab, rising into place (`--animate-count`) when it changes. A switched-to panel fades in from the side the
 indicator moved (±16px, 220ms, `.tab-in`). The phone bottom bar slides a pill behind the active
 icon. No motion under reduced motion. Tailwind v4's `rotate-`/`scale-`/`translate-` set their
 own properties, so their transitions name them (`transition-[rotate,scale,…]`), not

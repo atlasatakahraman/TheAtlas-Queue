@@ -166,8 +166,13 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
                       className="size-4.5 transition-[rotate,scale,color] duration-200 ease-out group-hover/tab:-rotate-6 group-hover/tab:scale-115 group-data-[state=active]/tab:text-brand motion-reduce:transition-none"
                     />
                     {t(`tab.${k}`)}
+                    {/* The count is a bare figure (owner, 2026-09-27: the capsule looked off), gold on
+                        the active tab; keyed on the value, it ticks up into place when it changes. */}
                     {counts[k] > 0 && (
-                      <span className="min-w-5 rounded-full bg-background/70 px-1.5 text-center text-caption tracking-normal normal-case tabular-nums text-muted-foreground transition-colors group-data-[state=active]/tab:text-foreground">
+                      <span
+                        key={counts[k]}
+                        className="animate-count min-w-[2ch] text-left font-medium tabular-nums text-muted-foreground/80 transition-colors group-data-[state=active]/tab:text-brand"
+                      >
                         {counts[k]}
                       </span>
                     )}

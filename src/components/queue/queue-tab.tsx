@@ -58,7 +58,9 @@ export function QueueTab() {
         (filter === "all" || p.status === filter) &&
         (!q || p.kick_username.toLowerCase().includes(q) || p.riot_id?.toLowerCase().includes(q)),
     );
-  const e3 = enter(ui.entering, 3);
+  // The pieces the eye lands on arrive in reading order: title and filters, the rows, then the
+  // side panel (owner, 2026-09-27).
+  const [e3, e4, e5] = [enter(ui.entering, 3), enter(ui.entering, 4), enter(ui.entering, 5)];
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-6 max-lg:grid-cols-1">
@@ -67,7 +69,7 @@ export function QueueTab() {
           <h2 className="min-w-0 font-serif text-title">{t("queue.title")}</h2>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div style={e3.style} className={cn("flex flex-wrap items-center gap-3", e3.className)}>
           <FilterPills
             label={t("filter.label")}
             value={filter}
@@ -115,8 +117,10 @@ export function QueueTab() {
       </section>
 
       <aside className="flex flex-col gap-4 max-lg:hidden">
-        <Stats players={players} />
-        <section className="rounded-xl bg-card p-4">
+        <div style={e4.style} className={e4.className}>
+          <Stats players={players} />
+        </div>
+        <section style={e5.style} className={cn("rounded-xl bg-card p-4", e5.className)}>
           <h3 className="mb-3 text-caption text-muted-foreground uppercase select-none">{t("feed.title")}</h3>
           <Feed />
         </section>

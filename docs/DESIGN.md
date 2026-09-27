@@ -1009,8 +1009,9 @@ these; re-apply them after:
   unrelated npm package named `cn`; that package is not a dependency here.
 - `ui/scroll-area.tsx`, same import. Its scrollbar is 6px at rest and widens to shadcn's 10px
   under the pointer (`data-vertical:w-1.5 … hover:w-2.5`, the same for horizontal), and its
-  thumb is `bg-row-edge` (stock `bg-border` is a hairline, near invisible on Mürekkep). The page
-  scrolls inside this `ScrollArea` (root layout), so no native scrollbar is ever drawn.
+  thumb is `bg-row-edge` (stock `bg-border` is a hairline, near invisible on Mürekkep). It serves
+  inner lists only; the page itself scrolls natively (D18), so the browser's keys, find-in-page
+  and scroll restoration work unaided.
 
 **Button states, without touching `ui/button.tsx`** (owner, 2026-09-23: "some buttons have no
 hover or active effect"). In `globals.css`, `@layer components`: the `default` variant hovers at

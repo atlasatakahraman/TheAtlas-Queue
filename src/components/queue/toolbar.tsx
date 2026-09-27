@@ -67,7 +67,7 @@ export function Toolbar() {
           <SelectTrigger aria-label={t("pick.source")} className="h-9! rounded-l-none border-0 border-l border-input max-md:h-11!">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent align="end">
+          <SelectContent position="popper" align="end">
             {sources.map((s) => (
               <SelectItem key={s} value={s}>
                 {t(`pick.source.${s}`)}

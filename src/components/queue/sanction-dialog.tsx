@@ -101,7 +101,7 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
               <SelectTrigger className="h-9! w-full max-md:h-11!">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="games">{t("sanction.unit.games")}</SelectItem>
                 <SelectItem value="minutes">{t("sanction.unit.minutes")}</SelectItem>
               </SelectContent>
@@ -116,7 +116,7 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
             <SelectTrigger className="h-9! w-full max-md:h-11!">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {BAN_DAYS.map((d) => (
                 <SelectItem key={d} value={d}>
                   {d === "permanent" ? t("sanction.permanent") : d === "1" ? t("sanction.day") : t("sanction.days", { n: d })}

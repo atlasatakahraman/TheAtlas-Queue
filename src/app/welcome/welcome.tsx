@@ -178,7 +178,7 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
                   <SelectTrigger className="h-9! w-full max-md:h-11!">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {REGIONS.map((r) => (
                       <SelectItem key={r} value={r}>
                         {t(`region.${r}` as LabelKey)}
@@ -194,7 +194,7 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
                   <SelectTrigger className="h-9! w-full max-md:h-11!">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="en">{t("lang.name.en")}</SelectItem>
                     <SelectItem value="tr">{t("lang.name.tr")}</SelectItem>
                   </SelectContent>

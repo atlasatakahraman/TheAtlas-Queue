@@ -161,7 +161,7 @@ function QueueSection() {
             <SelectTrigger className={triggerCls}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {[1, 2, 3, 4, 5].map((n) => (
                 <SelectItem key={n} value={String(n)}>
                   {t("settings.team_size.n", { n })}
@@ -189,7 +189,7 @@ function RiotSection() {
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {REGIONS.map((r) => (
               <SelectItem key={r} value={r}>
                 {t(`region.${r}` as LabelKey)}
@@ -223,7 +223,7 @@ function DrawsSection() {
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value="typewriter">{t("settings.draw_reveal.typewriter")}</SelectItem>
             <SelectItem value="none">{t("settings.draw_reveal.none")}</SelectItem>
           </SelectContent>
@@ -395,7 +395,7 @@ function LabelsSection() {
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value="en">{t("lang.name.en")}</SelectItem>
             <SelectItem value="tr">{t("lang.name.tr")}</SelectItem>
           </SelectContent>

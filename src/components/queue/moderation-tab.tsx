@@ -45,9 +45,9 @@ export function ModerationTab() {
           </Button>
           {role === "owner" && (
             <Button
-              variant="ghost"
+              variant="destructive"
               size="lg"
-              className="text-destructive hover:text-destructive max-md:h-11"
+              className="max-md:h-11"
               disabled={!canWrite || moderation.length === 0}
               onClick={() => void clearModeration()}
             >

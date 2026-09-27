@@ -3,6 +3,7 @@ import { HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords } from "lucide
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
 import { TopBar } from "@/components/queue/header";
+import { ConfirmHost } from "@/components/queue/confirm";
 import { Masthead } from "@/components/queue/masthead";
 import { ModerationTab } from "@/components/queue/moderation-tab";
 import { NotMember } from "@/components/queue/not-member";
@@ -214,6 +215,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
       <EditPlayerDialog />
       <SanctionDialog />
       <Palette />
+      <ConfirmHost />
       <Hotkeys />
       <RevealDriver />
 

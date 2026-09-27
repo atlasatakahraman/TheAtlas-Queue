@@ -108,9 +108,9 @@ export function Toolbar() {
       <Separator orientation="vertical" className="my-auto h-6! max-md:hidden" />
 
       <Button
-        variant="ghost"
+        variant="destructive"
         size="lg"
-        className="text-destructive hover:text-destructive max-md:size-11"
+        className="max-md:size-11"
         disabled={!canWrite || players.length === 0}
         onClick={() => void clearQueue()}
       >

@@ -870,13 +870,21 @@ Only *Not connected* ever raises a toast.
   connection.
 - `sonner`, bottom-centre, at most three visible.
 
-### Undo, not confirm
+### Undo, and a confirm for the big ones
 
-Every action that changes or removes data gets a 5-second **Undo** toast instead of a confirm
-dialog: remove, clear queue, move, mark away, moderation, draw and reroll (Undo restores the
-previous result), removing a protection. **The only `AlertDialog`s in the app** are for what cannot be undone: *Delete my data* in
-Settings → Your data, which asks the streamer to type their channel name, and *Rotate key* on
-an overlay (Stage 13: an undo would revive a leaked URL), which asks for the overlay's name.
+Every action that changes or removes data gets a 5-second **Undo** toast: remove, move, mark
+away, moderation, draw and reroll (Undo restores the previous result), removing a protection.
+A row's `×` and every other single-player action stop there: no dialog.
+
+**Bulk and moderation actions also ask first** (owner, 2026-09-27, amending D26): *Clear queue*,
+*Clear teams*, *Clear sanctions*, and in Stage 10 *Delete game* and *Remove from all history*.
+Their buttons and menu items wear the destructive look (`variant="destructive"`), and pressing
+one opens a shadcn `AlertDialog` (`confirm()` in `confirm.tsx`, one host in the dashboard) that
+says what goes and how many, with **Cancel** and the action's own name as a destructive
+button; the Undo toast still follows. **Ban** confirms through its own sanction dialog, whose
+button is destructive. Two confirms go further, for what cannot be undone: *Delete my data* in
+Settings → Your data asks the streamer to type their channel name, and *Rotate key* on an
+overlay (Stage 13: an undo would revive a leaked URL) asks for the overlay's name.
 
 ---
 
@@ -1382,7 +1390,8 @@ not a shadcn file and is never regenerated; it is re-copied from upstream.
 - Don't use teal or orange for anything but a team, or red for a team.
 - Don't show a shortcut hint outside the menus (row, page, toolbar) and the command palette.
 - Don't toast an event that came from chat.
-- Don't ask "are you sure?" for anything Undo can reverse.
+- Don't ask "are you sure?" for a single-player action Undo can reverse; bulk and moderation
+  actions ask ([Undo, and a confirm](#undo-and-a-confirm-for-the-big-ones)).
 - Don't bold a serif heading, set a heading in sans, or set a name in mono.
 - Don't replay the entrance on tab switches, realtime updates or overlay reloads.
 - Don't put two primary buttons in one view.

@@ -3,6 +3,7 @@ import { ChevronDown, ShieldCheck, Shuffle, UserPlus, UsersRound } from "lucide-
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
+import { confirm } from "@/components/queue/confirm";
 import { draggedPlayer, PlayerRow, RankText, Tag, useMoveTo, useRiot } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
@@ -52,12 +53,21 @@ export function useDrawActions() {
     shuffle: () => act("shuffle_teams", { p_base: base() }, { done: "done.shuffle_teams" }).then(stale),
     pick: (n: number, source: PickSource = "waiting") =>
       act("pick_players", { p_n: n, p_source: source, p_base: base() }, { done: `done.pick.${source}`, vars: { n } }).then(stale),
-    clearTeams: () => act("clear_teams", {}, { done: "done.clear_teams" }),
-    clearQueue: () => {
-      const ids = store.get().players.map((p) => p.id);
-      return act("remove_players", { p_ids: null }, { optimistic: { ids, patch: () => null }, done: "done.clear_queue" });
+    // The clears ask first (owner, 2026-09-27), wherever they are pressed from.
+    clearTeams: async () => {
+      const n = store.get().players.filter((p) => p.status === "playing").length;
+      const ask = { title: t("confirm.clear_teams.title"), body: t("confirm.clear_teams.body", { n }), action: t("action.clear_teams") };
+      if (await confirm(ask)) return act("clear_teams", {}, { done: "done.clear_teams" });
     },
-    clearModeration: () => act("clear_moderation", {}, { done: "done.clear_moderation" }),
+    clearQueue: async () => {
+      const ids = store.get().players.map((p) => p.id);
+      const ask = { title: t("confirm.clear_queue.title"), body: t("confirm.clear_queue.body", { n: ids.length }), action: t("action.clear_queue") };
+      if (await confirm(ask)) return act("remove_players", { p_ids: null }, { optimistic: { ids, patch: () => null }, done: "done.clear_queue" });
+    },
+    clearModeration: async () => {
+      const ask = { title: t("confirm.clear_moderation.title"), body: t("confirm.clear_moderation.body"), action: t("mod.clear") };
+      if (await confirm(ask)) return act("clear_moderation", {}, { done: "done.clear_moderation" });
+    },
   };
 }
 
@@ -485,7 +495,7 @@ export function TeamsTab() {
           </Label>
         </div>
         <div className="flex flex-wrap items-center gap-2 max-md:grid max-md:grid-cols-2">
-          <Button variant="ghost" size="lg" className="text-destructive hover:text-destructive max-md:h-11" disabled={!canWrite || playing === 0} onClick={() => void clearTeams()}>
+          <Button variant="destructive" size="lg" className="max-md:h-11" disabled={!canWrite || playing === 0} onClick={() => void clearTeams()}>
             {t("action.clear_teams")}
           </Button>
           <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || playing < 2} onClick={() => void shuffle()}>

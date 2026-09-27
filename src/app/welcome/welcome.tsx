@@ -158,6 +158,9 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
                 spellCheck={false}
                 aria-invalid={save === "join_command" || save === "commands"}
                 onChange={(e) => set({ join_command: e.target.value.trim() })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing) void saveSettings();
+                }}
               />
               <p className="text-meta text-muted-foreground">{t("welcome.join.hint")}</p>
               {(save === "join_command" || save === "commands") && (

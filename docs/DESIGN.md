@@ -538,6 +538,12 @@ and the scroll keys stay the browser's. The page scrolls natively.
 `D` replaces the old idea of `Space`: Space also presses whichever button has focus, and a stray
 press mid-stream would reshuffle the teams.
 
+**Enter submits every single-purpose input** (owner, 2026-09-27), and no hint ever says so: Add
+player, Edit player, the sanction dialogs and a new moderator submit their form; the queue search
+jumps to the first match (focus on its row, so the row keys work at once); a Settings text or
+number field saves its section; the welcome page's join command saves step 2; in Stage 12 the
+*Watch a channel* field opens it. An IME composition's Enter is left alone.
+
 ---
 
 ## Pages

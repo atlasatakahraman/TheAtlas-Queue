@@ -75,11 +75,13 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
   return { draft, set, put, dirty: changed.length > 0, save, state, errors };
 }
 
-function Section({ title, hint, children, step }: {
+function Section({ title, hint, children, step, onEnter }: {
   title: string;
   hint?: string;
   children: React.ReactNode;
   step: number;
+  // Enter in one of the section's text fields saves it (owner, 2026-09-27; never written as a hint).
+  onEnter?: () => void;
 }) {
   const ui = useUi();
   const e = enter(ui.entering, step);
@@ -93,7 +95,14 @@ function Section({ title, hint, children, step }: {
         {/* Only where the section has a rule its controls do not show (D21: subtitles went). */}
         {hint && <p className="text-meta text-muted-foreground">{hint}</p>}
       </div>
-      <div className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4">
+      <div
+        className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4"
+        onKeyDown={(e) => {
+          if (!onEnter || e.key !== "Enter" || e.nativeEvent.isComposing || !(e.target instanceof HTMLInputElement)) return;
+          e.preventDefault();
+          onEnter();
+        }}
+      >
         {children}
       </div>
     </section>
@@ -156,7 +165,7 @@ function QueueSection() {
   const { t } = useT();
   const s = useSection([...COMMANDS, "team_size"] as const);
   return (
-    <Section title={t("settings.queue")} step={3}>
+    <Section title={t("settings.queue")} step={3} onEnter={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         {COMMANDS.map((k) => (
           <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]}>
@@ -236,7 +245,7 @@ function DrawsSection() {
     />
   );
   return (
-    <Section title={t("settings.draws")} step={5}>
+    <Section title={t("settings.draws")} step={5} onEnter={() => void s.save()}>
       <Field label={t("settings.draw_reveal")} hint={t("settings.draw_reveal.hint")}>
         <Select value={s.draft.draw_reveal} onValueChange={(v) => void s.put("draw_reveal", v as Settings["draw_reveal"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
@@ -409,7 +418,7 @@ function LabelsSection() {
     s.set("labels", { ...s.draft.labels, [lang]: next });
   };
   return (
-    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} step={8}>
+    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} step={8} onEnter={() => void s.save()}>
       <Field label={t("settings.stream_locale")} hint={t("settings.stream_locale.hint")}>
         <Select value={s.draft.stream_locale} onValueChange={(v) => void s.put("stream_locale", v as Settings["stream_locale"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>

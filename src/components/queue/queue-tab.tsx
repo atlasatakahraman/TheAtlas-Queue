@@ -83,6 +83,12 @@ export function QueueTab() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              // Enter jumps to the first match (owner, 2026-09-27; never written as a hint).
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+                e.preventDefault();
+                document.querySelector<HTMLElement>("[data-rows] [data-row]")?.focus();
+              }}
               placeholder={t("queue.search")}
               aria-label={t("queue.search")}
               className="h-9 w-64 pl-9 max-md:h-11 max-md:w-full"

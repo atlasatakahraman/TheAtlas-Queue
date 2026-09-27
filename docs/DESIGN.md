@@ -1075,6 +1075,8 @@ sits between them (D25).
   `#TAG` with its tags, rank, the in-team row buttons, menu. **Always team-size slots**; free
   ones are dashed rows reading *Empty slot*, so the card keeps its height. While a draw lands
   they keep their icon, disabled, so nothing shifts when adding comes back (7.46).
+- **Drop on blank space**: a team player dragged onto the page outside the cards leaves the team
+  for waiting, with Undo (owner, 2026-09-27).
 - **A row's menu lists both teams** always: *Add to Team N* is disabled, never hidden, when the
   player is already there or the team is full, and so are the hover buttons (7.47).
 - **Right-click on the card** (not a player): the team's menu: *Team N · n of size*, Add from

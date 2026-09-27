@@ -284,6 +284,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
   const takes = (d: ReturnType<typeof draggedPlayer>) => !!d && !(d.status === "playing" && d.team === team);
   const card = (
     <section
+      data-team-card
       onDragOver={(e) => {
         if (!takes(draggedPlayer())) return;
         e.preventDefault();
@@ -438,7 +439,42 @@ function RevealEnd({ duration }: { duration: number }) {
   return null;
 }
 
+// A team player dropped on the page's blank space leaves the team for waiting (owner,
+// 2026-09-27). Cards, rows and fields keep their own drops; the Teams tab is mounted only while open.
+function useDropOut() {
+  const act = useAct();
+  useEffect(() => {
+    const out = (e: DragEvent) => {
+      const d = draggedPlayer();
+      const el = e.target as HTMLElement | null;
+      return !e.defaultPrevented && d?.status === "playing" && !el?.closest("[data-team-card], [data-row], input, textarea") ? d : null;
+    };
+    const over = (e: DragEvent) => {
+      if (!out(e)) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    };
+    const drop = (e: DragEvent) => {
+      const d = out(e);
+      if (!d) return;
+      e.preventDefault();
+      void act("move_player", { p_player: d.id, p_status: "waiting", p_team: null }, {
+        optimistic: { ids: [d.id], patch: (x) => ({ ...x, status: "waiting", team: null }) },
+        done: "done.waiting",
+        vars: { name: d.kick_username },
+      });
+    };
+    document.addEventListener("dragover", over);
+    document.addEventListener("drop", drop);
+    return () => {
+      document.removeEventListener("dragover", over);
+      document.removeEventListener("drop", drop);
+    };
+  }, [act]);
+}
+
 export function TeamsTab() {
+  useDropOut();
   const { t } = useT();
   const ui = useUi();
   const canWrite = useCanWrite();

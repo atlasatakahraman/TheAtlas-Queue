@@ -193,8 +193,9 @@ function AddToTeam({ team, at, onClose }: { team: 1 | 2; at: HTMLElement | null;
               <CommandGroup heading={t("teams.add.waiting")}>
                 {waiting.map((p) => (
                   <CommandItem key={p.id} value={`${p.kick_username} ${p.riot_id ?? ""}`} onSelect={pick(() => void moveTo(p, team))}>
-                    <span className="text-name">{p.kick_username}</span>
-                    {p.riot_id && <span className="truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
+                    {/* Kick names run to 25 characters: both halves truncate rather than overflow. */}
+                    <span className="truncate text-name">{p.kick_username}</span>
+                    {p.riot_id && <span className="min-w-0 truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
                   </CommandItem>
                 ))}
               </CommandGroup>

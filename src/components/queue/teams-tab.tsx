@@ -100,7 +100,7 @@ function pickPool({ players, moderation }: QueueView, source: PickSource) {
   );
   return players.filter(
     (p) =>
-      (source === "waiting" ? p.status === "waiting" : source === "teams" ? p.status === "playing" : p.status !== "away") &&
+      (source === "waiting" ? p.status === "waiting" : source === "teams" ? p.status === "playing" : p.status === "waiting" || p.status === "playing") &&
       !barred.some(
         (m) =>
           m.kick_username.toLowerCase() === p.kick_username.toLowerCase() ||
@@ -352,7 +352,7 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
   const moveTo = useMoveTo();
   const players = useQueue((v) => v.players);
   const waiting = useMemo(() => players.filter((p) => p.status === "waiting"), [players]);
-  const playing = players.length - waiting.length - players.filter((p) => p.status === "away").length;
+  const playing = players.filter((p) => p.status === "playing").length;
   const { shuffle, clearTeams } = useDrawActions();
   const riot = useRiot();
   return (

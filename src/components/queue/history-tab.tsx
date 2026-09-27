@@ -51,6 +51,7 @@ const LOOK: Record<string, [LucideIcon, string, Exclude<Kind, "all">]> = {
   update_player: [Pencil, "text-muted-foreground", "queue"],
   move_player: [ArrowLeftRight, "text-muted-foreground", "queue"],
   move_players: [ArrowLeftRight, "text-muted-foreground", "teams"],
+  settle: [Hourglass, "text-warning", "moderation"],
   remove_players: [UserMinus, "text-muted-foreground", "queue"],
   reorder_player: [ArrowUpDown, "text-muted-foreground", "queue"],
   clear_queue: [ListX, "text-destructive", "queue"],

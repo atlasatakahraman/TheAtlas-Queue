@@ -128,7 +128,25 @@ export function activeSanctions(moderation: Sanction[], name: string) {
       (!m.expires_at || Date.parse(m.expires_at) > now) &&
       (m.games_left === null || m.games_left > 0),
   );
-  return { warned: live.some((m) => m.kind === "warn"), banned: live.some((m) => m.kind === "ban") };
+  return {
+    warned: live.some((m) => m.kind === "warn"),
+    banned: live.some((m) => m.kind === "ban"),
+    punish: live.find((m) => m.kind === "punish"),
+  };
+}
+
+// What is left of the punishment that seats a player in Punished: games, or the time it ends.
+function PunishedTag({ punish }: { punish?: Sanction }) {
+  const { t, lang } = useT();
+  const left =
+    punish?.games_left != null
+      ? t("tag.punished.games", { n: punish.games_left })
+      : punish?.expires_at
+        ? t("tag.punished.until", {
+            time: new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit" }).format(new Date(punish.expires_at)),
+          })
+        : t("tag.punished");
+  return <Tag fold tone="warning" icon={Hourglass}>{left}</Tag>;
 }
 
 export function PlayerTags({ player, showState = true }: { player: Player; showState?: boolean }) {
@@ -147,6 +165,7 @@ export function PlayerTags({ player, showState = true }: { player: Player; showS
         <Tag fold tone={player.team === 2 ? "team-2" : "team-1"} icon={Gamepad2}>{t("tag.in_game")}</Tag>
       )}
       {showState && player.status === "away" && <Tag fold tone="muted" icon={Coffee}>{t("tag.away")}</Tag>}
+      {player.status === "punished" && <PunishedTag punish={s.punish} />}
       {fairPlay && player.games_played === 0 && <Tag fold tone="success" icon={Sparkles}>{t("tag.first_game")}</Tag>}
       {s.warned && <Tag fold tone="warning" icon={TriangleAlert}>{t("tag.warned")}</Tag>}
       {s.banned && <Tag fold tone="destructive" icon={Ban}>{t("tag.banned")}</Tag>}
@@ -154,7 +173,6 @@ export function PlayerTags({ player, showState = true }: { player: Player; showS
   );
 }
 
-// The row's actions, shared by the menu, the row keys and the command palette.
 // Free places on a team: the menu, the hover buttons and Pick disable a move that would not fit.
 export function useTeamRoom() {
   const size = useQueue((v) => v.settings.team_size);
@@ -163,9 +181,11 @@ export function useTeamRoom() {
   return (n: 1 | 2) => size - (n === 1 ? n1 : n2);
 }
 
+// The row's actions, shared by the menu, the row keys and the command palette.
 export function usePlayerActions(p: Player) {
   const { t } = useT();
   const act = useAct();
+  const store = useStore();
   const ui = useUi();
   const team = (n: 1 | 2) => t(`team.${n}`);
   const move = (status: Player["status"], teamNo: 1 | 2 | null) =>
@@ -189,6 +209,11 @@ export function usePlayerActions(p: Player) {
         done: "done.remove",
         vars: { name: p.kick_username },
       }),
+    // Lift the punishment that seats them in Punished; settle sends them back to waiting.
+    lift: () => {
+      const m = activeSanctions(store.get().moderation, p.kick_username).punish;
+      if (m) void act("revoke_sanction", { p_id: m.id }, { done: "done.revoke", vars: { name: p.kick_username } });
+    },
     removeProtection: () =>
       act("remove_protection", { p_player: p.id }, { done: "done.unprotect", vars: { name: p.kick_username } }),
     warn: () => ui.setSanction({ name: p.kick_username, kind: "warn" }),
@@ -220,6 +245,7 @@ function useMenu(p: Player): Item[][] {
   const store = useStore();
   const teamAdd = useContext(TeamAddContext);
   const room = useTeamRoom();
+  const punished = p.status === "punished";
   // Add player above / below (D37): a team row opens its card's add list on the row; a queue row
   // opens Add player. Either lands at the key beside this row.
   const addBeside = (at: "before" | "after") => () => {
@@ -247,11 +273,12 @@ function useMenu(p: Player): Item[][] {
     [
       // Both teams always listed, disabled when already there or full, so the menu keeps its shape
       // (owner, 2026-09-27).
-      { label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true, disabled: p.team === 1 || room(1) < 1 },
-      { label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true, disabled: p.team === 2 || room(2) < 1 },
+      { label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true, disabled: punished || p.team === 1 || room(1) < 1 },
+      { label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true, disabled: punished || p.team === 2 || room(2) < 1 },
+      ...(punished ? [{ label: t("menu.lift"), icon: Undo2, onSelect: a.lift, write: true }] : []),
       ...(p.status === "playing" ? [{ label: t("menu.to_waiting"), icon: Undo2, onSelect: a.toWaiting, write: true }] : []),
       ...(p.status !== "playing"
-        ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, onSelect: a.toggleAway, write: true }]
+        ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, onSelect: a.toggleAway, write: true, disabled: punished }]
         : []),
     ],
     p.locked ? [{ label: t("menu.unprotect"), icon: ShieldOff, onSelect: a.removeProtection, write: true }] : [],
@@ -459,6 +486,7 @@ function QuickActions({ player }: { player: Player }) {
   const canWrite = useCanWrite();
   const touch = useIsTouch();
   const room = useTeamRoom();
+  const punished = player.status === "punished";
   if (touch) return null;
   const btn = "size-8 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 focus-visible:opacity-100";
   const tone = (n: 1 | 2) => (n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2");
@@ -469,7 +497,7 @@ function QuickActions({ player }: { player: Player }) {
         { label: t("menu.move_to", { team: t(`team.${player.team === 1 ? 2 : 1}`) }), icon: ArrowLeftRight, tone: tone(player.team === 1 ? 2 : 1), run: () => a.moveTo(player.team === 1 ? 2 : 1), off: room(player.team === 1 ? 2 : 1) < 1 },
         { label: t("menu.to_waiting"), icon: Undo2, tone: "text-muted-foreground", run: a.toWaiting },
       ]
-    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n), off: room(n) < 1 }));
+    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n), off: punished || room(n) < 1 }));
   moves.push({ label: t("menu.remove"), icon: X, tone: "text-muted-foreground", run: a.remove });
   return (
     <span className="flex items-center max-md:hidden">
@@ -632,7 +660,9 @@ export function PlayerRow({
         : "border-l-team-1"
       : player.status === "away"
         ? "border-l-row-edge [border-left-style:dashed]"
-        : "border-l-row-edge";
+        : player.status === "punished"
+          ? "border-l-warning [border-left-style:dashed]"
+          : "border-l-row-edge";
 
   return (
     <ContextMenu>
@@ -642,7 +672,7 @@ export function PlayerRow({
           data-player={player.id}
           tabIndex={0}
           onKeyDown={onKeyDown}
-          draggable={canWrite && !touch}
+          draggable={canWrite && !touch && player.status !== "punished"}
           onDragStart={(e) => {
             dragging = player;
             setLifted(true);

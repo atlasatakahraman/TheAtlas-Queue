@@ -325,6 +325,59 @@ begin
   if (public.get_state(ch) -> 'respect' ->> 'old_timer')::int <> 93 then raise exception 'respect: decay port wrong'; end if;
 end $$;
 
+-- Punished players leave the queue (0020): alice leaves team 1 for Punished and nothing but
+-- settle or undo moves her; lifting it sends her to the end of waiting; dave, punished from
+-- waiting, returns to his place when the time runs out; a ban removes bob and undo brings him back.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000001';
+  r     jsonb;
+  act   bigint;
+  v_id  uuid;
+  alice uuid;
+  bob   uuid;
+  dave  uuid;
+  k     double precision;
+begin
+  select id into alice from public.players where channel_id = ch and kick_username = 'alice';
+  select id into bob from public.players where channel_id = ch and kick_username = 'bob';
+  select id into dave from public.players where channel_id = ch and kick_username = 'dave';
+
+  r := public.punish(ch, 'alice', 2, null, 'fixture', gen_random_uuid());
+  if (select status <> 'punished' or team is not null or not punished_from_team from public.players where id = alice) then
+    raise exception 'punish: alice not moved from her team to Punished';
+  end if;
+  perform pg_temp.expect(format('select public.move_player(%L, %L, %L, null, gen_random_uuid())', ch, alice, 'waiting'), 'queue.punished');
+  select (e ->> 'id')::bigint into act from pg_temp.rows_of(r, 'activity') e;
+  perform public.undo(ch, act, gen_random_uuid());
+  if (select status <> 'playing' or team <> 1 from public.players where id = alice) then raise exception 'undo punish: alice not back on team 1'; end if;
+
+  perform public.punish(ch, 'alice', 2, null, 'fixture', gen_random_uuid());
+  select id into v_id from public.moderation where channel_id = ch and kick_username = 'alice' and kind = 'punish' and revoked_at is null;
+  perform public.revoke_sanction(ch, v_id, gen_random_uuid());
+  if (select status <> 'waiting' or sort_key < (select max(x.sort_key) from public.players x where x.channel_id = ch and x.deleted_at is null)
+      from public.players where id = alice) then
+    raise exception 'lift: alice not at the end of waiting';
+  end if;
+
+  select sort_key into k from public.players where id = dave;
+  perform public.punish(ch, 'dave', null, 5, 'fixture', gen_random_uuid());
+  if (select status from public.players where id = dave) <> 'punished' then raise exception 'punish: dave not in Punished'; end if;
+  execute 'reset role';
+  update public.moderation set expires_at = now() - interval '1 second' where channel_id = ch and kick_username = 'dave';
+  perform private.settle_all();
+  execute 'set local role authenticated';
+  if (select status <> 'waiting' or sort_key <> k from public.players where id = dave) then
+    raise exception 'expiry: dave not back at his place';
+  end if;
+
+  r := public.ban(ch, 'bob', null, 'fixture', gen_random_uuid());
+  if (select deleted_at is null from public.players where id = bob) then raise exception 'ban: bob still queued'; end if;
+  select (e ->> 'id')::bigint into act from pg_temp.rows_of(r, 'activity') e;
+  perform public.undo(ch, act, gen_random_uuid());
+  if (select deleted_at is not null from public.players where id = bob) then raise exception 'undo ban: bob not back'; end if;
+end $$;
+
 -- Owner-only settings and membership.
 do $$
 declare

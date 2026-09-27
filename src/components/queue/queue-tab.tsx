@@ -17,7 +17,7 @@ import { ago } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Activity, Player } from "@/types/queue";
 
-const FILTERS = ["all", "waiting", "playing", "away"] as const;
+const FILTERS = ["all", "waiting", "playing", "away", "punished"] as const;
 type Filter = (typeof FILTERS)[number];
 
 // Splits a label around {command} so the command renders in mono: it is literally typed.
@@ -46,7 +46,7 @@ export function QueueTab() {
   const searchRef = useContext(SearchRefContext);
 
   const counts = useMemo(() => {
-    const c = { all: players.length, waiting: 0, playing: 0, away: 0 };
+    const c = { all: players.length, waiting: 0, playing: 0, away: 0, punished: 0 };
     for (const p of players) c[p.status]++;
     return c;
   }, [players]);
@@ -150,7 +150,7 @@ function Stats({ players }: { players: Player[] }) {
   const s = useMemo(() => {
     // No "games" tile until Stage 10 records games (D27): summing games_played counted every
     // move into a team, once per player (owner, 2026-09-27).
-    const c = { waiting: 0, playing: 0, away: 0, total: players.length };
+    const c = { waiting: 0, playing: 0, away: 0, punished: 0, total: players.length };
     for (const p of players) c[p.status]++;
     return c;
   }, [players]);

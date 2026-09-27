@@ -2,7 +2,8 @@
 // names are the database's, unchanged, so a row from an event merges straight in.
 
 export type Lang = "en" | "tr";
-export type Status = "waiting" | "playing" | "away";
+// punished: seated in Punished by an active punishment (0020); only settle or undo moves them.
+export type Status = "waiting" | "playing" | "away" | "punished";
 export type Role = "owner" | "mod";
 
 export type Rank = {

@@ -655,7 +655,7 @@ without a reason written here.
 
 | Tab | Contents |
 |---|---|
-| **Queue** (with count) | Filters All / Waiting / In game / Away · search · the queue table · right: *From chat* feed and four stat tiles |
+| **Queue** (with count) | Filters All / Waiting / In game / Away / Punished · search · the queue table · right: *From chat* feed and four stat tiles |
 | **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Reroll / Pick from waiting / Draw teams (primary) |
 | **Management** (TR *Yönetim*) | **New action** (sanction a Kick name that is not in the queue) · **Clear sanctions** (streamer only, undoable) · the sanctions: warnings, punishments, bans. Stage 9: [three tables](#management-tab-stage-9-d25) |
 | **History** (TR *Geçmiş*, `History`) | Who did what ([Roles](#roles-streamer-and-moderators)), its own tab (owner, 2026-09-27): filter All / Queue / Teams / Management / Chat and stream, with counts; one card per day (*today*, *yesterday*, then the date), a line per change: time (tabular) · the action's icon in its colour (a move into a team in that team's colour) · the sentence, names in `foreground` on a muted sentence. Undone lines are struck through with an *undone* tag |
@@ -1390,6 +1390,16 @@ nothing to type shows no Save, only *Saved* and any error.
 not a shadcn file and is never regenerated; it is re-copied from upstream.
 
 ---
+
+### Punished players
+
+A punishment moves a queued player out of their team or waiting into **Punished** (0020, owner
+2026-09-27): the Queue tab's *Punished* pill lists them, each row edged in dashed warning and
+tagged with what is left (*Punished, 2 games left* or *Punished until 21:40*). Their moves are
+disabled, never hidden; the menu offers *Lift punishment*. When it ends (its time, its games, lifted
+or deleted) they return to waiting at their place, or at the end of waiting if a team lost them. A
+ban removes the player from the queue; Undo brings them back. Games are served by recorded games
+(Victory, D27); until Victory exists a fresh draw still counts one.
 
 ## Do and don't
 

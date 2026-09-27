@@ -13,7 +13,7 @@ export const LANG_COOKIE = "lang";
 // The labels a streamer may override. Must equal private.labels_valid (0001_core.sql).
 export const CURATED_KEYS = [
   "brand.subtitle", "team.1", "team.2", "match.vs",
-  "queue.title", "queue.hint", "queue.empty.title", "queue.empty.hint",
+  "queue.title", "queue.empty.title", "queue.empty.hint",
   "action.add", "action.draw", "action.reroll", "action.pick",
   "watch.title", "watch.subtitle", "watch.disabled",
   "overlay.queue.title", "overlay.draw.title",

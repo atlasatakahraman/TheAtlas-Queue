@@ -64,12 +64,7 @@ export function QueueTab() {
     <div className="grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-6 max-lg:grid-cols-1">
       <section className="flex min-w-0 flex-col gap-4">
         <div style={e3.style} className={cn("flex flex-wrap items-end justify-between gap-4", e3.className)}>
-          <div className="min-w-0">
-            <h2 className="font-serif text-title">{t("queue.title")}</h2>
-            <p className="text-meta text-muted-foreground">
-              <WithCommand text={t("queue.hint")} command={command} />
-            </p>
-          </div>
+          <h2 className="min-w-0 font-serif text-title">{t("queue.title")}</h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -220,7 +215,7 @@ function MobileFeed() {
       <Button variant="outline" size="lg" className="h-11" onClick={() => (setSeen(newest), setOpen(true))}>
         <MessageSquareText aria-hidden />
         {t("feed.title")}
-        {unread > 0 && <span className="rounded-full bg-accent px-2 tabular-nums">{unread}</span>}
+        {unread > 0 && <span className="text-brand tabular-nums">{unread}</span>}
       </Button>
       <Sheet
         open={open}

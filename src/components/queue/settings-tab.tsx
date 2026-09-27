@@ -61,7 +61,7 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
 // keep the section's Save. save() does nothing when nothing changed.
 function Section({ title, hint, children, step, onAutosave }: {
   title: string;
-  hint: string;
+  hint?: string;
   children: React.ReactNode;
   step: number;
   onAutosave?: () => void;
@@ -75,7 +75,8 @@ function Section({ title, hint, children, step, onAutosave }: {
     >
       <div className="flex flex-col gap-1">
         <h3 className="font-serif text-team">{title}</h3>
-        <p className="text-meta text-muted-foreground">{hint}</p>
+        {/* Only where the section has a rule its controls do not show (D21: subtitles went). */}
+        {hint && <p className="text-meta text-muted-foreground">{hint}</p>}
       </div>
       <div
         className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4"
@@ -141,7 +142,7 @@ function QueueSection() {
   const { t } = useT();
   const s = useSection([...COMMANDS, "team_size"] as const);
   return (
-    <Section title={t("settings.queue")} hint={t("settings.queue.hint")} step={3} onAutosave={() => void s.save()}>
+    <Section title={t("settings.queue")} step={3} onAutosave={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         {COMMANDS.map((k) => (
           <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]}>
@@ -180,7 +181,7 @@ function RiotSection() {
   const { t } = useT();
   const s = useSection(["riot_enabled", "require_riot_id", "riot_region"] as const);
   return (
-    <Section title={t("settings.riot")} hint={t("settings.riot.hint")} step={4} onAutosave={() => void s.save()}>
+    <Section title={t("settings.riot")} step={4} onAutosave={() => void s.save()}>
       <SwitchField id="riot_enabled" label={t("settings.riot_enabled")} hint={t("settings.riot_enabled.hint")} checked={s.draft.riot_enabled} onChange={(v) => s.set("riot_enabled", v)} />
       <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => s.set("require_riot_id", v)} />
       <Field label={t("settings.riot_region")} hint={t("settings.riot_region.hint")} error={s.errors.riot_region}>
@@ -216,7 +217,7 @@ function DrawsSection() {
     />
   );
   return (
-    <Section title={t("settings.draws")} hint={t("settings.draws.hint")} step={5} onAutosave={() => void s.save()}>
+    <Section title={t("settings.draws")} step={5} onAutosave={() => void s.save()}>
       <Field label={t("settings.draw_reveal")} hint={t("settings.draw_reveal.hint")}>
         <Select value={s.draft.draw_reveal} onValueChange={(v) => s.set("draw_reveal", v as Settings["draw_reveal"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
@@ -370,7 +371,7 @@ function WatchSectionSettings() {
   const toggle = (x: WatchSection, on: boolean) =>
     s.set("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
   return (
-    <Section title={t("settings.watch")} hint={t("settings.watch.hint")} step={7} onAutosave={() => void s.save()}>
+    <Section title={t("settings.watch")} step={7} onAutosave={() => void s.save()}>
       <SwitchField id="watch_enabled" label={t("settings.watch_enabled")} hint={t("settings.watch_enabled.hint")} checked={s.draft.watch_enabled} onChange={(v) => s.set("watch_enabled", v)} />
       {SECTIONS.map((x) => (
         <SwitchField

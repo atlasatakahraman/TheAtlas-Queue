@@ -139,9 +139,10 @@ export function revealDuration(order: Landing[]): number {
 // fixed team boxes), so the cards keep their height while names land and leave.
 const SLOT = "min-h-[3.875rem]";
 
-// A writer's slots keep their icon while they cannot add (a draw landing), disabled rather than
-// bare, so nothing shifts when adding comes back (owner, 2026-09-27).
-function EmptySlots({ from, size, icon, onAdd }: { from: number; size: number; icon: boolean; onAdd?: (at: HTMLElement) => void }) {
+// Slots keep their icon while they cannot add (connecting, offline, a draw landing), disabled
+// rather than bare, so nothing shifts when adding comes back (owner, 2026-09-27). Everyone on the
+// dashboard is a member who can write once connected.
+function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?: (at: HTMLElement) => void }) {
   const { t } = useT();
   const cls = cn(
     "grid grid-cols-[1.25rem_minmax(0,1fr)] items-center gap-x-3 rounded-xl border border-dashed border-row-edge px-4 py-3 text-left",
@@ -152,12 +153,12 @@ function EmptySlots({ from, size, icon, onAdd }: { from: number; size: number; i
       <>
         <span className="font-serif text-numeral text-muted-foreground/50 tabular-nums select-none">{from + i + 1}</span>
         <span className="inline-flex items-center gap-2 text-meta text-muted-foreground">
-          {icon && <UserPlus className="size-4" aria-hidden />}
+          <UserPlus className="size-4" aria-hidden />
           {t("teams.slot.empty")}
         </span>
       </>
     );
-    return icon ? (
+    return (
       <button
         key={i}
         type="button"
@@ -165,14 +166,10 @@ function EmptySlots({ from, size, icon, onAdd }: { from: number; size: number; i
         data-add-target
         disabled={!onAdd}
         onClick={(e) => onAdd?.(e.currentTarget)}
-        className={cn(cls, "outline-none enabled:hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-60")}
+        className={cn(cls, "outline-none enabled:hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 transition-opacity disabled:opacity-60")}
       >
         {body}
       </button>
-    ) : (
-      <div key={i} className={cls}>
-        {body}
-      </div>
     );
   });
 }
@@ -331,7 +328,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
         </header>
         <div data-rows className="flex flex-col gap-1.5">
           <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
-          <EmptySlots from={count} size={size} icon={canWrite} onAdd={canAdd ? openAt : undefined} />
+          <EmptySlots from={count} size={size} onAdd={canAdd ? openAt : undefined} />
         </div>
       </div>
     </section>

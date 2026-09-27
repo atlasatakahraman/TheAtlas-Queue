@@ -341,28 +341,29 @@ function Avg({ players }: { players: Player[] }) {
   );
 }
 
-// The rosters while a fresh draw lands, read from the saved result; the average rank appears
-// once the last name has landed, when the live rosters take over.
-function RevealRosters({ draw, size }: { draw: Draw; size: number }) {
+// A fresh draw lands in the live rosters themselves: each drawn row rises into its slot and types
+// the name it keeps showing, so nothing is swapped when the reveal ends (owner, 2026-09-27: the
+// avatars used to jump in after the names). Rows land in roster order, alternating teams.
+function useLanding(draw: Draw | null, rosters: Player[][]) {
+  return useMemo(() => {
+    if (!draw) return null;
+    const ids = new Set((draw.result.teams ?? []).flat().map((e) => e.id));
+    const lists = rosters.map((r) =>
+      r.filter((p) => ids.has(p.id)).map((p) => ({ id: p.id, kick_username: p.riot_id?.split("#")[0] ?? p.kick_username, locked: p.locked })),
+    );
+    const order = revealOrder(lists);
+    return { at: new Map(order.map((o) => [o.entry.id, o.at])), duration: revealDuration(order) };
+  }, [draw, rosters]);
+}
+
+// Ends the reveal once the last name has landed; the average rank then appears.
+function RevealEnd({ duration }: { duration: number }) {
   const store = useStore();
-  const order = useMemo(() => revealOrder(draw.result.teams ?? [[], []]), [draw]);
   useEffect(() => {
-    const id = setTimeout(() => store.clearReveal(), revealDuration(order) + 300);
+    const id = setTimeout(() => store.clearReveal(), duration + 300);
     return () => clearTimeout(id);
-  }, [order, store]);
-  return (
-    <>
-      {([0, 1] as const).map((team) => (
-        <TeamCard key={team} team={(team + 1) as 1 | 2} count={draw.result.teams?.[team].length ?? 0} size={size}>
-          {order
-            .filter((o) => o.team === team)
-            .map((o) => (
-              <LandingName key={o.entry.id} entry={o.entry} at={o.at} />
-            ))}
-        </TeamCard>
-      ))}
-    </>
-  );
+  }, [duration, store]);
+  return null;
 }
 
 export function TeamsTab() {
@@ -385,6 +386,7 @@ export function TeamsTab() {
     [players],
   );
   const revealing = motion && reveal?.kind === "teams" ? reveal : null;
+  const landing = useLanding(revealing, rosters);
   const e3 = enter(ui.entering, 3);
   const e4 = enter(ui.entering, 4);
 
@@ -401,17 +403,24 @@ export function TeamsTab() {
       </h2>
 
       <div style={e4.style} className={cn("grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1", e4.className)}>
-        {revealing ? (
-          <RevealRosters key={revealing.id} draw={revealing} size={size} />
-        ) : (
-          rosters.map((roster, i) => (
-            <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={<Avg players={roster} />} addable>
-              {roster.map((p, n) => (
-                <PlayerRow key={p.id} player={p} number={n + 1} variant="roster" />
-              ))}
-            </TeamCard>
-          ))
-        )}
+        {landing && <RevealEnd key={revealing!.id} duration={landing.duration} />}
+        {rosters.map((roster, i) => (
+          <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && <Avg players={roster} />} addable={!landing}>
+            {roster.map((p, n) => {
+              const at = landing?.at.get(p.id);
+              return (
+                <PlayerRow
+                  key={p.id}
+                  player={p}
+                  number={n + 1}
+                  variant="roster"
+                  landAt={at}
+                  enterStyle={at === undefined ? undefined : { className: "animate-enter", style: { animationDelay: `${at}ms` } }}
+                />
+              );
+            })}
+          </TeamCard>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-card p-4 max-md:flex-col max-md:items-stretch">

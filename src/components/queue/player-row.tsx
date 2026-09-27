@@ -21,6 +21,8 @@ import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
+import { REVEAL } from "@/components/queue/teams-tab";
+import { Typewriter } from "@/components/typewriter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -306,7 +308,7 @@ function Joined({ player }: { player: Player }) {
 
 // The name: the Riot game name with its #TAG under it (August's queue), the Kick name when
 // there is no Riot ID. Hovering it opens the Riot ID card; a tap opens it where there is no hover.
-function PlayerName({ player, stacked }: { player: Player; stacked: boolean }) {
+function PlayerName({ player, stacked, typeAt }: { player: Player; stacked: boolean; typeAt?: number }) {
   const { t } = useT();
   const touch = useIsTouch();
   const required = useQueue((v) => v.settings.require_riot_id);
@@ -315,8 +317,17 @@ function PlayerName({ player, stacked }: { player: Player; stacked: boolean }) {
   const [game, tag] = player.riot_id ? player.riot_id.split("#") : [player.kick_username, null];
   const name = (
     <span className={cn("flex min-w-0", stacked ? "flex-col" : "items-baseline gap-1")}>
-      <span className="truncate text-name">{game}</span>
-      {tag && <span className="truncate font-mono text-caption tracking-normal normal-case text-muted-foreground">#{tag}</span>}
+      <span className="truncate text-name">
+        {typeAt === undefined ? game : <Typewriter text={game} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={typeAt} />}
+      </span>
+      {tag && (
+        <span
+          style={typeAt === undefined ? undefined : { animationDelay: `${typeAt + [...game].length * REVEAL.speed}ms` }}
+          className={cn("truncate font-mono text-caption tracking-normal normal-case text-muted-foreground", typeAt !== undefined && "animate-enter")}
+        >
+          #{tag}
+        </span>
+      )}
     </span>
   );
   if (!player.riot_id && !required) return name;
@@ -468,6 +479,7 @@ export function PlayerRow({
   arrivedAt,
   revertedAt,
   enterStyle,
+  landAt,
 }: {
   player: Player;
   number?: number;
@@ -475,6 +487,8 @@ export function PlayerRow({
   arrivedAt?: number;
   revertedAt?: number;
   enterStyle?: { className?: string; style?: React.CSSProperties };
+  /** A fresh draw landing this row: it rises in at this many ms and types its name. */
+  landAt?: number;
 }) {
   const a = usePlayerActions(player);
   const canWrite = useCanWrite();
@@ -585,7 +599,7 @@ export function PlayerRow({
           <div className="flex min-w-0 items-center gap-3">
             <PlayerAvatar player={player} />
             <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-              <PlayerName player={player} stacked={table} />
+              <PlayerName player={player} stacked={table} typeAt={landAt} />
               {table && <RespectBadge player={player} />}
               <PlayerTags player={player} showState={table} />
             </div>

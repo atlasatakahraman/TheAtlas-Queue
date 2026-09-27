@@ -597,8 +597,9 @@ export function PlayerRow({
             edge,
             recent(arrivedAt) && "animate-arrive",
             recent(revertedAt) && "animate-highlight",
-            // A plain arrow at rest (owner); the grab hand only while a row is picked up.
-            lifted ? "cursor-grabbing" : "cursor-default",
+            // The grab hand at rest, grabbing while pressed (owner, 2026-09-27, reverting cb06f3a).
+            // Once the drag starts the browser draws its own cursor; CSS cannot reach it.
+            canWrite && !touch && "cursor-grab active:cursor-grabbing",
             // The row picked up dims at once, so the drag reads as started with no pause.
             lifted && "opacity-40",
             dropAt === "before" && "shadow-[0_-3px_0_0_var(--ring)]",

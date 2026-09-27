@@ -18,6 +18,7 @@ import {
   MessageSquareX,
   Pencil,
   Radio,
+  RadioOff,
   Scale,
   Settings2,
   ShieldOff,
@@ -28,7 +29,6 @@ import {
   UserMinus,
   UserPlus,
   UserX,
-  VideoOff,
 } from "lucide-react";
 import { Fragment, useMemo } from "react";
 import { useT } from "@/components/i18n";
@@ -78,7 +78,7 @@ const LOOK: Record<string, [LucideIcon, string, Exclude<Kind, "all">]> = {
   chat_leave: [LogOut, "text-muted-foreground", "chat"],
   chat_away: [Coffee, "text-muted-foreground", "chat"],
   stream_live: [Radio, "text-success", "chat"],
-  stream_offline: [VideoOff, "text-muted-foreground", "chat"],
+  stream_offline: [RadioOff, "text-muted-foreground", "chat"],
 };
 const UNDO: [LucideIcon, string, undefined] = [Undo2, "text-muted-foreground", undefined];
 

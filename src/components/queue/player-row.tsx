@@ -59,7 +59,7 @@ import { ago } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Player, Sanction } from "@/types/queue";
 
-const TIER_DOT: Record<string, string> = {
+const TIER_MARK: Record<string, string> = {
   IRON: "bg-rank-iron", BRONZE: "bg-rank-bronze", SILVER: "bg-rank-silver", GOLD: "bg-rank-gold",
   PLATINUM: "bg-rank-platinum", EMERALD: "bg-rank-emerald", DIAMOND: "bg-rank-diamond", MASTER: "bg-rank-master",
   GRANDMASTER: "bg-rank-grandmaster", CHALLENGER: "bg-rank-challenger",
@@ -73,7 +73,8 @@ export function RankText({ player, className }: { player: Player; className?: st
   const tier = t(`rank.${r.tier}` as LabelKey);
   return (
     <span className={cn("inline-flex items-center gap-1.5 text-meta text-muted-foreground", className)}>
-      <span className={cn("size-2 shrink-0 rounded-full", TIER_DOT[r.tier] ?? "bg-muted-foreground")} aria-hidden />
+      {/* The tier's colour as a 3px bar, the row's own edge in small (no dots, owner 2026-09-27). */}
+      <span className={cn("h-3 w-[3px] shrink-0 rounded-[1px]", TIER_MARK[r.tier] ?? "bg-muted-foreground")} aria-hidden />
       {APEX.has(r.tier) ? `${tier} · ${r.lp ?? 0} LP` : `${tier} ${r.division ?? ""}`.trim()}
     </span>
   );

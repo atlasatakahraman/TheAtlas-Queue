@@ -206,7 +206,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Rank emblem dots only, never text (they fail on Kâğıt). */
+  /* Rank tier marks only, never text (they fail on Kâğıt). */
   --color-rank-iron: oklch(0.55 0.04 60);
   --color-rank-bronze: oklch(0.6 0.1 55);
   --color-rank-silver: oklch(0.72 0.02 250);
@@ -279,8 +279,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* In-page jumps and focus scrolling land 20px clear of the sticky top bar (61px), smoothly
+     unless the viewer asked for less motion (owner, 2026-09-27, hard rule). Next turns the smooth
+     scroll off during route changes (data-scroll-behavior on <html>). */
   html {
     @apply font-sans;
+    scroll-padding-top: calc(3.8125rem + 20px);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
   body {
     @apply bg-background text-body text-foreground antialiased selection:bg-selection selection:text-selection-foreground;

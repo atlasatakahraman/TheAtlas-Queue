@@ -1,4 +1,5 @@
 "use client";
+import { MessageSquare, Scale, Server } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
@@ -12,7 +13,8 @@ const SOURCE = "https://github.com/atlasatakahraman/TheAtlas-Queue";
 // Stage 5 adds its metadata, Open Graph image and structured data.
 export function Home({ callbackUrl }: { callbackUrl: string }) {
   const { t } = useT();
-  const points = ["home.point.chat", "home.point.fair", "home.point.safe"] as const;
+  // Each point carries its own icon (no bullet dots, owner 2026-09-27).
+  const points = [["home.point.chat", MessageSquare], ["home.point.fair", Scale], ["home.point.safe", Server]] as const;
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-8 max-md:px-4">
       <main className="flex flex-1 flex-col justify-center gap-8 py-16">
@@ -27,13 +29,13 @@ export function Home({ callbackUrl }: { callbackUrl: string }) {
           {t("home.tagline")}
         </p>
         <ul className="flex flex-col gap-2">
-          {points.map((k, i) => (
+          {points.map(([k, Icon], i) => (
             <li
               key={k}
               className="animate-enter flex gap-3 text-muted-foreground"
               style={{ animationDelay: `${115 + i * 45}ms` }}
             >
-              <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
+              <Icon className="mt-1 size-4 shrink-0 text-brand" aria-hidden />
               {t(k)}
             </li>
           ))}

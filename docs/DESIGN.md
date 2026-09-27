@@ -63,7 +63,7 @@ contradicts is migration work, not an alternative.
 | Semantic colours | shadcn set (`--background` … `--ring`, `--chart-*`, `--sidebar-*`) on `neutral` | **Same names**, new values (below), plus `--row`, `--row-edge`, `--highlight`, `--brand`, `--destructive-fill`, `--selection` |
 | Team colours | `--team-blue`, `--team-red` | **`--team-1`, `--team-2`** (teal, orange). The old names are deleted, not aliased |
 | Moderation colours | `--cl-warning`, `--cl-punishment`, `--cl-banned` | `--warning`, `--destructive`, `--destructive-fill`. The `--cl-*` names are deleted |
-| Rank colours | `--color-rank-*` (oklch) | **Kept**, emblem dots only, never text (they fail on Kâğıt) |
+| Rank colours | `--color-rank-*` (oklch) | **Kept**, the 3px tier mark only, never text (they fail on Kâğıt) |
 | Radius | `--radius: 0.625rem` with shadcn's multipliers | **Unchanged** |
 | Type sizes | arbitrary `text-[…]` values in components | Named sizes in `@theme` (`text-display`, `text-meta` …), see [Type](#type) |
 | Animation | `tw-animate-css`, `--animate-slide-up/fade-in/scale-in` | `tw-animate-css` stays. The three custom animations give way to `--animate-enter` and TheAtlas's `Typewriter` |
@@ -197,7 +197,7 @@ red for "`!sıra` rejected: banned", and a red team would read as a failed team.
 | `--brand` | gold | gold | The *Queue* wordmark, the subscriber tag |
 | `--destructive` | red | red | Text and outlines |
 | `--destructive-fill` | red-fill | red-fill | Solid fills |
-| `--success` | green | green | Live dot, accepted |
+| `--success` | green | green | Live, accepted |
 | `--warning` | gold | gold | Moderation warning, degraded connection |
 | `--team-1` | teal | teal | Team 1 |
 | `--team-2` | orange | orange | Team 2 |
@@ -353,7 +353,7 @@ up instead. **Never set a heading in the sans face**, and never set a name in mo
 | `rounded-lg` | 10px | Buttons, inputs, menu rows, filter pills |
 | `rounded-xl` | 14px | **Rows**, cards, popovers, the player card, overlay panels |
 | `rounded-2xl` | 18px | Dialogs |
-| `rounded-full` | — | Tags, the live dot, avatars |
+| `rounded-full` | — | Avatars, the switch thumb |
 
 **Spacing.** Tailwind's 4px scale.
 
@@ -664,13 +664,14 @@ streamer can do this*, *Offline: actions are paused*). No native `title=`.
 #### Top bar: Live / Offline (Stage 9, D25)
 
 ```
-[▣] TheAtlas Queue / HoustonHUB  ● Live 1:42        [▮▮▮ Chat]  🔍  EN|TR  ⌥  ◐  ⚙  (◉ Atlas)
+[▣] TheAtlas Queue / HoustonHUB  ((·)) Live 1:42    [▮▮▮ Chat]  🔍  EN|TR  ⌥  ◐  ⚙  (◉ Atlas)
 ```
 
-After the breadcrumb: a 8px dot and a word, no capsule. **Live** in `--success` with the time
-on air (`live_since`, tabular, updated each minute), the dot pulsing (2s, off under reduced
-motion); **Offline** muted with a hollow dot. The tooltip holds the stream title. On phones the
-dot alone stays beside the channel.
+After the breadcrumb: an icon and a word, no capsule, **never a dot** (owner, 2026-09-27).
+**Live** is `Radio` in `--success` with the time on air (`live_since`, tabular, updated each
+minute), its two outer arcs fading in turn (2s, off under reduced motion); **Offline** is
+`RadioOff`, muted. The tooltip holds the stream title. On phones the icon alone
+stays beside the channel.
 
 #### Management tab (Stage 9, D25)
 
@@ -719,7 +720,7 @@ A page of its own, not a stock dashboard: the home page's wordmark and faces, th
 ```
                            TheAtlas Queue
 Continue ─────────────────────────────────────────────────────────────
-  (◉) HoustonHUB      Manage queue · 14 waiting · ● Live          [Continue →]
+  (◉) HoustonHUB      Manage queue · 14 waiting · ((·)) Live      [Continue →]
       [ ] Open this automatically
 
 Your channels                           Watch a channel
@@ -729,7 +730,7 @@ Your channels                           Watch a channel
 
 - **Continue** is the place last left, first. *Open this automatically* is a `Switch`: on, `/`
   redirects there (a cookie, so no flash) and every dashboard's breadcrumb leads back here.
-- Your channels: owner and moderator rows (`bg-row`), each with its live dot and waiting count.
+- Your channels: owner and moderator rows (`bg-row`), each with its Live icon and waiting count.
 - Watch a channel: an input that takes a name or a Kick URL, and a short recent list (this
   browser only, localStorage).
 - States: no channels yet (*Set up your channel* → `/welcome`), a channel that no longer
@@ -885,7 +886,7 @@ The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs,
 
 ```
   #↺  PLAYER ▾                                  KICK        RANK ▾          WIN RATE ▾  JOINED ▾
-⠿ 3   (◉) brkdmr          ♥ 96  ◆ In game  ★ Sub    brkdmr_tv   ● Platinum IV   56%         21:40   [1] [2] [×] [⋯]
+⠿ 3   (◉) brkdmr          ♥ 96  ◆ In game  ★ Sub    brkdmr_tv   ▍ Platinum IV   56%         21:40   [1] [2] [×] [⋯]
 │ │    │  #TR1              │     └ tags: icon + word, fold to icons under 20rem of line
 │ │    │                    └ respect: ♥ and the score, success ≥ 80, warning ≥ 50, destructive below
 │ │    └ Riot profile icon (the initial when none); the name truncates before any tag moves
@@ -1025,9 +1026,9 @@ sits between them (D25).
 ```
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  5px team bar
 ■ 4 of 5 · avg Gold II                            [+ Add to Kurtlar]
-┌ 1 (◉) brkdmr #TR1  ★ Protected       ● Plat IV   [⇄] [↩] [×] [⋯] ┐
+┌ 1 (◉) brkdmr #TR1  ★ Protected       ▍ Plat IV   [⇄] [↩] [×] [⋯] ┐
 ┆   a 3px team-coloured line between two rows while one is dragged here (D37)
-└ 2 (◉) kaanxd #0001                   ● Gold I    [⇄] [↩] [×] [⋯] ┘
+└ 2 (◉) kaanxd #0001                   ▍ Gold I    [⇄] [↩] [×] [⋯] ┘
 ┌╌ Empty slot ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
 [🏆 Victory]                                                     Stage 10 (D27)
 ```
@@ -1144,8 +1145,8 @@ phones first.
 
 - **Touch targets are 44px.** Controls step up from 36px; rows keep their padding.
 - **Tabs move to a bottom bar**: fixed, four items with icon and label, `pb-[env(safe-area-inset-bottom)]`.
-- **The masthead compacts**: the channel name at `text-title`, the connection pill as a dot and
-  short text, EN | TR, theme and the palette button behind one `⋯` menu.
+- **The masthead compacts**: the channel name at `text-title`, the connection pill as its icon
+  and short text, EN | TR, theme and the palette button behind one `⋯` menu.
 - **The view's primary sticks** to the bottom, above the tab bar: Add player on Queue, Draw teams
   on Teams.
 - **The chat feed moves into a bottom `Sheet`**, opened by a *From chat* button with an unread
@@ -1364,6 +1365,13 @@ not a shadcn file and is never regenerated; it is re-copied from upstream.
 
 **Don't**
 
+- **Don't use a circle dot, in any design** (owner, 2026-09-27, hard rule): not for live, rank,
+  status, bullets or separators. A dot is the stock shortcut; use the layout's own language
+  instead: an icon that names the thing (`Radio` for live), the row's 3px edge in small (the
+  rank's tier mark), an icon per list point. Avatars and the switch thumb are round, not dots.
+- **Don't let an in-page jump land under the top bar** (owner, 2026-09-27, hard rule): `html`
+  carries `scroll-padding-top` = the sticky bar (61px) + 20px, and scrolls smoothly unless
+  reduced motion is asked for. A page with a taller sticky header raises it.
 - Don't write a hex literal or an arbitrary `text-[…]` size in a component.
 - Don't use teal or orange for anything but a team, or red for a team.
 - Don't show a shortcut hint outside the menus (row, page, toolbar) and the command palette.

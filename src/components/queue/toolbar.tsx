@@ -99,7 +99,6 @@ export function Toolbar() {
           <DropdownMenuItem disabled={!standingTeams} onSelect={() => void reroll()}>
             <RefreshCw aria-hidden />
             {t("action.reroll")}
-            <Keys>R</Keys>
           </DropdownMenuItem>
           <DropdownMenuItem disabled={playing < 2} onSelect={() => void shuffle()}>
             <Shuffle aria-hidden />

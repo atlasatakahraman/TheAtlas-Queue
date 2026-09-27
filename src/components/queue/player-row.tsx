@@ -171,25 +171,25 @@ function useMenu(p: Player): Item[][] {
   const a = usePlayerActions(p);
   const groups: Item[][] = [
     [
-      ...(p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, shortcut: "C", onSelect: a.copyRiot }] : []),
+      ...(p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, onSelect: a.copyRiot }] : []),
       { label: t("menu.copy_name"), icon: Gamepad2, onSelect: a.copyName },
     ],
-    [{ label: t("menu.edit"), icon: Pencil, shortcut: "E", onSelect: a.edit, write: true }],
+    [{ label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true }],
     [
       ...(p.team !== 1
-        ? [{ label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, shortcut: "←", onSelect: () => a.moveTo(1), tone: "text-team-1", write: true }]
+        ? [{ label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true }]
         : []),
       ...(p.team !== 2
-        ? [{ label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, shortcut: "→", onSelect: () => a.moveTo(2), tone: "text-team-2", write: true }]
+        ? [{ label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true }]
         : []),
       ...(p.status === "playing" ? [{ label: t("menu.to_waiting"), icon: Undo2, onSelect: a.toWaiting, write: true }] : []),
       ...(p.status !== "playing"
-        ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, shortcut: "A", onSelect: a.toggleAway, write: true }]
+        ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, onSelect: a.toggleAway, write: true }]
         : []),
     ],
     p.locked ? [{ label: t("menu.unprotect"), icon: ShieldOff, onSelect: a.removeProtection, write: true }] : [],
     [
-      { label: t("menu.warn"), icon: TriangleAlert, shortcut: "W", onSelect: a.warn, tone: "text-warning", write: true },
+      { label: t("menu.warn"), icon: TriangleAlert, onSelect: a.warn, tone: "text-warning", write: true },
       { label: t("menu.punish"), icon: Hourglass, onSelect: a.punish, tone: "text-warning", write: true },
       { label: t("menu.ban"), icon: Ban, onSelect: a.ban, destructive: true, write: true },
     ],
@@ -503,19 +503,11 @@ export function PlayerRow({
       list[k === "ArrowDown" ? i + 1 : i - 1]?.focus();
       return handled();
     }
-    if (k === "Enter" || (k === "F10" && e.shiftKey)) {
+    if (k === "Enter") {
       setMenuOpen(true);
       return handled();
     }
-    const key = k.toLowerCase();
-    if (key === "c") return (a.copyRiot(), handled());
-    if (!canWrite) return;
-    if (key === "e") return (a.edit(), handled());
-    if (k === "ArrowLeft") return (void a.moveTo(1), handled());
-    if (k === "ArrowRight") return (void a.moveTo(2), handled());
-    if (key === "a" && player.status !== "playing") return (void a.toggleAway(), handled());
-    if (key === "w") return (a.warn(), handled());
-    if (k === "Delete") return (void a.remove(), handled());
+    if (k === "Delete" && canWrite) return (void a.remove(), handled());
   }
 
   const edge =

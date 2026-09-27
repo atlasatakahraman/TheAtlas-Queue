@@ -73,12 +73,10 @@ export function Palette() {
             </CommandItem>
             <CommandItem disabled={!canWrite || !standingTeams} onSelect={run(() => void reroll())}>
               {t("action.reroll")}
-              <Keys>R</Keys>
             </CommandItem>
             {[1, 2, 3, 4, 5].map((n) => (
               <CommandItem key={n} disabled={!canWrite} onSelect={run(() => void pick(n))}>
                 {t("action.pick.n", { n })}
-                <Keys>{String(n)}</Keys>
               </CommandItem>
             ))}
             <CommandItem disabled={!canWrite || playing < 2} onSelect={run(() => void shuffle())}>
@@ -116,9 +114,10 @@ export function Palette() {
           )}
           <CommandSeparator />
           <CommandGroup heading={t("palette.goto")}>
-            {tabs.map((k) => (
+            {tabs.map((k, i) => (
               <CommandItem key={k} onSelect={run(() => ui.setTab(k))}>
                 {t(`tab.${k}`)}
+                {i < 3 && <Keys>{String(i + 1)}</Keys>}
               </CommandItem>
             ))}
             <CommandItem onSelect={run(() => ui.focusSearch())}>
@@ -144,13 +143,16 @@ export function Palette() {
 
 const TYPING = "input, textarea, select, [contenteditable=true], [role=combobox]";
 
-// Global keys (DESIGN.md § Focus and keyboard): only when no text input and no row has focus,
-// and nothing modal is open. ⌘K works everywhere.
+const TAB_KEYS: Tab[] = ["queue", "teams", "moderation"];
+
+// Global keys (DESIGN.md § Focus and keyboard, D18): a narrow set that no browser shortcut uses.
+// Only when no text input and no row has focus and nothing modal is open; ⌘K works everywhere,
+// Esc lets go of the search box or a row.
 export function Hotkeys() {
   const ui = useUi();
   const store = useStore();
-  const { draw, reroll, pick } = useDrawActions();
-  const { setPalette, focusSearch } = ui;
+  const { draw } = useDrawActions();
+  const { setPalette, focusSearch, setTab } = ui;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -159,6 +161,10 @@ export function Hotkeys() {
         return;
       }
       const el = e.target as HTMLElement;
+      if (e.key === "Escape" && (el.matches?.("[data-row], input[type=search]")) && !document.querySelector("[role=dialog], [role=menu]")) {
+        el.blur();
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
       if (el.closest?.(TYPING) || el.closest?.("[data-row]") || document.querySelector("[role=dialog], [role=menu]")) return;
       const v = store.get();
@@ -167,21 +173,18 @@ export function Hotkeys() {
       if (key === "/") {
         e.preventDefault();
         focusSearch();
+      } else if (/^[1-3]$/.test(key)) {
+        e.preventDefault();
+        setTab(TAB_KEYS[Number(key) - 1]);
       } else if (!writable) {
         return;
       } else if (key === "d") {
         e.preventDefault();
         void draw();
-      } else if (key === "r" && v.draw?.kind === "teams") {
-        e.preventDefault();
-        void reroll();
-      } else if (/^[1-5]$/.test(key)) {
-        e.preventDefault();
-        void pick(Number(key));
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [store, draw, reroll, pick, setPalette, focusSearch]);
+  }, [store, draw, setPalette, focusSearch, setTab]);
   return null;
 }

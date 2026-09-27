@@ -87,7 +87,6 @@ function PageMenuContent() {
       <ContextMenuItem disabled={!canWrite} onSelect={() => void pick(1)}>
         <Dices aria-hidden />
         {t("action.pick.n", { n: 1 })}
-        <Keys>1</Keys>
       </ContextMenuItem>
       <ContextMenuItem variant="destructive" disabled={!canWrite || players.length === 0} onSelect={() => void clearQueue()}>
         <Trash2 aria-hidden />

@@ -479,27 +479,25 @@ wheel.
   rule). No kbd chips in toolbars, buttons, headings, tooltips or
   empty states.
 
+**A narrow set (D18).** Nothing here collides with a browser shortcut: reload, print, back, find
+and the scroll keys stay the browser's. The page scrolls natively.
+
 **Global keys** fire only when no text input has focus and no row has keyboard focus.
 
 | Key | Does |
 |---|---|
 | `Ctrl/⌘ K` | Open the command palette |
-| `D` | Draw teams |
-| `R` | Reroll |
-| `1`–`5` | Pick ×N from waiting |
 | `/` | Focus the queue search |
+| `D` | Draw teams |
+| `1`–`3` | Queue, Teams, Moderation tab |
+| `Esc` | Let go of the search box or the focused row (dialogs and menus close on it too) |
 
 **Row keys** fire only while a row has keyboard focus (`Tab` into the list, `↑` `↓` between rows).
-This is what keeps a row's keys from colliding with the global ones.
 
 | Key | Does |
 |---|---|
-| `Enter` or `Shift F10` | Open the row's menu |
-| `C` | Copy the Riot ID |
-| `E` | Edit player |
-| `←` / `→` | Move to team 1 / team 2 (left and right, like the team cards) |
-| `A` | Mark away / back |
-| `W` | Warn |
+| `↑` / `↓` | Previous / next row |
+| `Enter` | Open the row's menu; every other row action is in it |
 | `Delete` | Remove from queue (undo toast) |
 
 `D` replaces the old idea of `Space`: Space also presses whichever button has focus, and a stray

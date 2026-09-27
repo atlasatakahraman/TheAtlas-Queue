@@ -8,9 +8,24 @@ import { TAB_COOKIE, TABS, type Tab } from "@/components/queue/tabs";
 import { auth } from "@/lib/auth";
 import { findKickUser, lookupRank, reconnect } from "@/lib/server/dashboard";
 import { LANG_COOKIE, parseLang, translate } from "@/lib/i18n";
+import { adminDb } from "@/lib/server/admin-db";
+import { ensureSubscriptions } from "@/lib/server/kick";
 import { ensureProfile, kickUser } from "@/lib/server/profile";
 import { userDb } from "@/lib/server/user-db";
-import type { QueueState } from "@/types/queue";
+import type { Channel, QueueState } from "@/types/queue";
+
+// The connection pill's stale limit: three missed 10-minute health checks.
+const STALE_MS = 30 * 60_000;
+
+// Chat must not wait for Reconnect: the 10-minute check calls one fixed URL (a preview never
+// gets it), so a member opening the dashboard repairs missing, failing or stale subscriptions
+// before the first paint. Healthy channels skip it.
+async function repairSubscriptions(c: Channel) {
+  if (c.subscriptions_ok_at && !c.subscription_error && Date.now() - Date.parse(c.subscriptions_ok_at) < STALE_MS) return;
+  c.subscription_error = await ensureSubscriptions(c.kick_channel_id);
+  if (!c.subscription_error) c.subscriptions_ok_at = new Date().toISOString();
+  await adminDb().rpc("set_subscription_state", { p_channel: c.id, p_error: c.subscription_error });
+}
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ tab?: string }> };
 
@@ -42,6 +57,7 @@ export default async function ChannelPage({ params, searchParams }: Props) {
   if (error || !data) throw new Error(`get_state ${error?.code ?? "empty"}`);
 
   const state = data as QueueState;
+  await repairSubscriptions(state.channel);
   let tab = await tabOf(searchParams);
   if (tab === "settings" && state.role !== "owner") tab = "queue";
   return (

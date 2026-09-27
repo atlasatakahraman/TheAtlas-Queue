@@ -769,7 +769,7 @@ shortcuts are written down.
 middle, team 2 right-aligned over its card. The card's header line is muted: the count and the
 average rank, and on the right **Add to {team}** in the team colour, which opens a searchable
 list of waiting players (picking one moves them into this team) ending in *Add a new player…*
-(Add player, then the new player moves here). Every empty slot opens the same list.
+(Add player, then the new player moves here). Every empty slot opens the same list on itself (owner, 2026-09-27); the button opens it under the button.
 Right-click on the card (not on a player) opens **the team's menu**: *Team N · n of size*, Add
 from waiting ▸ (the waiting players), Add a new player…, Shuffle current teams, Clear teams. Then
 the roster as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name

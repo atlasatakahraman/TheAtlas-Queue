@@ -122,7 +122,7 @@ export function revealDuration(order: Landing[]): number {
 // fixed team boxes), so the cards keep their height while names land and leave.
 const SLOT = "min-h-[3.875rem]";
 
-function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?: () => void }) {
+function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?: (at: HTMLElement) => void }) {
   const { t } = useT();
   const cls = cn(
     "grid grid-cols-[1.25rem_minmax(0,1fr)] items-center gap-x-3 rounded-xl border border-dashed border-row-edge px-4 py-3 text-left",
@@ -142,7 +142,8 @@ function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?:
       <button
         key={i}
         type="button"
-        onClick={onAdd}
+        data-slot-add
+        onClick={(e) => onAdd(e.currentTarget)}
         className={cn(cls, "outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40")}
       >
         {body}
@@ -156,13 +157,9 @@ function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?:
 }
 
 // A team card's Add (owner, 2026-09-23): a waiting player straight into this team, or a new one
-// through Add player, which then moves them here.
-function AddToTeam({ team, open, onOpenChange, children }: {
-  team: 1 | 2;
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  children: React.ReactNode;
-}) {
+// through Add player, which then moves them here. It opens on what was clicked: the header's
+// button, or the empty slot itself (owner, 2026-09-27).
+function AddToTeam({ team, at, onClose }: { team: 1 | 2; at: HTMLElement | null; onClose: () => void }) {
   const { t } = useT();
   const ui = useUi();
   const moveTo = useMoveTo();
@@ -171,13 +168,13 @@ function AddToTeam({ team, open, onOpenChange, children }: {
   const players = useQueue((v) => v.players);
   const waiting = useMemo(() => players.filter((p) => p.status === "waiting"), [players]);
   const pick = (f: () => void) => () => {
-    onOpenChange(false);
+    onClose();
     f();
   };
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverAnchor asChild>{children}</PopoverAnchor>
-      <PopoverContent align="end" className="w-72 p-0">
+    <Popover open={!!at} onOpenChange={(o) => !o && onClose()}>
+      {at && <PopoverAnchor virtualRef={{ current: at }} />}
+      <PopoverContent align={at?.dataset.slotAdd === undefined ? "end" : "start"} className="w-72 p-0">
         <Command>
           <CommandInput placeholder={t("teams.add.search")} />
           <CommandList className="max-h-72">
@@ -239,7 +236,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
   const moveTo = useMoveTo();
   const canWrite = useCanWrite();
   const [over, setOver] = useState(false);
-  const [adding, setAdding] = useState(false);
+  const [addAt, setAddAt] = useState<HTMLElement | null>(null);
   const canAdd = addable && canWrite && count < size;
   // Drop target for a player of the other team, or anyone dragged here (August's team boxes).
   const takes = (d: ReturnType<typeof draggedPlayer>) => !!d && !(d.status === "playing" && d.team === team);
@@ -269,29 +266,28 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
       <div className={cn("h-[5px]", team === 1 ? "bg-team-1" : "bg-team-2")} aria-hidden />
       <div className="flex flex-col gap-3 p-4">
         {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
-        <AddToTeam team={team} open={adding} onOpenChange={setAdding}>
-          <header aria-label={t(`team.${team}`)} className="flex min-h-9 items-center justify-between gap-3 text-meta text-muted-foreground">
-            <span className="flex min-w-0 items-baseline gap-3">
-              <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
-              {avg}
-            </span>
-            {addable && (
-              <Button
-                variant="ghost"
-                size="lg"
-                className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
-                disabled={!canAdd}
-                onClick={() => setAdding(true)}
-              >
-                <UserPlus aria-hidden />
-                {t("teams.add", { team: t(`team.${team}`) })}
-              </Button>
-            )}
-          </header>
-        </AddToTeam>
+        <AddToTeam team={team} at={addAt} onClose={() => setAddAt(null)} />
+        <header aria-label={t(`team.${team}`)} className="flex min-h-9 items-center justify-between gap-3 text-meta text-muted-foreground">
+          <span className="flex min-w-0 items-baseline gap-3">
+            <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
+            {avg}
+          </span>
+          {addable && (
+            <Button
+              variant="ghost"
+              size="lg"
+              className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
+              disabled={!canAdd}
+              onClick={(e) => setAddAt(e.currentTarget)}
+            >
+              <UserPlus aria-hidden />
+              {t("teams.add", { team: t(`team.${team}`) })}
+            </Button>
+          )}
+        </header>
         <div data-rows className="flex flex-col gap-1.5">
           {children}
-          <EmptySlots from={count} size={size} onAdd={canAdd ? () => setAdding(true) : undefined} />
+          <EmptySlots from={count} size={size} onAdd={canAdd ? setAddAt : undefined} />
         </div>
       </div>
     </section>

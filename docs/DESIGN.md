@@ -514,7 +514,7 @@ and the scroll keys stay the browser's. The page scrolls natively.
 | `Ctrl/⌘ K` | Open the command palette |
 | `/` | Focus the queue search |
 | `D` | Draw teams |
-| `1`–`3` | Queue, Teams, Moderation tab |
+| `1`–`3` | Queue, Teams, Management tab |
 | `Esc` | Let go of the search box or the focused row (dialogs and menus close on it too) |
 
 **Row keys** fire only while a row has keyboard focus (`Tab` into the list, `↑` `↓` between rows).
@@ -635,7 +635,7 @@ Geçmişi; do not add to them without a reason written here.
 |---|---|
 | **Queue** (with count) | Filters All / Waiting / In game / Away · search · the queue table · right: *From chat* feed and four stat tiles |
 | **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Reroll / Pick from waiting / Draw teams (primary) |
-| **Moderation** | **New action** (sanction a Kick name that is not in the queue) · **Clear history** (streamer only, undoable) · filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)). Stage 9: [four tables](#moderation-tab-stage-9-d25) |
+| **Management** (TR *Yönetim*) | **New action** (sanction a Kick name that is not in the queue) · **Clear history** (streamer only, undoable) · filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)). Stage 9: [four tables](#management-tab-stage-9-d25) |
 | **Games** (Stage 10) | [This stream's score, Games and Stats](#games-tab-maçlar-stage-10-d27) |
 | **Settings** | Streamer only, **not in the tab bar** (opened from the top bar). Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data. Stage 12: [its own page](#settings-page-cchannelsettings-stage-12-d20-d30) |
 
@@ -650,7 +650,7 @@ that builds one builds all of them. Shared rules first.
 skeleton draw the current chrome (top bar with its breadcrumb, masthead toolbar, tab bar) and
 **the tab or page in the URL**, at the real sizes, so nothing moves when it lands: the Queue
 tab is the table header, six rows on the table grid and the feed column; Teams is the headline
-and two cards with their team-size slots; Moderation is its sub-tabs and table rows; Games is
+and two cards with their team-size slots; Management is its sub-tabs and table rows; Games is
 the score strip and game rows; Settings is the section list and the first section's card.
 Bars are `bg-muted`, pulsing once a second. Built in Stage 9 with D25; today's `loading.tsx`
 draws the Queue tab only.
@@ -670,7 +670,7 @@ on air (`live_since`, tabular, updated each minute), the dot pulsing (2s, off un
 motion); **Offline** muted with a hollow dot. The tooltip holds the stream title. On phones the
 dot alone stays beside the channel.
 
-#### Moderation tab (Stage 9, D25)
+#### Management tab (Stage 9, D25)
 
 Sub-tabs **Warnings · Punishments · Bans · History**, the filter-pill control with a count each.
 Each is a table on the queue table's grid rules (header row, `bg-row` rows, 6px apart):
@@ -790,7 +790,7 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
   this stream's score, rosters), **Queue** (rows without a menu; the player card only if the
   streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results and the wins
-  board), **Moderation** (off by default; names and kind only, **never reasons**).
+  board), **Management** (off by default; names and kind only, **never reasons**).
 - States: disabled (below), nothing yet (*Nothing here yet*), a missing channel (a real 404),
   loading (each section's skeleton).
 - The draw reveal plays live; the entrance plays on load.
@@ -1059,11 +1059,11 @@ the name's line; the name truncates first, and when the line is under 20rem (con
 | In game | `Gamepad2` | that team's colour | State |
 | Away | `Coffee` | muted | State |
 | First game | `Sparkles` | success | Fair-play is on and they have not played this session |
-| Warned | `TriangleAlert` | warning | Moderation |
-| Banned | `Ban` | destructive | Moderation |
+| Warned | `TriangleAlert` | warning | Management |
+| Banned | `Ban` | destructive | Management |
 | Respect | `Heart` and the score | success / warning / destructive | Beside the name in the queue table |
 
-Moderation rows and Settings → Moderators use the same form (warned `TriangleAlert`, punished
+Management rows and Settings → Moderators use the same form (warned `TriangleAlert`, punished
 `Hourglass`, banned `Ban`, lifted `Undo2`, served `Check`; streamer `Video`, from chat
 `MessageSquare`, added by you `UserPlus`, blocked `Ban`).
 
@@ -1121,13 +1121,13 @@ badge. A moderator signs in with their own Kick account and runs the streamer's 
 
 | | Streamer | Moderator |
 |---|---|---|
-| Queue, Teams, Moderation tabs | ✓ | ✓ |
+| Queue, Teams, Management tabs | ✓ | ✓ |
 | Settings tab | ✓ | Not shown |
 | Theme, language | Their own | Their own |
 
 - **Who you are acting as is always visible.** A moderator's masthead reads "HoustonHUB
   *Queue*" like the streamer's, with a `rounded-full` tag after it: *Moderating*.
-- **Every change is attributed.** Moderation → Activity lists actions as rows: avatar, "**mirayy**
+- **Every change is attributed.** Management → Activity lists actions as rows: avatar, "**mirayy**
   moved kaanxd to Kurtlar", time. Undo toasts name the actor when it was someone else.
 - A moderator with no dashboard to moderate lands on a short page saying so, with a link to their
   own.

@@ -694,7 +694,7 @@ The fourth tab (`Trophy`, count of games this stream). Two views on the filter-p
 **Games** and **Stats**, plus a search by name.
 
 ```
-Kurtlar 3 – 2 Kartallar  ·  this stream                              [Games | Stats]  [🔍 name]
+Kurtlar 3 – 2 Kartallar                                             [Games | Stats]  [🔍 name]
 ┌───────────────────────────────────────────────────────────────────────────────────────┐
 │ 🏆 Kurtlar   21:40 → 22:12 · 32 min                                        [⋯]         │
 │  ■ brkdmr Plat IV · kaanxd Gold I · …        vs   ■ mirayy Gold II · …                 │
@@ -1029,7 +1029,7 @@ sits between them (D25).
 ┆   a 3px team-coloured line between two rows while one is dragged here (D37)
 └ 2 (◉) kaanxd #0001                   ● Gold I    [⇄] [↩] [×] [⋯] ┘
 ┌╌ Empty slot ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
-[🏆 Victory ▾]                                                   Stage 10 (D27)
+[🏆 Victory]                                                     Stage 10 (D27)
 ```
 
 - **Header line**, muted: a 10px square in the team colour (D25's colour mark, not a capsule),
@@ -1041,10 +1041,11 @@ sits between them (D25).
   ones are dashed rows reading *Empty slot*, so the card keeps its height.
 - **Right-click on the card** (not a player): the team's menu: *Team N · n of size*, Add from
   waiting ▸, Add a new player…, Shuffle current teams, Clear teams.
-- **Victory (Stage 10, D27):** under the roster, an outline button in the team colour, `Trophy`
-  and *Victory*, with a ▾ that picks the after-game action for this one game. Disabled while
-  either team is empty, and the tooltip says so. This stream's score (*Kurtlar 3 – 2
-  Kartallar*) sits under the match headline.
+- **Victory (Stage 10, D27):** under the roster, a plain outline button in the team colour,
+  `Trophy` and *Victory*: one press marks the team as winner (owner, 2026-09-27: no ▾, no
+  menu). The after-game action is Settings' default; Undo in the toast takes the result back.
+  Disabled while either team is empty, and the tooltip says so. The score (*Kurtlar 3 – 2
+  Kartallar*) sits under the match headline with no *this stream* wording (owner).
 
 ### Tags
 
@@ -1070,8 +1071,8 @@ Management rows and Settings → Moderators use the same form (warned `TriangleA
 
 ### Fair-play switch
 
-On the Teams tab, above the actions: a shadcn `Switch` labelled *Prioritise players who haven't
-played*, with one muted line under it explaining the effect. When on, players with no game this
+On the Teams tab, in the actions bar: a shadcn `Switch` labelled *Prioritise players who haven't
+played*, one line, centred on the buttons beside it; no explaining line (owner, 2026-09-27). When on, players with no game this
 session carry the *First game* tag, and the player card says how many games each player has had.
 
 ### Badge picker

@@ -180,7 +180,6 @@ export const en = {
   "teams.avg": "avg",
   "teams.empty": "No one on this team yet.",
   "teams.fair_play": "Prioritise players who haven't played",
-  "teams.fair_play.hint": "Players with the fewest games this stream are drawn first; ties are random.",
   "action.pick.n": "Pick {n}",
   "draw.stale": "Someone else drew first. Showing their draw.",
   "done.draw": "Teams drawn.",

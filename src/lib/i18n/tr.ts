@@ -174,7 +174,6 @@ export const tr: Record<LabelKey, string> = {
   "teams.avg": "ort.",
   "teams.empty": "Bu takımda henüz kimse yok.",
   "teams.fair_play": "Oynamamış oyunculara öncelik ver",
-  "teams.fair_play.hint": "Bu yayında en az oynayanlar önce çekilir; eşitlikte kura çekilir.",
   "action.pick.n": "{n} kişi seç",
   "draw.stale": "Başka biri önce çekti. Onun çekilişi gösteriliyor.",
   "done.draw": "Takımlar çekildi.",

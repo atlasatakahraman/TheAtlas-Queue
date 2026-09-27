@@ -466,19 +466,18 @@ export function TeamsTab() {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-card p-4 max-md:flex-col max-md:items-stretch">
-        <div className="flex items-start gap-3">
+        {/* One line, centred on the buttons beside it; the effect needs no sentence (owner,
+            2026-09-27). The label is the touch target, not the 18px switch. */}
+        <div className="flex items-center gap-3">
           <Switch
             id="fair-play"
             checked={fairPlay}
             disabled={!canWrite}
             // No toast: set_fair_play stores no inverse, and the switch itself shows the state.
             onCheckedChange={(on) => act("set_fair_play", { p_on: on })}
-            className="mt-0.5"
           />
-          {/* The whole text is the switch's label, so the touch target is the block, not 18px. */}
-          <Label htmlFor="fair-play" className="flex min-h-11 cursor-pointer flex-col items-start gap-0.5 leading-normal">
-            <span className="text-control">{t("teams.fair_play")}</span>
-            <span className="text-meta font-normal text-muted-foreground">{t("teams.fair_play.hint")}</span>
+          <Label htmlFor="fair-play" className="flex min-h-11 cursor-pointer items-center text-control">
+            {t("teams.fair_play")}
           </Label>
         </div>
         <div className="flex flex-wrap items-center gap-2 max-md:grid max-md:grid-cols-2">

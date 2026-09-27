@@ -286,7 +286,7 @@ clashes with both themes and disappears on a team-coloured name.
 | Team 1 name, headline and roster | `selection:bg-team-1 selection:text-background` | 9.0 / 5.7 |
 | Team 2 name, headline and roster | `selection:bg-team-2 selection:text-background` | 9.0 / 6.1 |
 | Rejections, bans, destructive text | `selection:bg-destructive selection:text-background` | 6.5 / 6.4 |
-| Riot ID in the hover card | default pair + **`select-all`**: one click selects the whole ID | 11.2 / 6.0 |
+| Riot ID in the player card | default pair + **`select-all`**: one click selects the whole ID | 11.2 / 6.0 |
 | Chat command in the feed (`!sıra …`) | default pair + `select-all` | 11.2 / 6.0 |
 | Text inputs | default pair (inherited from `<body>`) | 11.2 / 6.0 |
 | Buttons, tabs, tags, menus | `select-none` | — |
@@ -351,7 +351,7 @@ up instead. **Never set a heading in the sans face**, and never set a name in mo
 |---|---|---|
 | `rounded-md` | 8px | Small icon buttons, skeleton bars |
 | `rounded-lg` | 10px | Buttons, inputs, menu rows, filter pills |
-| `rounded-xl` | 14px | **Rows**, cards, popovers, the hover card, overlay panels |
+| `rounded-xl` | 14px | **Rows**, cards, popovers, the player card, overlay panels |
 | `rounded-2xl` | 18px | Dialogs |
 | `rounded-full` | — | Tags, the live dot, avatars |
 
@@ -376,7 +376,7 @@ up instead. **Never set a heading in the sans face**, and never set a name in mo
 ## Surfaces and depth
 
 **Colour-block first, shadow rare.** Depth comes from ground-versus-surface contrast and one
-outline. Shadows exist for things that float above the page (hover card, menu, dialog, toast)
+outline. Shadows exist for things that float above the page (player card, menu, dialog, toast)
 and nothing else.
 
 ```
@@ -578,15 +578,19 @@ this document said before, the owner's choice wins.
 **Top bar.** A full-width band on `bg-card` with a `border-b`, sticky at the top while the page
 scrolls; its content keeps the page's 1440px (August's header). The TheAtlas tile (black on
 Kâğıt, white on Mürekkep) and the wordmark "TheAtlas *Queue*", **typed in by `Typewriter`**
-(*Queue* one 40ms beat after *TheAtlas*): it is the page's title; right: the [connection pill](#connection-health), the command palette button
+(*Queue* one 40ms beat after *TheAtlas*): it is the page's title. After it, a breadcrumb: a
+muted `/` and the **channel name** in Newsreader (owner, 2026-09-27: the dateline went, D21),
+then *Moderating* as muted text for a moderator; on phones the channel stands in for the
+wordmark, and D19 makes it the way back to the selection page. Right: the [connection pill](#connection-health), the command palette button
 (a search icon, `aria-label`), the EN | TR switch, GitHub, the theme button, a settings gear
 (streamer only; **Settings is not a tab**, this gear, the account menu, `⋯` and the palette open
 it) and the **account menu** (avatar and name; Settings, **Sign out**). Under 768px the middle
 tools fold into `⋯`; the pill and the account stay.
 
-**Masthead.** No big channel title (owner, 2026-09-23: it repeated the wordmark); an `sr-only`
-`h1` keeps the heading. A muted dateline led by the channel name: channel · day · live state ·
-how many are waiting. Right: **the toolbar**, the same on every tab.
+**Masthead.** No big channel title and no dateline (owner, 2026-09-23 and 2026-09-27): the top
+bar names the channel, the tab count says who waits, and Live / Offline joins the top bar with
+D25. An `sr-only` `h1` keeps the heading; the streamer's subtitle (`brand.subtitle`) shows
+when set. Right: **the toolbar**, the same on every tab.
 
 **Toolbar.** Add player · **Pick ×1 ×2 ×3** with its source (*Waiting*, *Teams*, *Whole
 queue*; remembered per browser, and every pick control uses it) · **Shuffle ▾** (Draw teams `D`, Reroll `R`, Shuffle current
@@ -640,7 +644,7 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
 - The same masthead, minus the tools a viewer cannot use. The pill shows whether the **stream**
   is live, not the connection.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists), **Queue**
-  (rows without a menu; the Riot ID hover card only if the streamer shares Riot IDs),
+  (rows without a menu; the player card only if the streamer shares Riot IDs),
   **Moderation** (off by default; names and kind only, **never reasons**).
 - The draw reveal plays live; the entrance plays on load.
 - When the streamer turns the page off, it says so (`watch.disabled`) and is `noindex`.
@@ -725,47 +729,119 @@ their channel name.
 
 ### Queue table
 
+The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs, it says so.
+
 ```
- #   PLAYER                          KICK        RANK          WIN RATE  JOINED
-[3] (◉) brkdmr         100 (in game)  brkdmr_tv   ● Platinum IV   56%     ◷ 21:40   [+][+][×] [⋯]
-     │   │ #TR1         │                                                            │         └ the same menu as right-click
-     │   └ Riot game name (text-name), #TAG under it in mono; the Kick name when there is no Riot ID
-     │                  └ respect badge (success ≥ 80, warning ≥ 50, destructive below), then the tags
-     └ Riot profile icon (Data Dragon), the initial when there is none
+  #↺  PLAYER ▾                                  KICK        RANK ▾          WIN RATE ▾  JOINED ▾
+⠿ 3   (◉) brkdmr          ♥ 96  ◆ In game  ★ Sub    brkdmr_tv   ● Platinum IV   56%         21:40   [1] [2] [×] [⋯]
+│ │    │  #TR1              │     └ tags: icon + word, fold to icons under 20rem of line
+│ │    │                    └ respect: ♥ and the score, success ≥ 80, warning ≥ 50, destructive below
+│ │    └ Riot profile icon (the initial when none); the name truncates before any tag moves
+│ └ queue number, Newsreader, tabular
+└ grip (GripVertical, muted), pointer devices with write access only
 ```
 
-The owner chose August's table over the earlier "no Riot ID in the row" rule. `rounded-xl bg-row
-border border-row-edge border-l-[3px] px-4 py-3` rows under a header row on the same grid
-(`TABLE_COLS`). Under 1024px win rate and joined go; under 768px the Kick and rank columns go
-and the header hides. **Quick actions** (move to team 1, team 2, remove) sit before `⋯`, in the
-layout but at opacity 0 until the row is hovered or has focus inside, so nothing shifts; there is
-no hover on touch, so they are not rendered there. The row is focusable (`tabIndex={0}`) for the
-row keys.
+- **Rows.** `rounded-xl bg-row border border-row-edge border-l-[3px] px-4 py-3` on one grid
+  (`TABLE_COLS`) shared with the header. The left edge is the state: team colour in a game,
+  dashed when away, `row-edge` waiting. **One line**: the name cell never wraps.
+- **Header (D35).** *Player* (sorts by name, Turkish collation), *Rank*, *Win rate* and *Joined*
+  are buttons: `text-caption uppercase`, muted; the sorted one is foreground with `ArrowUp` /
+  `ArrowDown` (14px) and carries `aria-sort`. A second click flips it. While a column sort is on,
+  the `#` header becomes `↺` (tooltip *Back to queue order · Dragging is off while sorted*);
+  unranked and no-games rows go last. Remembered per browser (`queue.sort`). *Kick* does not
+  sort. **Sorting is a view**: Pick and the draw still use the queue order, and dragging is off
+  while sorted (the grips go).
+- **Riot off** (`riot_enabled` false): *Kick*, *Rank* and *Win rate* leave the table; the player
+  cell already shows the Kick name.
+- **Loading Riot (D25).** Rank and win-rate cells hold a `Skeleton` of their own width until the
+  data lands; the Queue heading gets a muted *Loading ranks 3* counter that pulses. Nothing shifts.
+- **Row buttons (D34).** Visible, labelled, in this order before `⋯`, each with a tooltip:
+
+  | Row | Buttons |
+  |---|---|
+  | Waiting or away | **1** · **2** (the team number in Newsreader, in the team colour; tooltip *Add to {team}*) · **×** *Remove from queue* |
+  | In a team (queue table or roster) | **⇄** *Move to {other team}* (the other team's colour) · **↩** *Back to waiting* · **×** *Remove from queue* |
+
+  Ghost `icon-sm` buttons at **40 % opacity** at rest (dim, not invisible), full on row hover or
+  focus inside; on touch always full and 44px. A full team disables its button, and the tooltip
+  says why: *{team} is full (5 of 5)*. Today (7.11): icons, hidden until hover.
+- **Breakpoints.** Under 1024px *Win rate* and *Joined* go; under 768px *Kick* and *Rank* go and
+  the header hides (sorting then lives in the page menu).
+- The row is focusable (`tabIndex={0}`) for the row keys; Enter opens its menu.
 
 ### Drag and drop
 
-Native HTML drag and drop (no library; `@dnd-kit` stays removed). A queue row dragged onto
-another row takes its place above or below it (a 3px `--ring` line shows where); a roster row
-reorders inside its team the same way, and dropped on the other team's card it changes team
-(the card rings in its team colour). The order is `players.sort_key`; the joined column keeps
-the join time. Every drop has an Undo toast. Touch has no drag: the menu and the row keys do the
-same.
+Native HTML drag and drop, no library (`@dnd-kit` stays removed).
 
-### Riot ID hover card
+- **Pick up.** The whole row drags. The cursor is the grab hand at rest and grabbing while
+  pressed (owner, 2026-09-27); once the drag starts the browser draws its own cursor, which CSS
+  cannot change. The row left behind dims to 40 %.
+- **Preview (D25).** Not the browser's picture of the row: a chip, `bg-card rounded-lg border
+  border-row-edge border-l-[3px]` in the row's state edge, `shadow-md`, max 16rem: a 20px avatar
+  initial, the name (`text-name`, truncating) and the `#TAG` muted. Built off-screen and handed
+  to `setDragImage` (6.14 ships it without the avatar and tag).
+- **Targets.**
 
-shadcn `HoverCard`, `openDelay={350}`: the Riot ID in `text-code` with `select-all`, how and when
-the player joined, games played today, the rank emblem and rank, a **Copy** button. **When
-"Require Riot ID" is off and the player has none, there is no hover card**, not an empty one. On
-touch it becomes a `Popover` opened by tapping the name.
+  | Over | Shows | Drop does |
+  |---|---|---|
+  | Between two queue rows | a 3px `--ring` line at that edge | takes that place in the queue |
+  | Between two roster rows of a team (D37) | a 3px line **in that team's colour** | joins that team **at that place**, from the queue or the other team, one write with `p_key` |
+  | A team card elsewhere | the card rings in its team colour | joins at the end of the team |
+  | A full team | the card's header reads *{team} is full* in `--destructive`, no ring | refused (`dropEffect = none`) |
+  | Its own slot (either side of itself) | nothing | refused, no write (6.9) |
+
+- Every drop has an Undo toast. Touch has no drag: the row buttons and the menu do the same.
+
+### Player card
+
+One `PlayerCard` (D31) for queue rows, team slots and the Games tab. It reads the store by
+player id, never fetches on hover, and mounts only when open. 20rem wide, `rounded-xl
+bg-popover p-4 shadow-md`.
+
+```
+┌──────────────────────────────────────────────┐
+│ [icon 48]  brkdmr#TR1  ⧉            Lv 312    │  Riot ID in mono; click copies, ⧉ turns ✓ for 1.5 s
+│            ★ ◆ ♛                              │  Kick badges: glyph + colour each, tooltip names it
+├──────────────────────────────────────────────┤
+│ ⛨ Platinum IV · 42 LP                         │  shield in the tier colour (an emblem), text foreground
+│ 128 W · 110 L   ▲ 53.8 %   ▓▓▓▓▓▓░░░░░         │  win rate success ≥ 50 %, a 4px bar under it
+│ This channel: 7 W · 3 L · won 3 in a row      │  Stage 10 (D27)
+│ ♥ 96 respect · joined 21:40 from chat · 2 games│
+├──────────────────────────────────────────────┤
+│ brkdmr_tv ⧉                   [↻ Refresh rank] │  Kick name copies; Refresh via the server action
+└──────────────────────────────────────────────┘
+```
+
+- **Kick badges (D36):** subscriber `Star` (brand), VIP `Gem` (`--badge-vip`), OG `Award`
+  (`--badge-og`), founder `Crown` (`--badge-founder`), sub gifter `Gift` (success): the badge
+  picker's table (`BADGE_LOOK`), read from `players.badges`.
+- **It never gets in the way:** opens only from the name, after **500ms** of stillness,
+  instantly between neighbours; sits beside the name, never over the row below or the actions;
+  closes at once on any press, right-click, menu, drag, scroll or key, and stays shut while a
+  menu is open. Keyboard focus on the name opens it; touch taps the name (a `Popover`).
+- **States:** Riot loading → skeleton lines at their final height; no Riot ID and *Require Riot
+  ID* off → no card at all; Riot failed → the rank line says *Rank unavailable* beside Refresh.
+- **Secure:** names render as text; the icon URL is built from the numeric icon id; Refresh is
+  membership-checked and rate-limited per player.
+
+Today: a text list in a `HoverCard` (350ms). Stage 9 replaces it.
 
 ### Row menu
 
-shadcn `ContextMenu` on the row, the same content in a `DropdownMenu` on the `⋯` button, and on
-long-press on touch. A header line names the player (the Riot ID in mono, else the Kick name),
-and **every item has its lucide icon** (August). Groups: copy (Riot ID, Kick name) · edit · move
-(to team 1 / team 2, icon and label in the team colour, with the team's **current name**) · mark
-away · protection (*Remove protection*, only on a protected sub) · moderation (warn and punish in
-warning, ban) · remove. Ban and remove are `variant="destructive"`. Shortcut hints go here.
+shadcn `ContextMenu` on the row, the same content in a `DropdownMenu` on `⋯`, and on long-press
+on touch. A header line names the player (the Riot ID in mono, else the Kick name); every item
+has its lucide icon. Groups:
+
+1. copy (Riot ID, Kick name) · edit
+2. **Add player above** (`ArrowUpToLine`) · **Add player below** (`ArrowDownToLine`) (D37). On a
+   roster row they open the team add list (waiting players, then *Add a new player…*) anchored
+   on that row; on a queue row they open Add player, and the new player lands at that place.
+   One write, one Undo.
+3. move (the row buttons' set, with the team's **current name** and colour)
+4. mark away · protection (*Remove protection*, only on a protected sub)
+5. moderation (warn and punish in warning, ban) · remove
+
+Ban and remove are `variant="destructive"`. Shortcut hints go here.
 
 ### Add player
 
@@ -791,45 +867,88 @@ shortcuts are written down.
 
 `bg-card rounded-xl` with a 5px top bar in `--team-1` / `--team-2`. **No team name in the card**
 (owner, 2026-09-23): the match headline above names both, team 1 left over its card, *vs* in the
-middle, team 2 right-aligned over its card. The card's header line is muted: the count and the
-average rank, and on the right **Add to {team}** in the team colour, which opens a searchable
-list of waiting players (picking one moves them into this team) ending in *Add a new player…*
-(Add player, then the new player moves here). Every empty slot opens the same list on itself (owner, 2026-09-27); the button opens it under the button.
-Right-click on the card (not on a player) opens **the team's menu**: *Team N · n of size*, Add
-from waiting ▸ (the waiting players), Add a new player…, Shuffle current teams, Clear teams. Then
-the roster as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name
-`#TAG`, rank, menu. **The card always holds team-size slots** (August's fixed team boxes): the
-free ones are dashed rows reading *Empty slot*, every slot one row high, so a card keeps its
-height while names land and leave, and the two cards stretch to the same height. A protected
-subscriber shows `🛡 protected`.
+middle, team 2 right-aligned over its card. On phones the cards stack and a Newsreader *vs*
+sits between them (D25).
+
+```
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  5px team bar
+■ 4 of 5 · avg Gold II                            [+ Add to Kurtlar]
+┌ 1 (◉) brkdmr #TR1  ★ Protected       ● Plat IV   [⇄] [↩] [×] [⋯] ┐
+┆   a 3px team-coloured line between two rows while one is dragged here (D37)
+└ 2 (◉) kaanxd #0001                   ● Gold I    [⇄] [↩] [×] [⋯] ┘
+┌╌ Empty slot ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+[🏆 Victory ▾]                                                   Stage 10 (D27)
+```
+
+- **Header line**, muted: a 10px square in the team colour (D25's colour mark, not a capsule),
+  **{n} of {size}** and the average rank; right, **Add to {team}** in the team colour, which
+  opens a searchable list of waiting players ending in *Add a new player…*. Every empty slot
+  opens the same list on itself (6.12).
+- **Roster** as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name
+  `#TAG` with its tags, rank, the in-team row buttons, menu. **Always team-size slots**; free
+  ones are dashed rows reading *Empty slot*, so the card keeps its height.
+- **Right-click on the card** (not a player): the team's menu: *Team N · n of size*, Add from
+  waiting ▸, Add a new player…, Shuffle current teams, Clear teams.
+- **Victory (Stage 10, D27):** under the roster, an outline button in the team colour, `Trophy`
+  and *Victory*, with a ▾ that picks the after-game action for this one game. Disabled while
+  either team is empty, and the tooltip says so. This stream's score (*Kurtlar 3 – 2
+  Kartallar*) sits under the match headline.
 
 ### Tags
 
-`rounded-full border px-2 text-caption normal-case tracking-normal select-none`, text and border
-in the same role colour, the border at 45% alpha of that colour:
+An icon and a word in the role colour, **no capsule, no border** (D36, owner 2026-09-27):
+`inline-flex items-center gap-1 text-meta font-medium select-none`, the icon 14px. Tags sit on
+the name's line; the name truncates first, and when the line is under 20rem (container query
+`@container/name`) the words become `sr-only` and a tooltip carries them.
 
-| Tag | Colour | When |
-|---|---|---|
-| `🛡 sub` | brand | A subscriber, in the queue |
-| `🛡 protected` | brand | A subscriber locked by the perk in this draw |
-| `in game` | team-1 | State |
-| `away` | muted | State |
-| `first game` | success | Fair-play is on and they have not played this session |
-| `warned` | warning | Moderation |
-| `banned` | destructive | Moderation |
+| Tag | Icon | Colour | When |
+|---|---|---|---|
+| Sub | `Star` | brand | A subscriber, in the queue |
+| Protected | `ShieldCheck` | brand | A subscriber locked by the perk in this draw |
+| In game | `Gamepad2` | that team's colour | State |
+| Away | `Coffee` | muted | State |
+| First game | `Sparkles` | success | Fair-play is on and they have not played this session |
+| Warned | `TriangleAlert` | warning | Moderation |
+| Banned | `Ban` | destructive | Moderation |
+| Respect | `Heart` and the score | success / warning / destructive | Beside the name in the queue table |
+
+Moderation rows and Settings → Moderators use the same form (warned `TriangleAlert`, punished
+`Hourglass`, banned `Ban`, lifted `Undo2`, served `Check`; streamer `Video`, from chat
+`MessageSquare`, added by you `UserPlus`, blocked `Ban`).
 
 ### Fair-play switch
 
 On the Teams tab, above the actions: a shadcn `Switch` labelled *Prioritise players who haven't
 played*, with one muted line under it explaining the effect. When on, players with no game this
-session carry the `first game` tag, and the hover card says how many games each player has had.
+session carry the *First game* tag, and the player card says how many games each player has had.
+
+### Badge picker
+
+`BadgePicker` (D32), shared by the perk and, in Stage 14, subs-only joining (D23). A checkbox
+group (`role="group"`, each tile `role="checkbox"`): Tab between tiles, Space toggles.
+
+```
+Badges that qualify
+┌───────────────────────────────┐ ┌───────────────────────────────┐ ┌──────────
+│ ★  Subscriber             [✓] │ │ ◆  VIP                    [ ] │ │ ✦  OG  …
+│    Viewers subscribed to you  │ │    Viewers you made VIP       │ │
+└───────────────────────────────┘ └───────────────────────────────┘ └──────────
+Subscribers and VIPs get 3 protected picks every 30 days, and check what is left with the perk command.
+```
+
+- A tile: `rounded-xl bg-background border px-3.5 py-3`, the glyph (20px, the badge's colour),
+  the name (`text-control` semibold), who holds it (`text-meta` muted), a 20px check box on the
+  right. Checked: gold edge, the box filled gold with a check. Tiles fill the row at 13rem each.
+- The sentence under it is live and joins the chosen badges with `Intl.ListFormat` in the page
+  language. **The last checked tile refuses to clear**; the sentence turns destructive and says
+  why (*Keep at least one: with none, nobody gets the perk*).
 
 ### Subscriber perk
 
-Settings → Draws & perks: uses per rolling 30 days, which badges qualify, with a description of
-exactly what a viewer sees in chat. On the dashboard the perk is visible, never hidden odds: the
-`🛡` tags, the protected-first order in the reveal, *Remove protection* in the row menu. Viewers
-check their own remaining uses with `!hak`.
+Settings → Draws & perks: uses per rolling 30 days and the [badge picker](#badge-picker). On
+the dashboard the perk is visible, never hidden odds: the *Protected* tags, the protected-first
+order in the reveal, *Remove protection* in the row menu. Viewers check their own remaining uses
+with `!hak`.
 
 ### Buttons
 
@@ -878,7 +997,7 @@ phones first.
 - **The chat feed moves into a bottom `Sheet`**, opened by a *From chat* button with an unread
   count.
 - **Filters become horizontally scrollable pills.** Team cards stack.
-- **Hover becomes tap**: the hover card becomes a `Popover` on the name; the row menu opens from
+- **Hover becomes tap**: the player card becomes a `Popover` on the name; the row menu opens from
   `⋯` or a long-press.
 - **Dialogs become bottom `Sheet`s** (`side="bottom"`), the Add player picker included.
 - No right-click and no keyboard: every shortcut's action is also reachable by touch.
@@ -915,7 +1034,7 @@ The curated set, and nothing else. Everything outside it is translated but fixed
 |---|---|
 | Identity | `brand.subtitle` |
 | Teams | `team.1`, `team.2`, `match.vs` |
-| Queue | `queue.title`, `queue.hint`, `queue.empty.title`, `queue.empty.hint` |
+| Queue | `queue.title`, `queue.empty.title`, `queue.empty.hint` (`queue.hint` went with D21) |
 | Actions | `action.add`, `action.draw`, `action.reroll`, `action.pick` |
 | Watch page | `watch.title`, `watch.subtitle`, `watch.disabled` |
 | Overlay | `overlay.queue.title`, `overlay.draw.title` |
@@ -1018,7 +1137,8 @@ icon inside a button. Decorative icons are `aria-hidden`; icon-only buttons carr
 Menu items carry an icon each (the row menu, the page menu, the toolbar's Shuffle menu, the
 account menu); the command palette does not. GitHub's mark is inline SVG, since lucide 1.x ships
 no brand icons.
-The 🛡 subscriber mark is the one emoji, because chat replies use it too.
+🛡 appears only in chat replies; the page draws protection with `ShieldCheck` and badges with
+the [badge picker](#badge-picker)'s glyphs.
 
 ---
 
@@ -1076,7 +1196,7 @@ not a shadcn file and is never regenerated; it is re-copied from upstream.
 **Do**
 
 - Reach for the semantic token, so both themes come for free.
-- Keep gold scarce: the wordmark, focus, selection, the subscriber tag, warnings.
+- Keep gold scarce: the wordmark, focus, selection, the subscriber and protected tags, warnings.
 - Give every row its `row-edge` outline and a 6px gap.
 - Write state as a word *and* a colour.
 - Give every text role its selection pair; make chrome `select-none`.

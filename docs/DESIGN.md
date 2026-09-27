@@ -870,9 +870,9 @@ Only *Not connected* ever raises a toast.
 
 Every action that changes or removes data gets a 5-second **Undo** toast instead of a confirm
 dialog: remove, clear queue, move, mark away, moderation, draw and reroll (Undo restores the
-previous result), removing a protection. **The only `AlertDialog` in the app** is *Delete my
-data* in Settings → Your data, the one action that cannot be undone. It asks the streamer to type
-their channel name.
+previous result), removing a protection. **The only `AlertDialog`s in the app** are for what cannot be undone: *Delete my data* in
+Settings → Your data, which asks the streamer to type their channel name, and *Rotate key* on
+an overlay (Stage 13: an undo would revive a leaked URL), which asks for the overlay's name.
 
 ---
 

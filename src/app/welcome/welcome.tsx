@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { ThemeButton } from "@/components/theme-button";
-import { Typewriter } from "@/components/typewriter";
+import { Typed } from "@/components/prefs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,7 +101,7 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
       <header className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="font-serif text-display max-md:text-title">
-            <Typewriter text={t("welcome.title")} />
+            <Typed text={t("welcome.title")} />
           </h1>
           <p className="text-muted-foreground">{t("welcome.hint")}</p>
         </div>

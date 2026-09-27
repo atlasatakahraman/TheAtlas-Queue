@@ -474,3 +474,22 @@
     animation: highlight 1500ms ease-out both;
   }
 }
+
+/* Animations off (a per-browser preference, owner 2026-09-27): every animation and transition
+   jumps to its end state, and in-page jumps are instant. */
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+html[data-motion="off"] {
+  scroll-behavior: auto !important;
+}
+/* Notifications off: success and info toasts (their Undo included) stay hidden; an error still
+   shows, since it says something did not happen. */
+html[data-toasts="off"] [data-sonner-toast]:not([data-type="error"]) {
+  display: none;
+}

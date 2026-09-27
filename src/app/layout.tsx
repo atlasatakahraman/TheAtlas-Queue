@@ -1,3 +1,4 @@
+import { PREFS_SCRIPT } from "@/components/prefs";
 import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -55,6 +56,11 @@ export default async function RootLayout({
       className={`${newsreader.variable} ${hanken.variable} ${jetbrains.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Animations and Notifications (per browser) before the first paint, so an entrance
+            the viewer turned off never starts. */}
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: PREFS_SCRIPT }} />
+      </head>
       {/* The browser scrolls the page (D18): its keys, find-in-page and scroll restoration work. */}
       <body className="flex min-h-dvh flex-col">
         <I18nProvider lang={lang}>

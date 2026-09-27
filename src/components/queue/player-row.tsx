@@ -29,7 +29,7 @@ import { useT } from "@/components/i18n";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
 import { REVEAL } from "@/components/queue/teams-tab";
-import { Typewriter } from "@/components/typewriter";
+import { Typed } from "@/components/prefs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -383,7 +383,7 @@ function PlayerName({ player, stacked, typeAt }: { player: Player; stacked: bool
   const name = (
     <span className={cn("flex min-w-0", stacked ? "flex-col" : "items-baseline gap-1")}>
       <span className="truncate text-name">
-        {typeAt === undefined ? game : <Typewriter text={game} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={typeAt} />}
+        {typeAt === undefined ? game : <Typed text={game} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={typeAt} />}
       </span>
       {tag && (
         <span

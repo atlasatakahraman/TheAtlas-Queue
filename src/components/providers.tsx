@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+import { PrefsSync } from "@/components/prefs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface ProvidersProps {
@@ -14,6 +15,7 @@ export function Providers({ children, nonce }: ProvidersProps) {
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange={false} nonce={nonce}>
       <TooltipProvider delayDuration={200}>
         {children}
+        <PrefsSync />
         {/* DESIGN.md § Toasts: bottom-centre, at most three, on the popover surface. */}
         <Toaster
           className="select-none"

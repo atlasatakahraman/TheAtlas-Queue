@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { ThemeButton } from "@/components/theme-button";
-import { Typewriter } from "@/components/typewriter";
+import { Typed } from "@/components/prefs";
 import { Button } from "@/components/ui/button";
 
 const SOURCE = "https://github.com/atlasatakahraman/TheAtlas-Queue";
@@ -19,10 +19,10 @@ export function Home({ callbackUrl }: { callbackUrl: string }) {
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-8 max-md:px-4">
       <main className="flex flex-1 flex-col justify-center gap-8 py-16">
         <h1 className="font-serif text-display max-md:text-title">
-          <Typewriter text="TheAtlas" />{" "}
+          <Typed text="TheAtlas" />{" "}
           {/* Queue types on after the name, one 40ms beat for the space. */}
           <span className="text-brand italic selection:bg-foreground selection:text-background">
-            <Typewriter text="Queue" startDelay={9 * 40} />
+            <Typed text="Queue" startDelay={9 * 40} />
           </span>
         </h1>
         <p className="animate-enter text-body text-foreground" style={{ animationDelay: "70ms" }}>

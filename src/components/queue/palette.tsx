@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useSetLang, useT } from "@/components/i18n";
+import { usePrefs } from "@/components/prefs";
 import { useRiot } from "@/components/queue/player-row";
 import { useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { signOutNow } from "@/components/queue/header";
@@ -50,6 +51,7 @@ export function Palette() {
   const role = useQueue((v) => v.role);
   const players = useQueue((v) => v.players);
   const riot = useRiot();
+  const prefs = usePrefs();
   const standingTeams = useQueue((v) => v.draw?.kind === "teams");
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
@@ -135,6 +137,14 @@ export function Palette() {
             </CommandItem>
             <CommandItem onSelect={run(() => setLang(lang === "en" ? "tr" : "en"))}>
               {lang === "en" ? t("lang.name.tr") : t("lang.name.en")}
+            </CommandItem>
+            <CommandItem disabled={prefs.motionLocked} onSelect={() => prefs.setMotion(!prefs.motion)}>
+              {t("prefs.motion")}
+              <span className="ml-auto text-meta text-muted-foreground">{t(prefs.motion ? "prefs.on" : "prefs.off")}</span>
+            </CommandItem>
+            <CommandItem onSelect={() => prefs.setToasts(!prefs.toasts)}>
+              {t("prefs.toasts")}
+              <span className="ml-auto text-meta text-muted-foreground">{t(prefs.toasts ? "prefs.on" : "prefs.off")}</span>
             </CommandItem>
             <CommandItem onSelect={run(signOutNow)}>{t("account.sign_out")}</CommandItem>
           </CommandGroup>

@@ -10,11 +10,12 @@ import { useQueue } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
 import { useMedia } from "@/components/use-client-state";
 import { ThemeButton } from "@/components/theme-button";
-import { Typewriter } from "@/components/typewriter";
+import { Typed, usePrefs } from "@/components/prefs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -39,6 +40,7 @@ function AccountMenu() {
   const { t } = useT();
   const ui = useUi();
   const role = useQueue((v) => v.role);
+  const prefs = usePrefs();
   const { name, image } = ui.account;
   return (
     <DropdownMenu>
@@ -59,6 +61,21 @@ function AccountMenu() {
             {t("tab.settings")}
           </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator />
+        {/* This browser's preferences; the menu stays open while they are flipped. */}
+        <DropdownMenuCheckboxItem
+          checked={prefs.motion}
+          disabled={prefs.motionLocked}
+          onCheckedChange={prefs.setMotion}
+          onSelect={(e) => e.preventDefault()}
+          className="flex-col items-start gap-0"
+        >
+          {t("prefs.motion")}
+          {prefs.motionLocked && <span className="text-meta text-muted-foreground">{t("prefs.motion.locked")}</span>}
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={prefs.toasts} onCheckedChange={prefs.setToasts} onSelect={(e) => e.preventDefault()}>
+          {t("prefs.toasts")}
+        </DropdownMenuCheckboxItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={signOutNow}>
           <LogOut aria-hidden />
@@ -91,18 +108,18 @@ export function TopBar() {
             then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
         {/* On phones the tile alone: next to the pill the wordmark only truncates. */}
         <span className="truncate cap-center font-serif text-title max-md:text-body max-sm:hidden">
-          <Typewriter text="TheAtlas" />{" "}
+          <Typed text="TheAtlas" />{" "}
           <span className="text-brand italic selection:bg-foreground selection:text-background">
-            <Typewriter text="Queue" startDelay={9 * 40} />
+            <Typed text="Queue" startDelay={9 * 40} />
           </span>
         </span>
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
             the way back to the selection page. On phones it stands in for the wordmark. */}
         <span className="cap-center font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden" aria-hidden>
-          <Typewriter text="/" startDelay={15 * 40} />
+          <Typed text="/" startDelay={15 * 40} />
         </span>
         <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">
-          <Typewriter text={channel} startDelay={phone ? 0 : 17 * 40} />
+          <Typed text={channel} startDelay={phone ? 0 : 17 * 40} />
         </span>
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}
       </span>

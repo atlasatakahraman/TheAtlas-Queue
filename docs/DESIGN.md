@@ -411,6 +411,14 @@ justified exception and is documented in [The draw reveal](#the-draw-reveal).
 | 200ms | `ease-out` | Layout: a dialog or sheet appearing, a row being removed; `Typewriter`'s per-character reveal |
 | 500ms | `cubic-bezier(.2,.7,.2,1)` | **Entrance** (`--animate-enter`), once per page load |
 
+**Preferences, per browser** (owner, 2026-09-27; the account menu and the palette's
+Preferences): **Animations**, on by default. Off, every animation and transition jumps to its
+end (`html[data-motion="off"]`), `Typewriter` lines appear whole (`Typed`), the draw reveal
+lands at once and in-page jumps are instant. Under the system's reduced motion it is off and
+locked, and says why. **Notifications**, on by default. Off, success and info toasts stay
+hidden, their Undo with them; an error still shows. Both live in `localStorage`
+(`pref.motion`, `pref.toasts`) and a script in `<head>` applies them before the first paint.
+
 ### The entrance
 
 The first mount of a page is choreographed, the way a scroll-crafted page reveals itself. After

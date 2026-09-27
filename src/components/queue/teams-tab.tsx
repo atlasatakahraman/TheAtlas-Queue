@@ -7,7 +7,7 @@ import { confirm } from "@/components/queue/confirm";
 import { draggedPlayer, PlayerRow, RankText, Tag, TeamAddContext, useMoveTo, useRiot } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
-import { Typewriter } from "@/components/typewriter";
+import { Typed, useMotion } from "@/components/prefs";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,7 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { useMedia, useStored } from "@/components/use-client-state";
+import { useStored } from "@/components/use-client-state";
 import { isError, type QueueView } from "@/lib/queue-store";
 import { averageRank } from "@/lib/rank";
 import { cn } from "@/lib/utils";
@@ -103,11 +103,12 @@ function pickPool({ players, moderation }: QueueView, source: PickSource) {
   ).length;
 }
 
-// Whether a draw animates on this device: the streamer's setting, then reduced motion.
+// Whether a draw animates on this device: the streamer's setting, then this browser's
+// Animations (off under reduced motion too).
 export function useRevealMotion(): boolean {
   const setting = useQueue((v) => v.settings.draw_reveal);
-  const reduced = useMedia("(prefers-reduced-motion: reduce)");
-  return setting === "typewriter" && !reduced;
+  const motion = useMotion();
+  return setting === "typewriter" && motion;
 }
 
 type Landing = { entry: DrawEntry; team: 0 | 1; at: number };
@@ -238,7 +239,7 @@ export function LandingName({ entry, at }: { entry: DrawEntry; at: number }) {
   const { t } = useT();
   return (
     <div className={cn("flex items-center gap-2 rounded-xl border border-row-edge bg-background px-4 py-3", SLOT)}>
-      <Typewriter text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
+      <Typed text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
       {entry.locked && (
         <span className="animate-enter" style={{ animationDelay: `${at}ms` }}>
           <Tag tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>

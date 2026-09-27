@@ -413,6 +413,21 @@
   border-color: var(--input);
 }
 
+/* A serif line centred on an icon or tile (owner, 2026-09-27: the wordmark sat 2.5px high on
+   the logo). Newsreader's line box carries extra ascent, so the box is centred and the caps are
+   not; trimming the box to cap height and baseline centres the caps. Older engines: a nudge. */
+.cap-center {
+  text-box: trim-both cap alphabetic;
+  /* Symmetric room for ascenders and descenders, so truncate's overflow clips neither. */
+  padding-block: 0.25em;
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .cap-center {
+    position: relative;
+    top: 0.09em;
+  }
+}
+
 /* Tooltips follow the theme (owner, 2026-09-27): stock inverts them (foreground fill), which
    read as a foreign object on both grounds. They are a small popover: card fill, hairline edge,
    meta text, no arrow. */

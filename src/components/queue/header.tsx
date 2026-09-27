@@ -86,7 +86,7 @@ export function TopBar() {
         <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
         {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas. */}
         {/* On phones the tile alone: next to the pill the wordmark only truncates. */}
-        <span className="truncate font-serif text-title max-md:text-body max-sm:hidden">
+        <span className="truncate cap-center font-serif text-title max-md:text-body max-sm:hidden">
           <Typewriter text="TheAtlas" />{" "}
           <span className="text-brand italic selection:bg-foreground selection:text-background">
             <Typewriter text="Queue" startDelay={9 * 40} />
@@ -94,10 +94,10 @@ export function TopBar() {
         </span>
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
             the way back to the selection page. On phones it stands in for the wordmark. */}
-        <span className="font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden" aria-hidden>
+        <span className="cap-center font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden" aria-hidden>
           /
         </span>
-        <span className="min-w-0 truncate font-serif text-title max-md:text-body">{channel}</span>
+        <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">{channel}</span>
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}
       </span>
       <div className="flex shrink-0 items-center gap-1">

@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { useSetLang, useT } from "@/components/i18n";
 import { useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { signOutNow } from "@/components/queue/header";
-import { useDrawActions } from "@/components/queue/teams-tab";
+import { useDrawActions, usePick } from "@/components/queue/teams-tab";
 import type { Tab } from "@/components/queue/tabs";
 import { useUi } from "@/components/queue/ui";
 import {
@@ -52,6 +52,7 @@ export function Palette() {
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
   const { draw, reroll, pick, shuffle, clearTeams, clearQueue } = useDrawActions();
+  const picking = usePick();
   const playing = players.filter((p) => p.status === "playing").length;
   const run = (f: () => void) => () => {
     ui.setPalette(false);
@@ -74,8 +75,8 @@ export function Palette() {
             <CommandItem disabled={!canWrite || !standingTeams} onSelect={run(() => void reroll())}>
               {t("action.reroll")}
             </CommandItem>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <CommandItem key={n} disabled={!canWrite} onSelect={run(() => void pick(n))}>
+            {picking.sizes.map((n) => (
+              <CommandItem key={n} disabled={!canWrite || picking.pool === 0} onSelect={run(() => void pick(n, picking.source))}>
                 {t("action.pick.n", { n })}
               </CommandItem>
             ))}

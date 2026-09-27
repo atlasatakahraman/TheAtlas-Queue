@@ -452,7 +452,7 @@ the reveal can never disagree with what `/watch` and `/overlay` show.
 160ms and 30ms sit off the motion ladder on purpose: the ladder's rungs describe a single
 transition, and this is a sequence of ten. Faster reads as a flash, slower drags on stream.
 
-**Pick from waiting** (`1`–`5`, or the button): the same cadence in a `Dialog` titled with the
+**Pick** (the toolbar, the Teams tab, the page menu or the palette): the same cadence in a `Dialog` titled with the
 `action.pick` label, listing the N picked names. The dialog closes on Escape or a click outside;
 the picked players are already marked in the queue behind it.
 
@@ -564,9 +564,13 @@ tools fold into `⋯`; the pill and the account stay.
 how many are waiting. Right: **the toolbar**, the same on every tab.
 
 **Toolbar.** Add player · **Pick ×1 ×2 ×3** with its source (*Waiting*, *Teams*, *Whole
-queue*; remembered per browser) · **Shuffle ▾** (Draw teams `D`, Reroll `R`, Shuffle current
+queue*; remembered per browser, and every pick control uses it) · **Shuffle ▾** (Draw teams `D`, Reroll `R`, Shuffle current
 teams, Clear teams) · **Clear queue** (destructive ghost). Everything in it has an Undo toast.
 Under 768px the labels become `sr-only` and the icons stay.
+
+*Pick rule* (owner, 2026-09-27): the pool is what `pick_players` would draw from, the source's
+players less anyone banned or punished. A size the pool cannot fill is not shown, anywhere;
+×1 stays, disabled, when the pool is empty.
 
 **Page menu.** Right-click anywhere on the dashboard, kept short (owner, 2026-09-23): a header
 *Queue management (N players)*, **Reload page** first, then Add player, Draw teams, Pick 1, Clear

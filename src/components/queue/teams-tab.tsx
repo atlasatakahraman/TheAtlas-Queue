@@ -24,8 +24,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { useMedia } from "@/components/use-client-state";
-import { isError } from "@/lib/queue-store";
+import { useMedia, useStored } from "@/components/use-client-state";
+import { isError, type QueueView } from "@/lib/queue-store";
 import { averageRank } from "@/lib/rank";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
@@ -59,6 +59,38 @@ export function useDrawActions() {
     },
     clearModeration: () => act("clear_moderation", {}, { done: "done.clear_moderation" }),
   };
+}
+
+const PICK_SOURCES = ["waiting", "teams", "all"] as const;
+const PICK_SIZES = [1, 2, 3];
+
+// Pick's source (per browser, one for every pick control) and the ×n it can fill. The pool counts
+// as pick_players does: the source's statuses, less anyone under a live ban or punishment. A ×n
+// larger than the pool is hidden (owner, 2026-09-27); ×1 stays, disabled, when the pool is empty.
+export function usePick() {
+  const [source, setSource] = useStored<PickSource>("queue.pick-source", "waiting", PICK_SOURCES);
+  const pool = useQueue((v) => pickPool(v, source));
+  return { source, setSource, sources: PICK_SOURCES, pool, sizes: PICK_SIZES.filter((n) => n === 1 || n <= pool) };
+}
+
+function pickPool({ players, moderation }: QueueView, source: PickSource) {
+  const now = Date.now();
+  const barred = moderation.filter(
+    (m) =>
+      m.kind !== "warn" &&
+      !m.revoked_at &&
+      (!m.expires_at || Date.parse(m.expires_at) > now) &&
+      (m.games_left === null || m.games_left > 0),
+  );
+  return players.filter(
+    (p) =>
+      (source === "waiting" ? p.status === "waiting" : source === "teams" ? p.status === "playing" : p.status !== "away") &&
+      !barred.some(
+        (m) =>
+          m.kick_username.toLowerCase() === p.kick_username.toLowerCase() ||
+          (m.kick_user_id !== null && m.kick_user_id === p.kick_user_id),
+      ),
+  ).length;
 }
 
 // Whether a draw animates on this device: the streamer's setting, then reduced motion.
@@ -378,7 +410,7 @@ export function TeamsTab() {
   const reveal = useQueue((v) => v.reveal);
   const motion = useRevealMotion();
   const { draw: drawTeams, reroll, shuffle, clearTeams, pick } = useDrawActions();
-  const waiting = useQueue((v) => v.players.filter((p) => p.status === "waiting").length);
+  const picking = usePick();
   const playing = useQueue((v) => v.players.filter((p) => p.status === "playing").length);
 
   const rosters = useMemo(
@@ -457,14 +489,14 @@ export function TeamsTab() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || waiting === 0}>
+              <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || picking.pool === 0}>
                 {t("action.pick")}
                 <ChevronDown aria-hidden />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-44 p-1.5">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <DropdownMenuItem key={n} onSelect={() => void pick(n)}>
+              {picking.sizes.map((n) => (
+                <DropdownMenuItem key={n} onSelect={() => void pick(n, picking.source)}>
                   {t("action.pick.n", { n })}
                 </DropdownMenuItem>
               ))}

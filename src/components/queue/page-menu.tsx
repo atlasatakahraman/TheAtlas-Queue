@@ -3,7 +3,7 @@ import { Dices, ListOrdered, Moon, RotateCw, Search, Sun, Swords, Trash2, UserPl
 import { useTheme } from "next-themes";
 import { useT } from "@/components/i18n";
 import { useCanWrite, useQueue } from "@/components/queue/store";
-import { useDrawActions } from "@/components/queue/teams-tab";
+import { useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
 import {
   ContextMenu,
@@ -60,6 +60,7 @@ function PageMenuContent() {
   const players = useQueue((v) => v.players);
   const { resolvedTheme, setTheme } = useTheme();
   const { draw, pick, clearQueue } = useDrawActions();
+  const picking = usePick();
 
   // Kept short on purpose (owner, 2026-09-23): the everyday actions only. Reroll, shuffle, clear
   // teams, reconnect, settings, language and sign-out live in the toolbar, the top bar and the
@@ -84,7 +85,7 @@ function PageMenuContent() {
         {t("action.draw")}
         <Keys>D</Keys>
       </ContextMenuItem>
-      <ContextMenuItem disabled={!canWrite} onSelect={() => void pick(1)}>
+      <ContextMenuItem disabled={!canWrite || picking.pool === 0} onSelect={() => void pick(1, picking.source)}>
         <Dices aria-hidden />
         {t("action.pick.n", { n: 1 })}
       </ContextMenuItem>

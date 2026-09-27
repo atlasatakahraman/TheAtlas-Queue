@@ -2,7 +2,7 @@
 import { Dices, RefreshCw, Shuffle, Swords, Trash2, UserPlus, UsersRound } from "lucide-react";
 import { useT } from "@/components/i18n";
 import { useCanWrite, useQueue } from "@/components/queue/store";
-import { type PickSource, useDrawActions } from "@/components/queue/teams-tab";
+import { type PickSource, useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,9 +16,6 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useStored } from "@/components/use-client-state";
-
-const SOURCES = ["waiting", "teams", "all"] as const;
 
 export function Keys({ children }: { children: string }) {
   return (
@@ -37,11 +34,8 @@ export function Toolbar() {
   const players = useQueue((v) => v.players);
   const standingTeams = useQueue((v) => v.draw?.kind === "teams");
   const { draw, reroll, shuffle, pick, clearTeams, clearQueue } = useDrawActions();
-  const [source, setSource] = useStored<PickSource>("queue.pick-source", "waiting", SOURCES);
+  const { source, setSource, sources, pool, sizes } = usePick();
   const playing = players.filter((p) => p.status === "playing").length;
-  const pool = players.filter((p) =>
-    source === "waiting" ? p.status === "waiting" : source === "teams" ? p.status === "playing" : p.status !== "away",
-  ).length;
 
   return (
     <div role="toolbar" aria-label={t("palette.actions")} className="flex flex-wrap items-center gap-2">
@@ -56,7 +50,7 @@ export function Toolbar() {
           <Dices className="size-4" aria-hidden />
           <span className="max-md:sr-only">{t("pick.label")}</span>
         </span>
-        {[1, 2, 3].map((n) => (
+        {sizes.map((n) => (
           <Button
             key={n}
             variant="ghost"
@@ -74,7 +68,7 @@ export function Toolbar() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="end">
-            {SOURCES.map((s) => (
+            {sources.map((s) => (
               <SelectItem key={s} value={s}>
                 {t(`pick.source.${s}`)}
               </SelectItem>

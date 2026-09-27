@@ -1,8 +1,7 @@
 "use client";
 import { Ban, Check, Ellipsis, Hourglass, Plus, Trash2, TriangleAlert, Undo2 } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { useState } from "react";
 import { useT } from "@/components/i18n";
-import { FilterPills } from "@/components/queue/filter-pills";
 import { Tag } from "@/components/queue/player-row";
 import { NewSanctionDialog } from "@/components/queue/sanction-dialog";
 import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
@@ -15,28 +14,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStored } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
-import { isLabelKey, type LabelKey } from "@/lib/i18n";
 import { ago } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import type { Activity, Sanction } from "@/types/queue";
+import type { Sanction } from "@/types/queue";
 
-const SUBTABS = ["sanctions", "activity"] as const;
 const KIND_ICON = { warn: TriangleAlert, punish: Hourglass, ban: Ban };
-type Subtab = (typeof SUBTABS)[number];
-
-// A label with its {slots} filled by nodes, so names can be set bold inside a translated sentence.
-function Rich({ text, parts }: { text: string; parts: Record<string, React.ReactNode> }) {
-  return (
-    <>
-      {text.split(/(\{\w+\})/).map((chunk, i) => {
-        const k = chunk.match(/^\{(\w+)\}$/)?.[1];
-        return <Fragment key={i}>{k && k in parts ? parts[k] : chunk}</Fragment>;
-      })}
-    </>
-  );
-}
 
 function isActive(m: Sanction, now: number) {
   return !m.revoked_at && (!m.expires_at || Date.parse(m.expires_at) > now) && (m.games_left === null || m.games_left > 0);
@@ -45,9 +28,7 @@ function isActive(m: Sanction, now: number) {
 export function ModerationTab() {
   const { t } = useT();
   const ui = useUi();
-  const [sub, setSub] = useStored<Subtab>("queue.mod-subtab", "sanctions", SUBTABS);
   const moderation = useQueue((v) => v.moderation);
-  const activity = useQueue((v) => v.activity);
   const role = useQueue((v) => v.role);
   const canWrite = useCanWrite();
   const { clearModeration } = useDrawActions();
@@ -75,17 +56,8 @@ export function ModerationTab() {
             </Button>
           )}
         </div>
-        <FilterPills
-          label={t("mod.show")}
-          value={sub}
-          onChange={setSub}
-          options={[
-            { value: "sanctions", label: t("mod.sanctions"), count: moderation.length },
-            { value: "activity", label: t("mod.activity") },
-          ]}
-        />
       </div>
-      {sub === "sanctions" ? <Sanctions list={moderation} /> : <ActivityList list={activity} />}
+      <Sanctions list={moderation} />
       <NewSanctionDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
@@ -176,49 +148,5 @@ function SanctionRow({ m, now, respect }: { m: Sanction; now: number; respect?: 
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  );
-}
-
-// Who did what (DESIGN.md § Roles): every change is attributed; chat and the system read "chat".
-function ActivityList({ list }: { list: Activity[] }) {
-  const { t } = useT();
-  const now = useNow();
-  const rows = useMemo(() => list.slice(0, 100), [list]);
-  if (rows.length === 0) return <p className="py-10 text-muted-foreground">{t("mod.activity.empty")}</p>;
-  return (
-    <ol className="flex flex-col gap-1.5">
-      {rows.map((a) => {
-        const key = `act.${a.action}`;
-        const where =
-          a.action === "move_player"
-            ? a.payload.status === "playing"
-              ? t(`team.${a.payload.team === 2 ? 2 : 1}`)
-              : t(a.payload.status === "away" ? "act.where.away" : "act.where.waiting")
-            : "";
-        const text = isLabelKey(key) ? t(key as LabelKey, { n: String(a.payload.count ?? a.payload.n ?? "") }) : t("act.other", { action: a.action });
-        return (
-          <li
-            key={a.id}
-            className={cn(
-              "flex items-baseline justify-between gap-4 rounded-xl border border-row-edge bg-row px-4 py-3 text-body",
-              a.undone_at && "text-muted-foreground",
-            )}
-          >
-            <span className="min-w-0">
-              <Rich
-                text={text}
-                parts={{
-                  actor: <span className="font-semibold">{a.actor ?? t("common.chat")}</span>,
-                  target: <span className="font-semibold">{a.target}</span>,
-                  where: <span className="font-semibold">{where}</span>,
-                }}
-              />
-              {a.undone_at && <span className="ml-2 inline-flex align-middle"><Tag tone="muted" icon={Undo2}>{t("mod.undone")}</Tag></span>}
-            </span>
-            <span className="shrink-0 text-meta text-muted-foreground">{now ? ago(a.created_at, now, t) : ""}</span>
-          </li>
-        );
-      })}
-    </ol>
   );
 }

@@ -514,7 +514,7 @@ and the scroll keys stay the browser's. The page scrolls natively.
 | `Ctrl/⌘ K` | Open the command palette |
 | `/` | Focus the queue search |
 | `D` | Draw teams |
-| `1`–`3` | Queue, Teams, Management tab |
+| `1`–`4` | Queue, Teams, Management, History tab |
 | `Esc` | Let go of the search box or the focused row (dialogs and menus close on it too) |
 
 **Row keys** fire only while a row has keyboard focus (`Tab` into the list, `↑` `↓` between rows).
@@ -629,13 +629,15 @@ indicator moved (±16px, 220ms, `.tab-in`). The phone bottom bar slides a pill b
 icon. No motion under reduced motion. Tailwind v4's `rotate-`/`scale-`/`translate-` set their
 own properties, so their transitions name them (`transition-[rotate,scale,…]`), not
 `transform`. In this order. These are the current tabs minus Maç
-Geçmişi; do not add to them without a reason written here.
+Geçmişi, plus History (owner, 2026-09-27: the log belongs to no one tab); do not add to them
+without a reason written here.
 
 | Tab | Contents |
 |---|---|
 | **Queue** (with count) | Filters All / Waiting / In game / Away · search · the queue table · right: *From chat* feed and four stat tiles |
 | **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Reroll / Pick from waiting / Draw teams (primary) |
-| **Management** (TR *Yönetim*) | **New action** (sanction a Kick name that is not in the queue) · **Clear history** (streamer only, undoable) · filter Sanctions / Activity. Sanctions: warnings, punishments, bans. Activity: who did what ([Roles](#roles-streamer-and-moderators)). Stage 9: [four tables](#management-tab-stage-9-d25) |
+| **Management** (TR *Yönetim*) | **New action** (sanction a Kick name that is not in the queue) · **Clear sanctions** (streamer only, undoable) · the sanctions: warnings, punishments, bans. Stage 9: [three tables](#management-tab-stage-9-d25) |
+| **History** (TR *Geçmiş*, `History`) | Who did what ([Roles](#roles-streamer-and-moderators)), its own tab (owner, 2026-09-27): filter All / Queue / Teams / Management / Chat and stream, with counts; one card per day (*today*, *yesterday*, then the date), a line per change: time (tabular) · the action's icon in its colour (a move into a team in that team's colour) · the sentence, names in `foreground` on a muted sentence. Undone lines are struck through with an *undone* tag |
 | **Games** (Stage 10) | [This stream's score, Games and Stats](#games-tab-maçlar-stage-10-d27) |
 | **Settings** | Streamer only, **not in the tab bar** (opened from the top bar). Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data. Stage 12: [its own page](#settings-page-cchannelsettings-stage-12-d20-d30) |
 
@@ -672,7 +674,7 @@ dot alone stays beside the channel.
 
 #### Management tab (Stage 9, D25)
 
-Sub-tabs **Warnings · Punishments · Bans · History**, the filter-pill control with a count each.
+Sub-tabs **Warnings · Punishments · Bans**, the filter-pill control with a count each.
 Each is a table on the queue table's grid rules (header row, `bg-row` rows, 6px apart):
 
 | Sub-tab | Columns |
@@ -680,9 +682,8 @@ Each is a table on the queue table's grid rules (header row, `bg-row` rows, 6px 
 | Warnings | Player (name + tags) · Reason · Respect · Given (time, by whom) · `⋯` (turn into a punishment, lift) |
 | Punishments | Player · Length (*3 games left* / *until 22:10*) · Reason · Respect · Ends · `⋯` (edit length, lift) |
 | Bans | Player · Reason · Respect · Since · `⋯` (lift) |
-| History | Time · who did what, as a sentence (*mirayy moved kaanxd to Kurtlar*) · Undo when still possible |
 
-**New action** (primary on this tab) and **Clear history** (streamer only, undoable) sit right
+**New action** (primary on this tab) and **Clear sanctions** (streamer only, undoable) sit right
 of the sub-tabs. Lifted and served sanctions stay in their table, dimmed, with *Lifted* /
 *Served* tags. States: empty per sub-tab (*No warnings this session.*), loading (six skeleton
 rows on the grid), offline (actions disabled with the reason).
@@ -1121,14 +1122,15 @@ badge. A moderator signs in with their own Kick account and runs the streamer's 
 
 | | Streamer | Moderator |
 |---|---|---|
-| Queue, Teams, Management tabs | ✓ | ✓ |
+| Queue, Teams, Management, History tabs | ✓ | ✓ |
 | Settings tab | ✓ | Not shown |
 | Theme, language | Their own | Their own |
 
 - **Who you are acting as is always visible.** A moderator's masthead reads "HoustonHUB
   *Queue*" like the streamer's, with a `rounded-full` tag after it: *Moderating*.
-- **Every change is attributed.** Management → Activity lists actions as rows: avatar, "**mirayy**
-  moved kaanxd to Kurtlar", time. Undo toasts name the actor when it was someone else.
+- **Every change is attributed.** The History tab lists every change as a line: time, the
+  action's icon, "**mirayy** moved kaanxd to **Kurtlar**". Undo toasts name the actor when it was
+  someone else.
 - A moderator with no dashboard to moderate lands on a short page saying so, with a link to their
   own.
 

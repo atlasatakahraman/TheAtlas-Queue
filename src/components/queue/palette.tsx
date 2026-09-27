@@ -58,7 +58,7 @@ export function Palette() {
     ui.setPalette(false);
     f();
   };
-  const tabs: Tab[] = role === "owner" ? ["queue", "teams", "moderation", "settings"] : ["queue", "teams", "moderation"];
+  const tabs: Tab[] = role === "owner" ? ["queue", "teams", "moderation", "history", "settings"] : ["queue", "teams", "moderation", "history"];
 
   return (
     <CommandDialog open={ui.palette} onOpenChange={ui.setPalette} title={t("palette.open")} description={t("palette.hint")}>
@@ -144,7 +144,7 @@ export function Palette() {
 
 const TYPING = "input, textarea, select, [contenteditable=true], [role=combobox]";
 
-const TAB_KEYS: Tab[] = ["queue", "teams", "moderation"];
+const TAB_KEYS: Tab[] = ["queue", "teams", "moderation", "history"];
 
 // Global keys (DESIGN.md § Focus and keyboard, D18): a narrow set that no browser shortcut uses.
 // Only when no text input and no row has focus and nothing modal is open; ⌘K works everywhere,
@@ -174,7 +174,7 @@ export function Hotkeys() {
       if (key === "/") {
         e.preventDefault();
         focusSearch();
-      } else if (/^[1-3]$/.test(key)) {
+      } else if (/^[1-4]$/.test(key)) {
         e.preventDefault();
         setTab(TAB_KEYS[Number(key) - 1]);
       } else if (!writable) {

@@ -244,16 +244,17 @@ WCAG exempts them.
 |---|---|---|---|
 | default | label on fill, rest / hover (85 %) | 15.48 / 11.33 | 15.27 |
 | outline | label on `input/30`, hover `input/50` | 8.02 / 6.33 | 14.23 |
-| outline | edge (`--input`) | 3.13 | 3.39 (stock used the hairline: 1.12) |
+| outline | edge (`--row-edge`, owner 2026-09-27; the label identifies the button, so 1.4.11 asks nothing of it) | 1.9 | 1.47 |
 | ghost | label, rest / hover | 11.34 / 11.34 | 14.23 |
 | ghost, muted label | label on hover | 5.02 | 5.20 |
-| ghost, red label (Clear queue, Clear teams) | label on ground and hover | 4.74 | 5.36 |
 | destructive | **foreground** label on red `/20`, hover `/30` | 8.36 / 7.09 | 12.23 / 10.38 |
 | destructive | edge (solid `--destructive`), icon | 4.74 | 5.36 |
 | focus | gold edge / gold halo at 50 % | 8.21 / 3.24 | 5.00 / — |
 
-Stock shadcn failed three: the destructive label in red on its own tint (3.49, hover 2.96), the
-destructive focus halo at 40 % red (1.90), and Kâğıt's outline edge. The fixes live in
+Stock shadcn failed two: the destructive label in red on its own tint (3.49, hover 2.96) and the
+destructive focus halo at 40 % red (1.90). Its outline edge was the hairline; outline buttons now
+take the rows' edge, so they sit with the rows instead of outshouting them, while fields,
+selects and switches keep `--input` at 3:1. The fixes live in
 `globals.css` (see [Extending this](#extending-this)), not in `ui/button.tsx`.
 
 **The overlay** sits on unknown video. Its panels are `--ink-floor` at 88% opacity, always

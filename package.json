@@ -4,11 +4,11 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "next:dev": "next dev",
-    "next:build": "next build && bun --bun scripts/check-secrets.ts",
-    "next:start": "next start",
-    "check:types": "tsc --noEmit",
-    "check:lint": "eslint .",
+    "next:dev": "bun --bun next dev",
+    "next:build": "bun --bun next build && bun --bun scripts/check-secrets.ts",
+    "next:start": "bun --bun next start",
+    "check:types": "bun --bun tsc --noEmit",
+    "check:lint": "bun --bun eslint .",
     "check:secrets": "bun --bun scripts/check-secrets.ts"
   },
   "dependencies": {

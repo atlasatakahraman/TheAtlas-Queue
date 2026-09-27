@@ -1,5 +1,5 @@
 "use client";
-import { Ellipsis, Plus, Trash2 } from "lucide-react";
+import { Ban, Check, Ellipsis, Hourglass, Plus, Trash2, TriangleAlert, Undo2 } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
 import { FilterPills } from "@/components/queue/filter-pills";
@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import type { Activity, Sanction } from "@/types/queue";
 
 const SUBTABS = ["sanctions", "activity"] as const;
+const KIND_ICON = { warn: TriangleAlert, punish: Hourglass, ban: Ban };
 type Subtab = (typeof SUBTABS)[number];
 
 // A label with its {slots} filled by nodes, so names can be set bold inside a translated sentence.
@@ -136,8 +137,8 @@ function SanctionRow({ m, now, respect }: { m: Sanction; now: number; respect?: 
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="truncate text-name">{m.kick_username}</span>
-          <Tag tone={active ? tone : "muted"}>{t(`mod.kind.${m.kind}`)}</Tag>
-          {!active && <Tag tone="muted">{t(m.revoked_at ? "mod.lifted" : "mod.served")}</Tag>}
+          <Tag tone={active ? tone : "muted"} icon={KIND_ICON[m.kind]}>{t(`mod.kind.${m.kind}`)}</Tag>
+          {!active && <Tag tone="muted" icon={m.revoked_at ? Undo2 : Check}>{t(m.revoked_at ? "mod.lifted" : "mod.served")}</Tag>}
         </div>
         <p className="text-meta text-muted-foreground">
           {detail}
@@ -212,7 +213,7 @@ function ActivityList({ list }: { list: Activity[] }) {
                   where: <span className="font-semibold">{where}</span>,
                 }}
               />
-              {a.undone_at && <span className="ml-2 inline-flex align-middle"><Tag tone="muted">{t("mod.undone")}</Tag></span>}
+              {a.undone_at && <span className="ml-2 inline-flex align-middle"><Tag tone="muted" icon={Undo2}>{t("mod.undone")}</Tag></span>}
             </span>
             <span className="shrink-0 text-meta text-muted-foreground">{now ? ago(a.created_at, now, t) : ""}</span>
           </li>

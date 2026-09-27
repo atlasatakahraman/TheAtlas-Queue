@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown, Shuffle, UserPlus, UsersRound } from "lucide-react";
+import { ChevronDown, ShieldCheck, Shuffle, UserPlus, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
@@ -209,7 +209,7 @@ function AddToTeam({ team, at, onClose }: { team: 1 | 2; at: HTMLElement | null;
   );
 }
 
-// One name landing: typed in with Typewriter, its 🛡 rising with it.
+// One name landing: typed in with Typewriter, its protected tag rising with it.
 export function LandingName({ entry, at }: { entry: DrawEntry; at: number }) {
   const { t } = useT();
   return (
@@ -217,7 +217,7 @@ export function LandingName({ entry, at }: { entry: DrawEntry; at: number }) {
       <Typewriter text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
       {entry.locked && (
         <span className="animate-enter" style={{ animationDelay: `${at}ms` }}>
-          <Tag tone="brand">🛡 {t("tag.protected")}</Tag>
+          <Tag tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>
         </span>
       )}
     </div>

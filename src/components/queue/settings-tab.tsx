@@ -1,5 +1,5 @@
 "use client";
-import { RotateCcw } from "lucide-react";
+import { Ban, Crown, MessageSquare, RotateCcw, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useT } from "@/components/i18n";
 import { Tag } from "@/components/queue/player-row";
@@ -307,8 +307,8 @@ function ModeratorsSection() {
             className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-row-edge bg-background px-4 py-3"
           >
             <span className="min-w-0 truncate text-name">{m.kick_username ?? `#${m.kick_user_id}`}</span>
-            <Tag tone={m.role === "owner" ? "brand" : "muted"}>{t(`settings.mods.source.${m.source}`)}</Tag>
-            {m.blocked && <Tag tone="destructive">{t("settings.mods.blocked")}</Tag>}
+            <Tag tone={m.role === "owner" ? "brand" : "muted"} icon={{ owner: Crown, badge: MessageSquare, manual: UserPlus }[m.source]}>{t(`settings.mods.source.${m.source}`)}</Tag>
+            {m.blocked && <Tag tone="destructive" icon={Ban}>{t("settings.mods.blocked")}</Tag>}
             {m.role !== "owner" && (
               <span className="ml-auto flex gap-1">
                 <Button

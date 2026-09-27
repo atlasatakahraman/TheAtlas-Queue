@@ -7,10 +7,14 @@ import {
   Copy,
   Ellipsis,
   Gamepad2,
+  Heart,
   Hourglass,
   type LucideIcon,
   Pencil,
+  ShieldCheck,
   ShieldOff,
+  Sparkles,
+  Star,
   Trash2,
   TriangleAlert,
   Undo2,
@@ -47,6 +51,7 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsTouch } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
 import type { LabelKey } from "@/lib/i18n";
@@ -74,20 +79,38 @@ export function RankText({ player, className }: { player: Player; className?: st
   );
 }
 
-// Tags: word and colour, never colour alone (DESIGN.md § Recipes → Tags).
-const TAG = "inline-flex shrink-0 items-center rounded-full border px-2 text-caption normal-case tracking-normal select-none";
+// Tags (D36): an icon and a word in the role colour, no capsule; colour is never the only signal
+// (DESIGN.md § Recipes → Tags). `fold` tags sit on a name's line: under 20rem of line the word
+// folds into a tooltip and the icon stays, after the name has truncated.
+const TONES = {
+  brand: "text-brand",
+  "team-1": "text-team-1",
+  "team-2": "text-team-2",
+  muted: "text-muted-foreground",
+  success: "text-success",
+  warning: "text-warning",
+  destructive: "text-destructive",
+};
 
-export function Tag({ tone, children }: { tone: "brand" | "team-1" | "team-2" | "muted" | "success" | "warning" | "destructive"; children: React.ReactNode }) {
-  const tones = {
-    brand: "border-brand/45 text-brand",
-    "team-1": "border-team-1/45 text-team-1",
-    "team-2": "border-team-2/45 text-team-2",
-    muted: "border-muted-foreground/45 text-muted-foreground",
-    success: "border-success/45 text-success",
-    warning: "border-warning/45 text-warning",
-    destructive: "border-destructive/45 text-destructive",
-  };
-  return <span className={cn(TAG, tones[tone])}>{children}</span>;
+export function Tag({ tone, icon: Icon, fold = false, children }: {
+  tone: keyof typeof TONES;
+  icon?: LucideIcon;
+  fold?: boolean;
+  children: React.ReactNode;
+}) {
+  const tag = (
+    <span className={cn("inline-flex shrink-0 items-center gap-1 text-meta font-medium select-none", TONES[tone])}>
+      {Icon && <Icon className="size-3.5 shrink-0" aria-hidden />}
+      <span className={cn(fold && "@max-xs/name:sr-only")}>{children}</span>
+    </span>
+  );
+  if (!fold) return tag;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{tag}</TooltipTrigger>
+      <TooltipContent>{children}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function activeSanctions(moderation: Sanction[], name: string) {
@@ -110,12 +133,18 @@ export function PlayerTags({ player, showState = true }: { player: Player; showS
   const s = activeSanctions(moderation, player.kick_username);
   return (
     <>
-      {player.locked ? <Tag tone="brand">🛡 {t("tag.protected")}</Tag> : player.is_subscriber && <Tag tone="brand">🛡 {t("tag.sub")}</Tag>}
-      {showState && player.status === "playing" && <Tag tone={player.team === 2 ? "team-2" : "team-1"}>{t("tag.in_game")}</Tag>}
-      {showState && player.status === "away" && <Tag tone="muted">{t("tag.away")}</Tag>}
-      {fairPlay && player.games_played === 0 && <Tag tone="success">{t("tag.first_game")}</Tag>}
-      {s.warned && <Tag tone="warning">{t("tag.warned")}</Tag>}
-      {s.banned && <Tag tone="destructive">{t("tag.banned")}</Tag>}
+      {player.locked ? (
+        <Tag fold tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>
+      ) : (
+        player.is_subscriber && <Tag fold tone="brand" icon={Star}>{t("tag.sub")}</Tag>
+      )}
+      {showState && player.status === "playing" && (
+        <Tag fold tone={player.team === 2 ? "team-2" : "team-1"} icon={Gamepad2}>{t("tag.in_game")}</Tag>
+      )}
+      {showState && player.status === "away" && <Tag fold tone="muted" icon={Coffee}>{t("tag.away")}</Tag>}
+      {fairPlay && player.games_played === 0 && <Tag fold tone="success" icon={Sparkles}>{t("tag.first_game")}</Tag>}
+      {s.warned && <Tag fold tone="warning" icon={TriangleAlert}>{t("tag.warned")}</Tag>}
+      {s.banned && <Tag fold tone="destructive" icon={Ban}>{t("tag.banned")}</Tag>}
     </>
   );
 }
@@ -275,12 +304,17 @@ function PlayerAvatar({ player }: { player: Player }) {
 function RespectBadge({ player }: { player: Player }) {
   const { t } = useT();
   const score = useQueue((v) => v.respect[player.kick_username.toLowerCase()]) ?? 100;
-  const tone =
-    score >= 80 ? "border-success/45 text-success" : score >= 50 ? "border-warning/45 text-warning" : "border-destructive/45 text-destructive";
   return (
-    <span title={t("mod.respect")} className={cn(TAG, "tabular-nums", tone)}>
-      {score}
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="tabular-nums">
+          <Tag tone={score >= 80 ? "success" : score >= 50 ? "warning" : "destructive"} icon={Heart}>
+            {score}
+          </Tag>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{t("mod.respect")}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -607,7 +641,8 @@ export function PlayerRow({
           <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{number}</span>
           <div className="flex min-w-0 items-center gap-3">
             <PlayerAvatar player={player} />
-            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            {/* One line (D36): the name truncates first, then the tags fold to icons. */}
+            <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
               <PlayerName player={player} stacked={table} typeAt={landAt} />
               {table && <RespectBadge player={player} />}
               <PlayerTags player={player} showState={table} />

@@ -18,8 +18,9 @@ const args = [
   "-e", `AUTH_URL=https://${ALIAS}`,
 ];
 
-// vercel prints the deployment URL on stdout, progress on stderr.
+// vercel 60 prints JSON on a non-TTY stdout (a bare URL before); take the first deployment URL.
 const out = await $`bunx --bun vercel deploy --yes ${args}`.quiet().text();
-const url = out.trim().split("\n").pop()!;
+const url = out.match(/https:\/\/[\w.-]+\.vercel\.app/)?.[0];
+if (!url) throw new Error("no deployment URL in vercel's output");
 await $`bunx --bun vercel alias set ${url} ${ALIAS}`.quiet();
 console.log(`${url} -> https://${ALIAS}`);

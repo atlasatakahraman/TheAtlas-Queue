@@ -117,7 +117,10 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const tabs: Tab[] = ["queue", "teams", "moderation"];
   const counts: Record<Tab, number> = { queue: count, teams: playing, moderation: sanctions, settings: 0 };
   const e2 = enter(entering, 2);
-  const panel = entering || dir === 0 ? {} : { className: "tab-in", style: { "--tab-from": `${dir * 16}px` } as React.CSSProperties };
+  // Only the arriving panel slides in. Given to the leaving one too, its animation kept Radix
+  // from unmounting it, so it sat under the new panel for ~240ms (owner, 2026-09-27).
+  const panel = (v: Tab) =>
+    entering || dir === 0 || v !== tab ? {} : { className: "tab-in", style: { "--tab-from": `${dir * 16}px` } as React.CSSProperties };
   const active = tabs.indexOf(tab);
 
   return (
@@ -181,17 +184,17 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
               );
             })}
           </TabsList>
-          <TabsContent value="queue" {...panel}>
+          <TabsContent value="queue" {...panel("queue")}>
             <QueueTab />
           </TabsContent>
-          <TabsContent value="teams" {...panel}>
+          <TabsContent value="teams" {...panel("teams")}>
             <TeamsTab />
           </TabsContent>
-          <TabsContent value="moderation" {...panel}>
+          <TabsContent value="moderation" {...panel("moderation")}>
             <ModerationTab />
           </TabsContent>
           {role === "owner" && (
-            <TabsContent value="settings" {...panel}>
+            <TabsContent value="settings" {...panel("settings")}>
               <SettingsTab />
             </TabsContent>
           )}

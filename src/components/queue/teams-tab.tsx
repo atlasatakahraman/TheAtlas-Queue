@@ -143,6 +143,7 @@ function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?:
         key={i}
         type="button"
         data-slot-add
+        data-add-target
         onClick={(e) => onAdd(e.currentTarget)}
         className={cn(cls, "outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40")}
       >
@@ -174,7 +175,16 @@ function AddToTeam({ team, at, onClose }: { team: 1 | 2; at: HTMLElement | null;
   return (
     <Popover open={!!at} onOpenChange={(o) => !o && onClose()}>
       {at && <PopoverAnchor virtualRef={{ current: at }} />}
-      <PopoverContent align={at?.dataset.slotAdd === undefined ? "end" : "start"} className="w-72 p-0">
+      <PopoverContent
+        align={at?.dataset.slotAdd === undefined ? "end" : "start"}
+        className="w-72 p-0"
+        // Pressing another of this card's add targets must not close first and reopen in a race
+        // (owner, 2026-09-27: the list jumped, or stayed shut): the card opens it there instead.
+        onInteractOutside={(e) => {
+          const hit = (e.target as Element | null)?.closest?.("[data-add-target]");
+          if (hit && hit.closest("section") === at?.closest("section")) e.preventDefault();
+        }}
+      >
         <Command>
           <CommandInput placeholder={t("teams.add.search")} />
           <CommandList className="max-h-72">
@@ -236,7 +246,10 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
   const moveTo = useMoveTo();
   const canWrite = useCanWrite();
   const [over, setOver] = useState(false);
-  const [addAt, setAddAt] = useState<HTMLElement | null>(null);
+  // Each opening is its own list (a new key), so a second target opens a fresh list there
+  // instead of sliding the open one across; the same target again closes it.
+  const [add, setAdd] = useState<{ at: HTMLElement; n: number } | null>(null);
+  const openAt = (at: HTMLElement) => setAdd((a) => (a?.at === at ? null : { at, n: (a?.n ?? 0) + 1 }));
   const canAdd = addable && canWrite && count < size;
   // Drop target for a player of the other team, or anyone dragged here (August's team boxes).
   const takes = (d: ReturnType<typeof draggedPlayer>) => !!d && !(d.status === "playing" && d.team === team);
@@ -266,7 +279,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
       <div className={cn("h-[5px]", team === 1 ? "bg-team-1" : "bg-team-2")} aria-hidden />
       <div className="flex flex-col gap-3 p-4">
         {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
-        <AddToTeam team={team} at={addAt} onClose={() => setAddAt(null)} />
+        <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} onClose={() => setAdd(null)} />
         <header aria-label={t(`team.${team}`)} className="flex min-h-9 items-center justify-between gap-3 text-meta text-muted-foreground">
           <span className="flex min-w-0 items-baseline gap-3">
             <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
@@ -278,7 +291,8 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
               size="lg"
               className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
               disabled={!canAdd}
-              onClick={(e) => setAddAt(e.currentTarget)}
+              data-add-target
+              onClick={(e) => openAt(e.currentTarget)}
             >
               <UserPlus aria-hidden />
               {t("teams.add", { team: t(`team.${team}`) })}
@@ -287,7 +301,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
         </header>
         <div data-rows className="flex flex-col gap-1.5">
           {children}
-          <EmptySlots from={count} size={size} onAdd={canAdd ? setAddAt : undefined} />
+          <EmptySlots from={count} size={size} onAdd={canAdd ? openAt : undefined} />
         </div>
       </div>
     </section>

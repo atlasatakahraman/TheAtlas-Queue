@@ -34,7 +34,7 @@ export function FilterPills<T extends string>({ label, value, options, onChange 
             )}
           >
             {o.label}
-            {o.count !== undefined && <span className="text-muted-foreground tabular-nums">{o.count}</span>}
+            {o.count !== undefined && <span className="font-serif text-muted-foreground tabular-nums">{o.count}</span>}
           </button>
         ))}
       </div>

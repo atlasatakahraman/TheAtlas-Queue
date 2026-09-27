@@ -218,7 +218,7 @@ function MobileFeed() {
       <Button variant="outline" size="lg" className="h-11" onClick={() => (setSeen(newest), setOpen(true))}>
         <MessageSquareText aria-hidden />
         {t("feed.title")}
-        {unread > 0 && <span className="text-brand tabular-nums">{unread}</span>}
+        {unread > 0 && <span className="font-serif text-brand tabular-nums">{unread}</span>}
       </Button>
       <Sheet
         open={open}

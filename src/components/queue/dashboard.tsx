@@ -175,7 +175,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
                     {counts[k] > 0 && (
                       <span
                         key={counts[k]}
-                        className="animate-count min-w-[2ch] text-left font-medium tabular-nums text-muted-foreground/80 transition-colors group-data-[state=active]/tab:text-brand"
+                        className="animate-count min-w-[2ch] text-left font-serif font-medium tabular-nums text-muted-foreground/80 transition-colors group-data-[state=active]/tab:text-brand"
                       >
                         {counts[k]}
                       </span>

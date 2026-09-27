@@ -117,6 +117,24 @@ begin
   if not exists (select 1 from pg_temp.rows_of(r, 'settings') e where (e ->> 'fair_play')::boolean) then
     raise exception 'set_fair_play: event lacks settings';
   end if;
+
+  -- D37: p_key places the player in the same write; undo puts the old place back; a key that
+  -- is not a finite number refuses.
+  perform public.add_player(ch, 'dave', null, gen_random_uuid(), 5::double precision);
+  if (select sort_key from public.players where channel_id = ch and kick_username = 'dave') is distinct from 5::double precision then
+    raise exception 'add_player: p_key not used';
+  end if;
+  r := public.move_player(ch, bob, 'away', null, gen_random_uuid(), 4.5::double precision);
+  if (select sort_key from public.players where id = bob) is distinct from 4.5::double precision then
+    raise exception 'move_player: p_key not used';
+  end if;
+  select (e ->> 'id')::bigint into act from pg_temp.rows_of(r, 'activity') e;
+  perform public.undo(ch, act, gen_random_uuid());
+  if (select sort_key = 4.5 or status <> 'waiting' from public.players where id = bob) then
+    raise exception 'undo: move_player with p_key not restored';
+  end if;
+  perform pg_temp.expect(format('select public.move_player(%L, %L, %L, null, gen_random_uuid(), %L::double precision)', ch, bob, 'waiting', 'Infinity'), 'request.invalid');
+  perform pg_temp.expect(format('select public.add_player(%L, %L, null, gen_random_uuid(), %L::double precision)', ch, 'erin', 'NaN'), 'request.invalid');
   perform set_config('request.jwt.claims', owner, true);
 end $$;
 

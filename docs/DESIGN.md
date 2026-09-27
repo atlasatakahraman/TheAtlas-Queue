@@ -1351,8 +1351,10 @@ these; re-apply them after:
 hover or active effect"). In `globals.css`, `@layer components`: the `default` variant hovers at
 85% `--primary` (stock only hovers it as a link), a menu trigger (`aria-haspopup`) presses 1px
 like every other button (stock skips it), and a button's icon turns −6° and grows ×1.15 over
-150ms on hover, TheAtlas's sidebar motion (`packages/@ui/.../appbar/nav-item.tsx`); none of it
-under reduced motion. And Mürekkep's `--muted` is `--ink-hover`, as Kâğıt's already was: it was
+150ms on hover, TheAtlas's sidebar motion (`packages/@ui/.../appbar/nav-item.tsx`). Since
+2026-09-27 (owner: controls answer the hand) every button also sinks to ×0.97 while pressed, a
+menu or palette row's leading icon steps 2px towards its label while highlighted, and
+Settings' *Saved* fades up into place. None of it under reduced motion or with Animations off. And Mürekkep's `--muted` is `--ink-hover`, as Kâğıt's already was: it was
 `--ink-card`, so the ghost button's `hover:bg-muted` vanished on every card surface (vault ADR
 0016, fix the token, not the variant). Filter pills sit on `bg-muted` and got a shade lighter.
 

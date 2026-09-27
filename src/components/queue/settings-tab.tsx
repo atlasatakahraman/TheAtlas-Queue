@@ -139,7 +139,7 @@ function SaveRow({ s, manual = true }: { s: { dirty: boolean; save: () => Promis
   return (
     <div className="flex min-h-9 items-center justify-end gap-3">
       {s.errors.form && <p className="mr-auto text-meta text-destructive">{s.errors.form}</p>}
-      {s.state === "saved" && !s.dirty && <span className="text-meta text-muted-foreground">{t("common.saved")}</span>}
+      {s.state === "saved" && !s.dirty && <span className="text-meta text-muted-foreground animate-in fade-in slide-in-from-bottom-1 duration-200">{t("common.saved")}</span>}
       {manual && (
         <Button variant="outline" size="lg" className="max-md:h-11" disabled={!s.dirty || s.state === "saving" || !canWrite} onClick={() => void s.save()}>
           {t("common.save")}

@@ -400,6 +400,19 @@
   [data-slot="button"]:not(:disabled):hover > svg {
     transform: rotate(-6deg) scale(1.15);
   }
+  /* A press sinks the whole button a little (owner, 2026-09-27: controls answer the hand), menu
+     triggers included; the base transition-all carries it. */
+  [data-slot="button"]:not(:disabled):active {
+    scale: 0.97;
+  }
+  /* A menu or palette row's leading icon steps 2px towards its label while highlighted. */
+  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"], [data-slot="command-item"]) > svg:first-child {
+    transition: translate 150ms ease-out;
+  }
+  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"])[data-highlighted] > svg:first-child,
+  [data-slot="command-item"][data-selected="true"] > svg:first-child {
+    translate: 2px 0;
+  }
 }
 
 /* The destructive variant (D21, measured): red text on its own red tint is 3.49:1 in Mürekkep
@@ -460,6 +473,12 @@
   [data-slot="button"]:hover > svg {
     transition: none;
     transform: none;
+  }
+  [data-slot="button"]:active,
+  [data-highlighted] > svg:first-child,
+  [data-selected="true"] > svg:first-child {
+    scale: none;
+    translate: none;
   }
 }
 

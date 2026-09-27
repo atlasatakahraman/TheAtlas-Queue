@@ -158,7 +158,10 @@ hex cannot serve both grounds: teal `#6cc3b6` is 9.0:1 on ink and 2.0:1 on paper
 | `--orange` | `#f0a35e` | `#9a4a16` | **Team 2, only** |
 | `--red` | `#e27a70` | `#b3261e` | Rejected, banned, destructive text and outlines |
 | `--red-fill` | `#b3413a` | `#b3261e` | Solid destructive fill (5.6:1 / 6.4:1 with white on it) |
-| `--green` | `#9cc98a` | `#386e2e` | Live, accepted, success |
+| `--green` | `#9cc98a` | `#386e2e` | Live, accepted, success; the sub gifter badge |
+| `--pink` | `#ec94c4` | `#a2336c` | **The VIP badge glyph, only** (D32) |
+| `--blue` | `#93aef2` | `#3a56a8` | **The OG badge glyph, only** |
+| `--purple` | `#bba2f2` | `#6b45b8` | **The founder badge glyph, only** |
 
 **Team colours are fixed, team names are not.** A streamer renames "Team 1" to "Kurtlar" in
 Settings; they cannot recolour it. Teal and orange were picked because they stay distinct under
@@ -198,6 +201,7 @@ red for "`!sıra` rejected: banned", and a red team would read as a failed team.
 | `--warning` | gold | gold | Moderation warning, degraded connection |
 | `--team-1` | teal | teal | Team 1 |
 | `--team-2` | orange | orange | Team 2 |
+| `--badge-vip` / `-og` / `-founder` | pink / blue / purple | same, light steps | Kick badge glyphs (badge picker, player card); subscriber is `--brand`, sub gifter `--success` |
 | `--selection` / `--selection-foreground` | gold / ink-floor | gold / paper-card | Default text selection |
 | `--chart-1…5` | teal, orange, gold, green, ink-muted | same, light steps | `/watch` stats only |
 
@@ -230,6 +234,27 @@ the colour can sit on: floor, card, row, hover and highlight.
 | Focus ring | 7.59 | 5.00 |
 | Primary button (label on fill) | 15.48 | 15.27 |
 | White on `--destructive-fill` | 5.62 | 6.54 |
+| VIP / OG / founder glyphs | 6.27 / 6.26 / 6.25 | 5.33 / 5.59 / 5.43 |
+
+**Buttons, measured (D21, 2026-09-27).** Every variant on every surface it can land on; the tint
+of a fill is composited over that surface first. Disabled buttons (50 % opacity) are exempt, as
+WCAG exempts them.
+
+| Variant | Pair | Mürekkep worst | Kâğıt worst |
+|---|---|---|---|
+| default | label on fill, rest / hover (85 %) | 15.48 / 11.33 | 15.27 |
+| outline | label on `input/30`, hover `input/50` | 8.02 / 6.33 | 14.23 |
+| outline | edge (`--input`) | 3.13 | 3.39 (stock used the hairline: 1.12) |
+| ghost | label, rest / hover | 11.34 / 11.34 | 14.23 |
+| ghost, muted label | label on hover | 5.02 | 5.20 |
+| ghost, red label (Clear queue, Clear teams) | label on ground and hover | 4.74 | 5.36 |
+| destructive | **foreground** label on red `/20`, hover `/30` | 8.36 / 7.09 | 12.23 / 10.38 |
+| destructive | edge (solid `--destructive`), icon | 4.74 | 5.36 |
+| focus | gold edge / gold halo at 50 % | 8.21 / 3.24 | 5.00 / — |
+
+Stock shadcn failed three: the destructive label in red on its own tint (3.49, hover 2.96), the
+destructive focus halo at 40 % red (1.90), and Kâğıt's outline edge. The fixes live in
+`globals.css` (see [Extending this](#extending-this)), not in `ui/button.tsx`.
 
 **The overlay** sits on unknown video. Its panels are `--ink-floor` at 88% opacity, always
 Mürekkep. Measured over pure white, mid-grey and black footage: body 11.2 / 13.6 / 15.7,
@@ -1031,6 +1056,12 @@ like every other button (stock skips it), and a button's icon turns −6° and g
 under reduced motion. And Mürekkep's `--muted` is `--ink-hover`, as Kâğıt's already was: it was
 `--ink-card`, so the ghost button's `hover:bg-muted` vanished on every card surface (vault ADR
 0016, fix the token, not the variant). Filter pills sit on `bg-muted` and got a shade lighter.
+
+**The destructive and outline buttons, without touching `ui/button.tsx`** (D21, measured in
+[Contrast](#contrast)): the destructive label is `--foreground`, its icon and a solid edge are
+`--destructive`; the outline edge is `--input` in both themes; a focused destructive or outline
+button's edge turns gold. Unlayered in `globals.css`, because the variants' own utilities
+outrank `@layer components`.
 
 **Settings save on blur.** A text field saves its section when it loses focus; switches and
 selects keep the section's Save button.

@@ -393,6 +393,26 @@
   }
 }
 
+/* The destructive variant (D21, measured): red text on its own red tint is 3.49:1 in Mürekkep
+   and red focus at 40% is 1.90:1. The label is foreground (≥ 7.09:1 on the tint, hover
+   included), the icon and a solid edge carry the red (4.74:1), and focus turns the edge gold (8.21:1).
+   Unlayered, because the variant's own utilities outrank @layer components. */
+[data-slot="button"][data-variant="destructive"] {
+  color: var(--foreground);
+  border-color: var(--destructive);
+}
+[data-slot="button"][data-variant="destructive"]:focus-visible,
+[data-slot="button"][data-variant="outline"]:focus-visible {
+  border-color: var(--ring);
+}
+[data-slot="button"][data-variant="destructive"] > svg {
+  color: var(--destructive);
+}
+/* Stock outline draws Kâğıt's edge in the hairline (1.12:1); the control outline is 3.39:1. */
+[data-slot="button"][data-variant="outline"] {
+  border-color: var(--input);
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-slot="button"] > svg,
   [data-slot="button"]:hover > svg {

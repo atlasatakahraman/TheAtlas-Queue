@@ -168,7 +168,7 @@ begin
   from public.players where channel_id = ch;
 
   -- Fresh draw, fair-play on: the ten fewest games play (p11 is punished anyway), 5 v 5, each
-  -- gains a game; p00 is protected, p01 is out of perk uses; p11 serves one game.
+  -- gains a game; p00 is protected, p01 is out of perk uses; p11 serves nothing (0027: games do).
   r := public.draw_teams(ch, null, false, rq);
   select (e ->> 'id')::uuid into d1 from pg_temp.rows_of(r, 'draws') e;
   select (e ->> 'id')::bigint into a1 from pg_temp.rows_of(r, 'activity') e;
@@ -188,7 +188,8 @@ begin
     raise exception 'perk: expected only p00 protected';
   end if;
   if (select count(*) from public.perk_uses where channel_id = ch) <> 2 then raise exception 'perk: use not recorded'; end if;
-  if (select games_left from public.moderation where channel_id = ch) <> 1 then raise exception 'punishment: game not served'; end if;
+  -- 0027: a recorded game serves a punishment's game, a draw no longer does.
+  if (select games_left from public.moderation where channel_id = ch) <> 2 then raise exception 'punishment: a draw served a game'; end if;
 
   r := public.draw_teams(ch, null, false, rq);
   if r ->> 'kind' <> 'replay' or (select count(*) from public.draws where channel_id = ch) <> 1 then
@@ -225,7 +226,7 @@ begin
     raise exception 'reroll: teams are not 5 v 5';
   end if;
   if (select count(*) from public.perk_uses where channel_id = ch) <> 2 then raise exception 'reroll: consumed a perk use'; end if;
-  if (select games_left from public.moderation where channel_id = ch) <> 1 then raise exception 'reroll: served a punishment game'; end if;
+  if (select games_left from public.moderation where channel_id = ch) <> 2 then raise exception 'reroll: served a punishment game'; end if;
 
   -- Undo the reroll, then the draw: undos stack back to the start.
   perform public.undo(ch, a2, gen_random_uuid());
@@ -567,6 +568,139 @@ begin
   if exists (select 1 from public.players where channel_id = ch and deleted_at is null and (riot_id is not null or puuid is not null))
      or not exists (select 1 from public.players where channel_id = ch and deleted_at is null and kick_username = 'ray') then
     raise exception 'riot off: an id kept, or ray removed';
+  end if;
+end $$;
+
+-- 0027: game history. Channel qa-games, owner qa_owner, mod qa_mod, team size 2, g1..g6, g6
+-- punished for 2 games. Victory records one game per base, serves punishments, keeps records;
+-- undo, remove, clear and forget come back; an after-game draw is undone with its game.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000003';
+  owner constant text := '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+  modr  constant text := '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+  rq    uuid := gen_random_uuid();
+  r     jsonb;
+  g1    uuid;
+  g2    uuid;
+  a2    bigint;
+  t1    text[];
+  t2    text[];
+begin
+  execute 'reset role';
+  insert into public.channels (id, kick_channel_id, slug, display_name) values (ch, -301, 'qa-games', 'qa games');
+  insert into public.channel_members (channel_id, kick_user_id, role, source) values
+    (ch, -101, 'owner', 'owner'), (ch, -102, 'mod', 'manual');
+  insert into public.settings (channel_id, team_size) values (ch, 2);
+  insert into public.players (channel_id, kick_username, source, joined_at)
+    select ch, 'g' || i, 'chat', now() - make_interval(secs => 10 - i) from generate_series(1, 6) i;
+  insert into public.moderation (channel_id, kick_username, kind, games_left, reason) values (ch, 'g6', 'punish', 2, 'fixture');
+  execute 'set local role authenticated';
+  perform set_config('request.jwt.claims', owner, true);
+
+  perform pg_temp.expect(format('select public.record_game(%L, 1::smallint, null, gen_random_uuid())', ch), 'game.team_empty');
+  perform public.draw_teams(ch, null, false, gen_random_uuid());
+  select array_agg(lower(kick_username) order by kick_username) into t1 from public.players where channel_id = ch and team = 1;
+
+  -- A moderator records; the same request replays; a stale base records nothing.
+  perform set_config('request.jwt.claims', modr, true);
+  r := public.record_game(ch, 1::smallint, null, rq);
+  select (e ->> 'id')::uuid into g1 from pg_temp.rows_of(r, 'games') e;
+  if r ->> 'kind' <> 'record_game' or (select n from public.games where id = g1) <> 1
+     or (select count(*) from public.game_players where game_id = g1) <> 4
+     or (select jsonb_array_length(teams -> 0) + jsonb_array_length(teams -> 1) from public.games where id = g1) <> 4 then
+    raise exception 'record: game 1 not recorded whole: %', r;
+  end if;
+  r := public.record_game(ch, 1::smallint, null, rq);
+  if r ->> 'kind' <> 'replay' then raise exception 'record: replay recorded again'; end if;
+  r := public.record_game(ch, 2::smallint, null, gen_random_uuid());
+  if r ->> 'kind' <> 'game_stale' or (select count(*) from public.games where channel_id = ch) <> 1 then
+    raise exception 'record: a stale base recorded a second game';
+  end if;
+  if exists (select 1 from public.player_records where channel_id = ch and name = any(t1) and (wins, losses, streak, best) <> (1, 0, 1, 1))
+     or (select count(*) from public.player_records where channel_id = ch) <> 4
+     or (select count(*) from public.games where channel_id = ch and removed_at is null and winner = 1) <> 1
+     or (select games_left from public.moderation where channel_id = ch) <> 1
+     or (select status from public.players where channel_id = ch and kick_username = 'g6') <> 'punished'
+     or (select status from public.players where channel_id = ch and kick_username = t1[1]) <> 'playing' then
+    raise exception 'record: records, score, punishment or the teams (record only) are wrong';
+  end if;
+
+  -- Game 2, team 2 wins: team 1 is 1 W 1 L on a losing streak; g6 has served and waits.
+  r := public.record_game(ch, 2::smallint, g1, gen_random_uuid());
+  select (e ->> 'id')::uuid into g2 from pg_temp.rows_of(r, 'games') e;
+  select (e ->> 'id')::bigint into a2 from pg_temp.rows_of(r, 'activity') e;
+  if exists (select 1 from public.player_records where channel_id = ch and name = any(t1) and (wins, losses, streak, best) <> (1, 1, -1, 1))
+     or (select games_left from public.moderation where channel_id = ch) <> 0
+     or (select status from public.players where channel_id = ch and kick_username = 'g6') <> 'waiting' then
+    raise exception 'record 2: records or the served punishment are wrong';
+  end if;
+  perform public.undo(ch, a2, gen_random_uuid());
+  if (select removed_at is null from public.games where id = g2)
+     or exists (select 1 from public.player_records where channel_id = ch and name = any(t1) and (wins, losses) <> (1, 0))
+     or (select games_left from public.moderation where channel_id = ch) <> 1
+     or (select status from public.players where channel_id = ch and kick_username = 'g6') <> 'punished' then
+    raise exception 'undo game: not back to after game 1';
+  end if;
+
+  -- Remove this game (a moderator), and Undo.
+  r := public.remove_game(ch, g1, gen_random_uuid());
+  if (select count(*) from public.player_records where channel_id = ch) <> 0 or (select count(*) from public.games where channel_id = ch and removed_at is null and winner = 1) <> 0 then
+    raise exception 'remove: records or score kept the game';
+  end if;
+  perform public.undo(ch, (select (e ->> 'id')::bigint from pg_temp.rows_of(r, 'activity') e), gen_random_uuid());
+  if (select count(*) from public.player_records where channel_id = ch) <> 4 then raise exception 'undo remove: records not back'; end if;
+
+  -- Streamer only: clear games and forget a player; both undo.
+  perform pg_temp.expect(format('select public.clear_games(%L, gen_random_uuid())', ch), 'auth.role');
+  perform pg_temp.expect(format('select public.forget_player(%L, %L, gen_random_uuid())', ch, t1[1]), 'auth.role');
+  perform set_config('request.jwt.claims', owner, true);
+  r := public.clear_games(ch, gen_random_uuid());
+  if exists (select 1 from public.games where channel_id = ch and removed_at is null)
+     or exists (select 1 from public.player_records where channel_id = ch) then
+    raise exception 'clear games: a game or record stayed';
+  end if;
+  perform public.undo(ch, (select (e ->> 'id')::bigint from pg_temp.rows_of(r, 'activity') e), gen_random_uuid());
+  if (select removed_at is not null from public.games where id = g1) then raise exception 'undo clear: game 1 not back'; end if;
+  r := public.forget_player(ch, upper(t1[1]), gen_random_uuid());
+  if exists (select 1 from public.game_players where channel_id = ch and name = t1[1])
+     or exists (select 1 from public.player_records where channel_id = ch and name = t1[1])
+     or (select teams::text not like '%"removed": true%' or teams::text ilike '%"' || t1[1] || '"%' from public.games where id = g1) then
+    raise exception 'forget: % is still in the history', t1[1];
+  end if;
+  perform public.undo(ch, (select (e ->> 'id')::bigint from pg_temp.rows_of(r, 'activity') e), gen_random_uuid());
+  if not exists (select 1 from public.game_players where game_id = g1 and name = t1[1])
+     or (select teams::text ilike '%"' || t1[1] || '"%' is not true from public.games where id = g1)
+     or (select wins from public.player_records where channel_id = ch and name = t1[1]) <> 1 then
+    raise exception 'undo forget: % is not back', t1[1];
+  end if;
+
+  -- After-game action: losers back to waiting.
+  perform public.update_settings(ch, '{"after_game": "losers"}', gen_random_uuid());
+  r := public.record_game(ch, 1::smallint, g1, gen_random_uuid());
+  if exists (select 1 from public.players where channel_id = ch and team = 2)
+     or (select count(*) from public.players where channel_id = ch and team = 1) <> 2 then
+    raise exception 'after-game losers: team 2 did not go back, or team 1 moved';
+  end if;
+
+  -- After-game action: a new draw from the queue only. The game's four sit out, so the other two
+  -- are drawn 1 v 1; one Undo takes back the draw and the game.
+  perform public.draw_teams(ch, (select id from public.draws where channel_id = ch and undone_at is null order by created_at desc limit 1), false, gen_random_uuid());
+  select array_agg(lower(kick_username)) filter (where team = 1), array_agg(lower(kick_username)) filter (where team is not null)
+  into t1, t2 from public.players where channel_id = ch;
+  perform public.update_settings(ch, '{"after_game": "draw_queue"}', gen_random_uuid());
+  g2 := (select id from public.games where channel_id = ch and removed_at is null order by n desc limit 1);
+  r := public.record_game(ch, 2::smallint, g2, gen_random_uuid());
+  if (select count(*) from pg_temp.rows_of(r, 'activity')) <> 2
+     or exists (select 1 from public.players where channel_id = ch and team is not null and lower(kick_username) = any(t2))
+     or (select count(*) from public.players where channel_id = ch and team is not null) <> 2 then
+    raise exception 'after-game draw_queue: no chained draw, or the game''s players were drawn: %', r;
+  end if;
+  a2 := (select (e ->> 'id')::bigint from pg_temp.rows_of(r, 'activity') e where e ->> 'action' = 'record_game');
+  perform public.undo(ch, a2, gen_random_uuid());
+  if (select count(*) from public.players where channel_id = ch and team = 1) <> 2
+     or (select id from public.games where channel_id = ch and removed_at is null order by n desc limit 1) <> g2 then
+    raise exception 'undo after-game draw: the draw or the game stayed';
   end if;
 end $$;
 

@@ -572,17 +572,15 @@ export function TeamsTab() {
       <div style={e3.style} className={cn("flex flex-col gap-1", e3.className)}>
         <h2 className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-x-4 font-serif text-headline max-md:text-title">
           <span className="truncate text-team-1 selection:bg-team-1 selection:text-background">{t("team.1")}</span>
-          <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
+          {/* A scoreboard: once a game is recorded this stream each team's number flanks the vs
+              on its side, in its colour (owner, 2026-09-28). */}
+          <span className="flex items-baseline gap-4 max-md:gap-3">
+            {score.t1 + score.t2 > 0 && <span className="font-medium text-team-1 tabular-nums">{score.t1}</span>}
+            <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
+            {score.t1 + score.t2 > 0 && <span className="font-medium text-team-2 tabular-nums">{score.t2}</span>}
+          </span>
           <span className="truncate text-right text-team-2 selection:bg-team-2 selection:text-background">{t("team.2")}</span>
         </h2>
-        {/* The score once a game is recorded: the numbers alone, in the team colours, no names and
-            no "this stream" (owner, 2026-09-28). */}
-        {score.t1 + score.t2 > 0 && (
-          <p className="text-center text-meta text-muted-foreground">
-            <span className="font-serif text-body font-medium text-team-1 tabular-nums">{score.t1}</span> –{" "}
-            <span className="font-serif text-body font-medium text-team-2 tabular-nums">{score.t2}</span>
-          </p>
-        )}
       </div>
 
       <div style={e4.style} className={cn(TEAMS_GRID, e4.className)}>

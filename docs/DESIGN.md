@@ -791,7 +791,7 @@ League client over a background IPC channel.
 - States: empty (*No games yet. Press Victory on the winning team.*), loading, error with Retry,
   offline.
 - Elsewhere: channel W / L beside each name in the queue table's player card and hover, and this
-  stream's score under the match headline on Teams.
+  stream's score flanking the headline's *vs* on Teams.
 - W / L figures are Newsreader, wins in gold (the trophy's colour, as a won streak) and losses in
   `--destructive`, a zero muted. Not the team colours (owner asked, 2026-09-28): a teal win on
   Team 2's card or under a teal–orange score would read as Team 1's.
@@ -1302,8 +1302,9 @@ sits between them (D25).
   other; stacked, both read the same way. A plain outline button in the team colour,
   `Trophy` and *Victory*: one press marks the team as winner (owner, 2026-09-27: no ▾, no
   menu). The after-game action is Settings' default; Undo in the toast takes the result back.
-  Disabled while either team is empty, and the tooltip says so. The score (*3 – 2*, the numbers alone in
-  the team colours, no team names; owner, 2026-09-28) sits under the match headline with no *this
+  Disabled while either team is empty, and the tooltip says so. The score is a scoreboard in the
+  match headline (owner, 2026-09-28): once a game is recorded, each team's number flanks the *vs*
+  on its side, in headline size and the team colour (*Team 1  3  vs  2  Team 2*), with no *this
   stream* wording.
 
 ### Tags

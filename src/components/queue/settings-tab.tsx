@@ -1,6 +1,6 @@
 "use client";
 import { Ban, MessageSquare, RotateCcw, UserPlus, Video } from "lucide-react";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/i18n";
 import { BadgePicker } from "@/components/queue/badge-picker";
 import { confirm } from "@/components/queue/confirm";
@@ -22,9 +22,8 @@ import { AFTER_GAME, type AfterGame, DRAW_REVEALS, type Settings, type WatchSect
 import { SECTION, SECTION_CARD } from "@/components/queue/geometry";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
-const SECTIONS: WatchSection[] = ["teams", "queue", "moderation", "riot_ids"];
+const SECTIONS: WatchSection[] = ["teams", "queue", "games", "moderation", "riot_ids"];
 const COMMANDS = ["join_command", "leave_command", "position_command", "perk_command", "away_command"] as const;
-const WATCH_ORIGIN = "https://theatlas-queue.vercel.app";
 
 type Errors = Record<string, string>;
 
@@ -422,11 +421,14 @@ function ModeratorsSection() {
   );
 }
 
+const noop = () => () => {};
+
 function WatchSectionSettings() {
   const { t } = useT();
   const s = useSection(["watch_enabled", "watch_sections"] as const);
   const slug = useQueue((v) => v.channel.slug);
   const riot = useQueue((v) => v.settings.require_riot_id);
+  const origin = useSyncExternalStore(noop, () => location.origin, () => "");
   const toggle = (x: WatchSection, on: boolean) =>
     void s.put("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
   return (
@@ -443,17 +445,13 @@ function WatchSectionSettings() {
           onChange={(on) => toggle(x, on)}
         />
       ))}
+      {/* This site's own address (a preview links to itself). The overlay's link comes back with
+          Stage 13's overlays, each with its own key (owner, 2026-09-28). */}
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-meta">
         <dt className="text-muted-foreground">{t("settings.watch.link")}</dt>
         <dd className="font-mono text-code break-all">
-          <a href={`${WATCH_ORIGIN}/watch/${slug}`} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
-            {`${WATCH_ORIGIN}/watch/${slug}`}
-          </a>
-        </dd>
-        <dt className="text-muted-foreground">{t("settings.watch.overlay")}</dt>
-        <dd className="font-mono text-code break-all">
-          <a href={`${WATCH_ORIGIN}/overlay/${slug}?view=teams`} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
-            {`${WATCH_ORIGIN}/overlay/${slug}?view=teams`}
+          <a href={`/watch/${slug}`} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+            {`${origin}/watch/${slug}`}
           </a>
         </dd>
       </dl>

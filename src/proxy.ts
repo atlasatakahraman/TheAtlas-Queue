@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // The webhook proves itself with Kick's signature, the health route with its bearer.
-const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/TheAtlas", "/api/kick/webhook", "/api/cron/"];
+// /watch and its API are public (spec § Security); so are the files crawlers and share previews
+// read.
+const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/TheAtlas", "/api/kick/webhook", "/api/cron/", "/watch/", "/api/watch/", "/opengraph-image"];
 // `/` is the home page and the sign-in page.
-const PUBLIC_EXACT = new Set(["/"]);
+const PUBLIC_EXACT = new Set(["/", "/robots.txt", "/sitemap.xml", "/manifest.webmanifest"]);
 
 function csp(nonce: string) {
   const dev = process.env.NODE_ENV !== "production";
@@ -43,6 +45,10 @@ export function proxy(request: NextRequest) {
 
   const headers = new Headers(request.headers);
   headers.set("x-nonce", nonce);
+  // ?lang picks the server render's language (DESIGN.md § Every page: language alternates).
+  const lang = request.nextUrl.searchParams.get("lang");
+  if (lang === "en" || lang === "tr") headers.set("x-lang", lang);
+  else headers.delete("x-lang");
   headers.set("Content-Security-Policy", policy);
   const response = NextResponse.next({ request: { headers } });
   response.headers.set("Content-Security-Policy", policy);

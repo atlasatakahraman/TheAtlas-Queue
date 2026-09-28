@@ -1,4 +1,5 @@
 import "server-only";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Home } from "@/components/home";
@@ -6,8 +7,43 @@ import { LAST_CHANNEL_COOKIE } from "@/components/queue/tabs";
 import { auth } from "@/lib/auth";
 import { ensureProfile, kickUser } from "@/lib/server/profile";
 import { userDb } from "@/lib/server/user-db";
+import { translate } from "@/lib/i18n";
+import { alternates, ogLocale, requestLang, SITE } from "@/lib/server/site";
 
 type Props = { searchParams: Promise<{ callbackUrl?: string }> };
+
+// DESIGN.md § Metadata and SEO: the one indexed page besides /watch.
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await requestLang();
+  const title = translate(lang, "seo.home.title");
+  const description = translate(lang, "seo.home.description");
+  return {
+    title: { absolute: title },
+    description,
+    alternates: await alternates("/"),
+    openGraph: { title, description, url: "/", ...ogLocale(lang) },
+  };
+}
+
+// Structured data (DESIGN.md § Structured data): what the site is, and its name for results.
+function JsonLd({ lang }: { lang: "en" | "tr" }) {
+  const data = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "TheAtlas Queue",
+      url: SITE,
+      description: translate(lang, "seo.home.description"),
+      applicationCategory: "EntertainmentApplication",
+      operatingSystem: "Web",
+      offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
+      inLanguage: ["en", "tr"],
+    },
+    { "@context": "https://schema.org", "@type": "WebSite", name: "TheAtlas Queue", url: SITE },
+  ];
+  // Rendered on the server; < escaped so a string can never close the script.
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
+}
 
 // Only same-site paths: an open redirect would hand a signed-in user to anyone's page. Parsed
 // the way a browser reads Location, which drops tabs and newlines ("/\t/evil.com" is //evil.com).
@@ -25,7 +61,13 @@ export default async function RootPage({ searchParams }: Props) {
   const callbackUrl = safePath((await searchParams).callbackUrl);
   const session = await auth();
   const user = kickUser(session);
-  if (!user) return <Home callbackUrl={callbackUrl ?? "/"} />;
+  if (!user)
+    return (
+      <>
+        <JsonLd lang={await requestLang()} />
+        <Home callbackUrl={callbackUrl ?? "/"} />
+      </>
+    );
   if (callbackUrl && callbackUrl !== "/") redirect(callbackUrl);
 
   const profileId = await ensureProfile(session);

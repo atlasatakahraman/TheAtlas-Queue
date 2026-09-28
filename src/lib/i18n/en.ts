@@ -658,6 +658,17 @@ export const en = {
   "games.scope.stream": "This stream",
   "games.scope.all": "All time",
   "games.empty.stream": "No games this stream yet. Press Victory on the winning team.",
+  "settings.watch.games": "Games",
+  "watch.live": "Live",
+  "watch.empty": "Nothing here yet",
+  "watch.games.empty": "No games yet",
+  "watch.board": "Most wins",
+  "watch.picked": "Picked",
+  "watch.won": "{team} won",
+  "watch.disabled.hint": "The streamer can turn it back on in Settings.",
+  "watch.description": "Live queue and team draws for {channel}'s stream on Kick.",
+  "seo.home.title": "TheAtlas Queue: Kick queue and fair team draws",
+  "seo.home.description": "A queue for Kick streamers: viewers join from chat with one command, and you draw fair teams live on stream. Free to use.",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

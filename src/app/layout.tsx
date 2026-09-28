@@ -1,10 +1,11 @@
+import "server-only";
 import { PREFS_SCRIPT } from "@/components/prefs";
 import { Providers } from "@/components/providers";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { I18nProvider } from "@/components/i18n";
-import { LANG_COOKIE, langFromHeader, parseLang } from "@/lib/i18n";
+import { requestLang, SITE } from "@/lib/server/site";
 import "./globals.css";
 
 // OFL 1.1 faces, the same three TheAtlas ships (DESIGN.md § Type). Self-hosted and preloaded.
@@ -30,12 +31,30 @@ const jetbrains = localFont({
   ],
 });
 
-// Stage 5 completes the metadata (descriptions, Open Graph, canonical, JSON-LD).
+// DESIGN.md § Metadata and SEO → Every page. Pages add their title, description, canonical and
+// Open Graph image; nothing is hand-written into <head>.
+const AUTHOR = { name: "Atlas Ata KAHRAMAN", url: "https://github.com/atlasatakahraman" };
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: { default: "TheAtlas Queue", template: "%s · TheAtlas Queue" },
   applicationName: "TheAtlas Queue",
-  authors: [{ name: "Atlas Ata KAHRAMAN", url: "https://github.com/atlasatakahraman" }],
+  authors: [AUTHOR],
+  creator: AUTHOR.name,
+  publisher: AUTHOR.name,
+  openGraph: { siteName: "TheAtlas Queue", type: "website" },
+  twitter: { card: "summary_large_image" },
+  icons: { icon: "/favicon.ico", apple: "/TheAtlasB2048.png" },
   formatDetection: { telephone: false },
+};
+
+// Zoom is never disabled; the browser chrome takes the floor's colour.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#131210" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f0e6" },
+  ],
 };
 
 export default async function RootLayout({
@@ -48,7 +67,7 @@ export default async function RootLayout({
   // header opts every page into dynamic rendering and hands next-themes its nonce.
   const h = await headers();
   const nonce = h.get("x-nonce") ?? undefined;
-  const lang = parseLang((await cookies()).get(LANG_COOKIE)?.value) ?? langFromHeader(h.get("accept-language"));
+  const lang = await requestLang();
   return (
     <html
       lang={lang}

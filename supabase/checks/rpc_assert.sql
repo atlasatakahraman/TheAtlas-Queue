@@ -536,6 +536,16 @@ begin
   if (select count(*) from public.players where channel_id = ch and deleted_at is null) <> n then
     raise exception 'set_live offline: cleared with the setting off';
   end if;
+
+  -- 0025: the stream title comes with going live and goes with going offline.
+  perform public.set_live(-101, true, now(), '  Ranked with viewers  ');
+  if (select stream_title is distinct from 'Ranked with viewers' from public.channels where id = ch) then
+    raise exception 'set_live: title not stored';
+  end if;
+  perform public.set_live(-101, false, null, 'ignored');
+  if (select stream_title is not null from public.channels where id = ch) then
+    raise exception 'set_live offline: title kept';
+  end if;
   execute 'set local role authenticated';
 end $$;
 

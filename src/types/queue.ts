@@ -95,6 +95,7 @@ export type Channel = {
   slug: string;
   display_name: string;
   live_since: string | null;
+  stream_title: string | null;
   last_command_at: string | null;
   subscriptions_ok_at: string | null;
   subscription_error: string | null;

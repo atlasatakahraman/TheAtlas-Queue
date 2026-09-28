@@ -85,10 +85,12 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
   return result ? (result.reason ?? result.result) : "unknown_channel";
 }
 
-async function onLive(p: { broadcaster?: { user_id?: number }; is_live?: boolean; started_at?: string | null }) {
+async function onLive(p: { broadcaster?: { user_id?: number }; is_live?: boolean; started_at?: string | null; title?: unknown }) {
   if (!Number.isSafeInteger(p.broadcaster?.user_id)) return "ignored";
   const { data, error } = await adminDb().rpc("set_live", {
     p_broadcaster: p.broadcaster!.user_id, p_live: p.is_live === true, p_started_at: p.started_at ?? null,
+    // The top bar's Live tooltip (D25); the database trims it to 200 characters.
+    p_title: typeof p.title === "string" ? p.title : null,
   });
   if (error) throw new Error(`set_live ${error.code}`);
   return data ? (p.is_live ? "live" : "offline") : "unknown_channel";

@@ -31,11 +31,10 @@ import { isError, type QueueView } from "@/lib/queue-store";
 import { averageRank } from "@/lib/rank";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
+import { REVEAL, revealDuration, revealOrder } from "@/components/queue/reveal-order";
 import { CARD_HEAD, MIRROR, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
 
-// The draw reveal's cadence (DESIGN.md § The draw reveal): one name every 160ms, each typed at
-// 30ms a character and sharpening over 200ms. Off the motion ladder on purpose: it is a sequence.
-export const REVEAL = { step: 160, speed: 30, sharpen: 200 };
+export { REVEAL };
 
 // Draw, reroll, shuffle, pick and the clears, shared by the toolbar, the Teams tab, the page
 // menu, the command palette and the global keys.
@@ -125,23 +124,7 @@ export function useRevealMotion(): boolean {
   return setting !== "none" && motion;
 }
 
-type Landing = { entry: DrawEntry; team: 0 | 1; at: number };
-
-// Team 1, team 2, alternately. Each list already starts with its protected players, so they
-// land first, "because they were never in doubt".
-export function revealOrder(lists: DrawEntry[][]): Landing[] {
-  const out: Landing[] = [];
-  for (let i = 0; i < Math.max(...lists.map((l) => l.length)); i++) {
-    lists.forEach((l, team) => {
-      if (l[i]) out.push({ entry: l[i], team: team as 0 | 1, at: out.length * REVEAL.step });
-    });
-  }
-  return out;
-}
-
-export function revealDuration(order: Landing[]): number {
-  return Math.max(0, ...order.map((o) => o.at + [...o.entry.kick_username].length * REVEAL.speed + REVEAL.sharpen));
-}
+export { revealOrder };
 
 // Every roster slot is one row high (SLOT), filled or not: a team card holds team-size slots
 // (August's fixed team boxes), so the cards keep their height while names land and leave.

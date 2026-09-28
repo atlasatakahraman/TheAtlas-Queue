@@ -93,8 +93,9 @@ function AccountMenu() {
 
 // Live / Offline after the breadcrumb (D25, DESIGN.md § Top bar): an icon and a word, no capsule
 // and no dot (the Radio icon's centre is hidden). Live shows the time on air, the stream title
-// in the tooltip; on phones the icon alone stays.
-function LiveStatus() {
+// in the tooltip; on phones the icon alone stays. It rises in once the title before it has typed
+// (owner, 2026-09-28: it stood there first while the title typed), `after` ms from mount.
+function LiveStatus({ after }: { after: number }) {
   const { t, lang } = useT();
   const since = useQueue((v) => v.channel.live_since);
   const title = useQueue((v) => v.channel.stream_title);
@@ -110,8 +111,9 @@ function LiveStatus() {
         <span
           tabIndex={0}
           aria-label={since ? `${t("live.on")}${ms === null ? "" : `, ${t("live.on_air", { t: span(ms, t) })}`}` : t("live.off")}
+          style={{ animationDelay: `${after}ms` }}
           className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-sm text-meta font-medium outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40",
+            "flex shrink-0 animate-enter items-center gap-1.5 rounded-sm text-meta font-medium outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40",
             since ? "text-success" : "text-muted-foreground",
           )}
         >
@@ -164,7 +166,8 @@ export function TopBar() {
         <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">
           <Typed text={channel} startDelay={phone ? 0 : 17 * 40} />
         </span>
-        <LiveStatus />
+        {/* After the channel's last letter and its 200ms sharpening. */}
+        <LiveStatus after={(phone ? 0 : 17 * 40) + [...channel].length * 40 + 200} />
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}
       </span>
       <div className="flex shrink-0 items-center gap-1">

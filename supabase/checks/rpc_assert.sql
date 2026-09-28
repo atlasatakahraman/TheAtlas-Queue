@@ -456,5 +456,88 @@ begin
   perform pg_temp.expect(format('select public.clear_history(%L, gen_random_uuid())', ch), 'history.empty');
 end $$;
 
+-- 0024: a warning turned into a punishment, a punishment's and a ban's length edited (each
+-- undoable), the reveal choices, and the queue cleared when the stream ends (only when the
+-- setting is on).
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000001';
+  owner constant text := '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+  r     jsonb;
+  v_w   uuid;
+  v_p   uuid;
+  v_b   uuid;
+  act   bigint;
+  n     integer;
+begin
+  perform set_config('request.jwt.claims', owner, true);
+  perform public.warn(ch, 'gina', 'spam', gen_random_uuid());
+  select id into v_w from public.moderation where channel_id = ch and kick_username = 'gina' and kind = 'warn';
+  perform pg_temp.expect(format('select public.convert_warning(%L, %L, null, null, null, gen_random_uuid())', ch, v_w), 'request.invalid');
+  r := public.convert_warning(ch, v_w, 2, null, 'spam', gen_random_uuid());
+  if exists (select 1 from public.moderation where id = v_w)
+     or (select games_left from public.moderation where channel_id = ch and kick_username = 'gina' and kind = 'punish') <> 2 then
+    raise exception 'convert_warning: warning not replaced by a 2-game punishment: %', r;
+  end if;
+  perform pg_temp.expect(format('select public.convert_warning(%L, %L, 1, null, null, gen_random_uuid())', ch, v_w), 'request.invalid');
+  select id into act from public.activity where channel_id = ch and action = 'convert_warning' order by id desc limit 1;
+  perform public.undo(ch, act, gen_random_uuid());
+  if not exists (select 1 from public.moderation where id = v_w and revoked_at is null)
+     or exists (select 1 from public.moderation where channel_id = ch and kick_username = 'gina' and kind = 'punish') then
+    raise exception 'undo convert_warning: the warning did not come back alone';
+  end if;
+
+  perform public.punish(ch, 'hank', 3, null, 'x', gen_random_uuid());
+  select id into v_p from public.moderation where channel_id = ch and kick_username = 'hank' and kind = 'punish';
+  perform pg_temp.expect(format('select public.edit_sanction(%L, %L, 1, 5, null, gen_random_uuid())', ch, v_p), 'request.invalid');
+  perform pg_temp.expect(format('select public.edit_sanction(%L, %L, 1, null, 3, gen_random_uuid())', ch, v_p), 'request.invalid');
+  perform pg_temp.expect(format('select public.edit_sanction(%L, %L, 1, null, null, gen_random_uuid())', ch, v_w), 'request.invalid');
+  perform public.edit_sanction(ch, v_p, null, 30, null, gen_random_uuid());
+  if (select games_left is not null or expires_at <> now() + interval '30 minutes' from public.moderation where id = v_p) then
+    raise exception 'edit_sanction: punishment not 30 minutes from now';
+  end if;
+  select id into act from public.activity where channel_id = ch and action = 'edit_sanction' order by id desc limit 1;
+  perform public.undo(ch, act, gen_random_uuid());
+  if (select games_left <> 3 or expires_at is not null from public.moderation where id = v_p) then
+    raise exception 'undo edit_sanction: old length not back';
+  end if;
+
+  perform public.ban(ch, 'ivan', 7, 'x', gen_random_uuid());
+  select id into v_b from public.moderation where channel_id = ch and kick_username = 'ivan' and kind = 'ban';
+  perform pg_temp.expect(format('select public.edit_sanction(%L, %L, 1, null, null, gen_random_uuid())', ch, v_b), 'request.invalid');
+  perform public.edit_sanction(ch, v_b, null, null, null, gen_random_uuid());
+  if (select expires_at is not null from public.moderation where id = v_b) then raise exception 'edit_sanction: ban not permanent'; end if;
+  perform public.edit_sanction(ch, v_b, null, null, 30, gen_random_uuid());
+  if (select expires_at <> now() + interval '30 days' from public.moderation where id = v_b) then raise exception 'edit_sanction: ban not 30 days'; end if;
+
+  perform public.update_settings(ch, '{"draw_reveal": "wheel"}', gen_random_uuid());
+  perform pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"draw_reveal": "spin"}'), 'settings.invalid');
+
+  -- Stream end: set_live is the webhook's (service role).
+  perform public.add_player(ch, 'jill', null, gen_random_uuid());
+  select count(*) into n from public.players where channel_id = ch and deleted_at is null;
+  execute 'reset role';
+  update public.channels set live_since = now() - interval '1 hour' where id = ch;
+  perform public.set_live(-101, false, null);
+  select id into act from public.activity where channel_id = ch and action = 'stream_offline' order by id desc limit 1;
+  if exists (select 1 from public.players where channel_id = ch and deleted_at is null)
+     or (select (payload ->> 'count')::int <> n or undo is null from public.activity where id = act) then
+    raise exception 'set_live offline: queue not cleared with an undo (% players)', n;
+  end if;
+  execute 'set local role authenticated';
+  perform public.undo(ch, act, gen_random_uuid());
+  if (select count(*) from public.players where channel_id = ch and deleted_at is null) <> n then
+    raise exception 'undo stream_offline: players not back';
+  end if;
+  perform public.update_settings(ch, '{"clear_on_offline": false}', gen_random_uuid());
+  execute 'reset role';
+  update public.channels set live_since = now() - interval '1 hour' where id = ch;
+  perform public.set_live(-101, false, null);
+  if (select count(*) from public.players where channel_id = ch and deleted_at is null) <> n then
+    raise exception 'set_live offline: cleared with the setting off';
+  end if;
+  execute 'set local role authenticated';
+end $$;
+
 select 'rpc ok' as result;
 rollback;

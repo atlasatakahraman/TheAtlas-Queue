@@ -16,7 +16,6 @@ import {
   type LucideIcon,
   Pencil,
   RefreshCw,
-  RotateCcw,
   ShieldCheck,
   ShieldOff,
   Sparkles,
@@ -879,10 +878,17 @@ export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> })
   return (
     <div className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4", MID, tableCols(ids, ranks))}>
       {sort.key ? (
+      {/* While sorted, the # itself is the way back (owner, 2026-09-28): muted like the other
+          headers, foreground on hover. */}
         <Tip label={t("sort.reset")}>
-          <Button variant="ghost" size="icon-xs" className="-ml-1 text-foreground" aria-label={t("sort.reset")} onClick={sort.reset}>
-            <RotateCcw aria-hidden />
-          </Button>
+          <button
+            type="button"
+            aria-label={t("sort.reset")}
+            onClick={sort.reset}
+            className={cn(th, "-mx-1 w-fit rounded-sm px-1 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40")}
+          >
+            #
+          </button>
         </Tip>
       ) : (
         <span className={th}>#</span>

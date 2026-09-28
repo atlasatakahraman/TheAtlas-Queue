@@ -656,7 +656,8 @@ players less anyone banned or punished. A size the pool cannot fill is not shown
 
 **Page menu.** Right-click anywhere on the dashboard, kept short (owner, 2026-09-23): a header
 *Queue management (N players)*, **Add player** first, then Draw teams, Pick 1, Clear queue,
-Search and commands, theme, and **Reload page** last (owner, 2026-09-27). Everything else is in the toolbar, the top bar or the account
+Search and commands, theme, then **Reconnect to chat** (re-creates the Kick subscriptions, as
+the pill's button; owner, 2026-09-28) and **Reload page** last (owner, 2026-09-27). Everything else is in the toolbar, the top bar or the account
 menu. Rows and team cards keep their own menus; text fields keep the browser's.
 
 **Errors.** A crash or a failed load shows Retry and **Reload page** where the content would be,
@@ -664,8 +665,9 @@ with one line saying the queue is safe on the server (it is: Postgres holds it, 
 refetches `get_state`). `global-error.tsx` covers a failure of the root layout itself, in both
 languages, without the providers.
 
-**Footer.** "Atlas Ata KAHRAMAN", muted caption, centred. August's hover easter egg on it stays
-removed (spec D14).
+**Footer.** *Made with ♥ by Atlas Ata KAHRAMAN* (TR *Atlas Ata KAHRAMAN tarafından ♥ ile
+yapıldı*), muted caption in sentence case, centred; the heart is lucide `Heart`, filled in
+`--destructive` (owner, 2026-09-28). August's hover easter egg stays removed (spec D14).
 
 **Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
 2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs, 48px high with 18px
@@ -686,7 +688,7 @@ without a reason written here.
 | Tab | Contents |
 |---|---|
 | **Queue** (with count) | Filters All / Waiting / In game / Away / Punished · search · the queue table · right: *From chat* feed and four stat tiles |
-| **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Reroll / Pick from waiting / Draw teams (primary) |
+| **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Pick from waiting / Draw teams (primary). No Reroll here (owner, 2026-09-28: next to Draw it was one button too many); the toolbar's Shuffle menu and the palette keep it |
 | **Management** (TR *Yönetim*) | **New action** (sanction a Kick name that is not in the queue) · **Clear sanctions** (streamer only, undoable) · the sanctions: warnings, punishments, bans. Stage 9: [three tables](#management-tab-stage-9-d25) |
 | **History** (TR *Geçmiş*, `History`) | Who did what ([Roles](#roles-streamer-and-moderators)), its own tab (owner, 2026-09-27): filter All / Queue / Teams / Management / Chat and stream, with counts; one card per day (*today*, *yesterday*, then the date), a line per change: time (tabular) · the action's icon in its colour (a move into a team in that team's colour) · the sentence, names in `foreground` on a muted sentence. Undone lines are struck through with an *undone* tag. **Clear history** (streamer only, destructive, asks first; owner, 2026-09-28) sits beside the filter: the feed is also the undo stack, so nothing before it can be undone and the clear itself has no Undo; its own line is what is left |
 | **Games** (Stage 10) | [This stream's score, Games and Stats](#games-tab-maçlar-stage-10-d27) |
@@ -725,7 +727,8 @@ After the breadcrumb: an icon and a word, no capsule, **never a dot** (owner, 20
 **Live** is `Radio` in `--success` with the time on air (`live_since`, tabular, updated each
 minute), its two outer arcs fading in turn (2s, off under reduced motion); **Offline** is
 `RadioOff`, muted. The tooltip holds the stream title. On phones the icon alone
-stays beside the channel.
+stays beside the channel. It rises in (`animate-enter`) once the channel has typed, so it joins
+the title's sequence instead of standing there first (owner, 2026-09-28).
 
 #### Management tab (Stage 9, D25)
 
@@ -942,38 +945,35 @@ reloads the source often, and a page that animates on every reload looks broken 
 
 ### Not found and errors (Stage 9, owner 2026-09-28)
 
-One motif: the page is a single **queue row**, the product's own unit, under a slim top bar.
+The **big numeral** (owner, 2026-09-28, replacing the queue-row motif, which read as too
+plain): one large Newsreader figure centred under the slim top bar, a sentence, the buttons.
 
 ```
 [▣] TheAtlas Queue                                                        EN|TR  ◐
-┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
-┆ 404   Nothing at this address                          [Back to the start] ┆
-┆       That page doesn't exist, or it moved.                                ┆
-└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
-┌──────────────────────────────────────────────────────────────────────────┐
-▌ ⚠     Something went wrong                           [Reload page] [Retry] │
-▌       Your queue is safe: it is saved on the server, not in this tab.     │
-▌       Error code 3f9a…                                                     │
-└──────────────────────────────────────────────────────────────────────────┘
+
+
+
+                                   404
+                        Nothing at this address
+                  That page doesn't exist, or it moved.
+                           [Back to the start]
 ```
 
 - **Top bar**: the tile and the wordmark (a link to `/`), EN | TR and the theme on the right, on
   the dashboard's grid (max 1440px, `px-8`, 60px tall). No account, no pill, no typing.
-- **The row** sits in the upper third (not dead centre), `max-w-3xl`, on the queue row's grid:
-  the number column, then the title (`text-name`) over one muted `text-meta` hint, the buttons on
-  the right; under 768px the buttons drop under the text at full width, 44px.
-- **Not found**: an **empty slot**: `border-dashed border-row-edge`, no fill, `404` in the number
-  column (Newsreader `text-numeral`, muted), **Back to the start** (outline).
-- **Error** (`error.tsx`): a solid `bg-row` row whose 3px left edge is `--warning` (a row that
-  needs attention, as a punished row's), `TriangleAlert` in the number column, the queue-is-safe
-  hint, the error code in mono when there is one, **Reload page** (outline) and **Retry**
-  (primary).
+- **The block** is centred in the space under the bar, a little above the middle, `max-w-xl`,
+  text centred: the mark, the title (Newsreader `text-title`), one muted hint, then the buttons
+  (under 640px full width, 44px, stacked).
+- **Not found**: `404` in Newsreader at `clamp(6rem, 20vw, 11rem)`, `leading-none`, tabular, in
+  `foreground` (the page's one loud thing); **Back to the start** (outline).
+- **Error** (`error.tsx`): `TriangleAlert` at 64px in `--warning` in the figure's place, *Something
+  went wrong*, the queue-is-safe hint, the error code in mono when there is one, **Reload page**
+  (outline) and **Retry** (primary).
 - **Dashboard error** (`/c/<channel>/error.tsx`): the top bar carries the breadcrumb
-  (`/ channel`, from the URL). The tabs are the page's own client state, so they do not survive a
-  crash; the error row sits where the tab's content would be.
-- **Global error** (the root layout failed): the same row with the system font and theme, both
+  (`/ channel`, from the URL); the title is *The dashboard did not load*.
+- **Global error** (the root layout failed): the same block with the system font and theme, both
   languages stacked, since no provider is there.
-- Motion: the row rises once (`animate-enter`); nothing else moves.
+- Motion: the block rises once (`animate-enter`); nothing else moves.
 
 ## States
 
@@ -1052,14 +1052,15 @@ overlay (Stage 13: an undo would revive a leaked URL) asks for the overlay's nam
 The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs, it says so.
 
 ```
-  #↺  PLAYER ▾                                  KICK        RANK ▾          WIN RATE ▾  JOINED ▾
-⠿ 3   (◉) brkdmr          96 ♥  ◆ In game  ★ Sub    brkdmr_tv   ▍ Platinum IV   56%         21:40   [1] [2] [×] [⋯]
+  #   PLAYER ▾                                  KICK        RANK ▾          WIN RATE ▾  JOINED ▾
+  3   (◉) brkdmr          96 ♥  ◆ In game  ★ Sub    brkdmr_tv   ▍ Platinum IV   56%         21:40   [+] [+] [×] [⋯]
 │ │    │  #TR1              │     └ tags: icon + word, fold to icons under 20rem of line
 │ │    │                    └ respect: the score then ♥, success ≥ 80, warning ≥ 50, destructive below
 │ │    └ Riot profile icon (the initial when none); the name truncates before any tag moves
-│ └ queue number, Newsreader, tabular
-└ grip (GripVertical, muted), pointer devices with write access only
+└ queue number, Newsreader, tabular
 ```
+
+No grip (owner, 2026-09-28: it did not fit the rows); the whole row is the handle.
 
 - **Rows.** `rounded-xl bg-row border border-row-edge border-l-[3px] px-4 py-3` on one grid
   (`TABLE_COLS`) shared with the header. The left edge is the state: team colour in a game,
@@ -1068,10 +1069,12 @@ The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs,
   are buttons: `text-caption uppercase`, muted; the sorted one is foreground with `ArrowUp` /
   `ArrowDown` (14px) and says its direction in its label (the rows are not a table grid, so
   `aria-sort` would have no row to sit in). A second click flips it. While a column sort is on,
-  the `#` header becomes `↺` (tooltip *Back to queue order · Dragging is off while sorted*);
+  the `#` header becomes the way back (owner, 2026-09-28: the `#` itself, not an icon): muted as
+  at rest, foreground on hover or focus, tooltip *Back to queue order. Dragging is off while
+  sorted*;
   unranked and no-games rows go last. Remembered per browser (`queue.sort`). *Kick* does not
   sort. **Sorting is a view**: Pick and the draw still use the queue order, and dragging is off
-  while sorted (the grips go).
+  while sorted.
 - **Riot IDs are the master switch** (owner, 2026-09-28). Settings → Riot lists *Require Riot
   ID* first and *Look up ranks* under it, disabled (and shown off) while Riot IDs are off; Region
   appears with ranks. Ranks keep their own value, so turning Riot IDs back on brings them back.
@@ -1089,23 +1092,31 @@ The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs,
 
   | Row | Buttons |
   |---|---|
-  | Waiting or away | **1** · **2** (the team number in Newsreader, in the team colour; tooltip *Add to {team}*) · **×** *Remove from queue* |
+  | Waiting or away | **+** · **+** (`UserPlus` in each team's colour, team 1 first; tooltip *Add to {team}* with the team's own name from Labels; owner, 2026-09-28: no numbers, the streamer names the teams) · **×** *Remove from queue* |
   | In a team (queue table or roster) | **⇄** *Move to {other team}* (the other team's colour) · **↩** *Back to waiting* · **×** *Remove from queue* |
 
   Ghost `icon-sm` buttons at **40 % opacity** at rest (dim, not invisible), full on row hover or
   focus inside; on touch always full and 44px. A full team disables its button, and the tooltip
-  says why: *{team} is full (5 of 5)*. Today (7.11): icons, hidden until hover.
-- **Breakpoints.** Under 1024px *Win rate* and *Joined* go; under 768px *Kick* and *Rank* go and
-  the header hides (sorting then lives in the page menu).
+  says why: *{team} is full (5 of 5)*. **×** turns `--destructive` on hover (it removes).
+- **Breakpoints, by the table's own width** (owner, 2026-09-28: at 1024 to 1279px the side
+  column left the table 600px and the name column collapsed under the tags). The rows container
+  is a size container: from **52rem** every column shows; from **40rem** *Win rate* and *Joined*
+  go; under 40rem *Kick* and *Rank* go and the header hides (sorting then lives in the page
+  menu). The fixed columns never take the name's room.
+- **Names truncate** with an ellipsis before any tag or column moves; the full name is in the
+  player card.
 - The row is focusable (`tabIndex={0}`) for the row keys; Enter opens its menu.
 
 ### Drag and drop
 
 Native HTML drag and drop, no library (`@dnd-kit` stays removed).
 
-- **Pick up.** The whole row drags. The cursor is the grab hand at rest and grabbing while
-  pressed (owner, 2026-09-27); once the drag starts the browser draws its own cursor, which CSS
-  cannot change. The row left behind dims to 40 %.
+- **Pick up.** The whole row drags, with the row's own cursor (owner, 2026-09-28: no grab
+  hand; it flickered to *not allowed* and back as the pointer crossed the page). The row left
+  behind dims to 40 %.
+- **No dead gaps.** While a drag is on, each row's hit area reaches halfway into the 6px gap
+  around it, so the pointer is never between targets, and the drop reads the edge from where it
+  lands, not from the last line drawn.
 - **Preview (D25).** Not the browser's picture of the row: a chip, `bg-card rounded-lg border
   border-row-edge border-l-[3px]` in the row's state edge, `shadow-md`, max 16rem: a 20px avatar
   initial, the name (`text-name`, truncating) and the `#TAG` muted. Built off-screen and handed
@@ -1131,13 +1142,13 @@ bg-popover p-4 shadow-md`.
 
 ```
 ┌──────────────────────────────────────────────┐
-│ [icon 48]  brkdmr#TR1  ⧉            Lv 312    │  Riot ID in mono; click copies, ⧉ turns ✓ for 1.5 s
+│ [icon 48]  brkdmr…#TR1  ⧉           Lv 312    │  the name truncates, #TAG always shows; click copies
 │            ★ ◆ ♛                              │  Kick badges: glyph + colour each, tooltip names it
 ├──────────────────────────────────────────────┤
 │ ⛨ Platinum IV 42 LP                           │  shield in the tier colour (an emblem), text foreground
 │ 128 W 110 L   ▲ 53.8 %   ▓▓▓▓▓▓░░░░░           │  win rate success ≥ 50 %, a 4px bar under it
 │ This channel: 7 W 3 L, won 3 in a row         │  Stage 10 (D27)
-│ 96 ♥ respect   joined 21:40 from chat   2 games│
+│ 96 ♥ respect   [+ Manual] 21:40        2 games │  a manual add is a brand tag, a chat join plain
 ├──────────────────────────────────────────────┤
 │ brkdmr_tv ⧉                   [↻ Refresh rank] │  Kick name copies; Refresh via the server action
 └──────────────────────────────────────────────┘
@@ -1155,6 +1166,12 @@ bg-popover p-4 shadow-md`.
   ID* off → no card at all; Riot failed → the rank line says *Rank unavailable* beside Refresh.
 - **Secure:** names render as text; the icon URL is built from the numeric icon id; Refresh is
   membership-checked and rate-limited per player.
+
+- **Copying** (owner, 2026-09-28): the Riot ID and the Kick name are pointer-cursor buttons; a
+  copy turns ⧉ into ✓ for 1.5 s **and** raises a toast naming what was copied (*Copied
+  brkdmr#TR1*). Every copy on the dashboard (row menu, palette, card) says so the same way.
+- **Joined:** *joined 21:40 from chat*; a player the dashboard added reads **Manual** (TR
+  *Manuel*) as a brand `Tag` with `UserPlus`, then the time, never *by hand*.
 
 Built in Stage 9 (`player-card.tsx`). The facts under the rank line are separate items with a
 gap, never joined by a glyph (no dots, owner rule).
@@ -1232,8 +1249,9 @@ sits between them (D25).
 [🏆 Victory]                                                     Stage 10 (D27)
 ```
 
-- **Header line**, muted: a 10px square in the team colour (D25's colour mark, not a capsule),
-  **{n} of {size}** and the average rank; right, **Add to {team}** in the team colour, which
+- **Header line**, muted: **{n} of {size}** (in gold, `--brand`, once the team is full, as the
+  active tab's count; owner, 2026-09-28) and the average rank; no colour square (the card's top
+  edge already carries the team colour); right, **Add to {team}** in the team colour, which
   opens a searchable list of waiting players ending in *Add a new player…*. Every empty slot
   opens the same list on itself (6.12).
 - **Roster** as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name
@@ -1502,6 +1520,13 @@ account menu); the command palette does not. GitHub's mark is inline SVG, since 
 no brand icons.
 🛡 appears only in chat replies; the page draws protection with `ShieldCheck` and badges with
 the [badge picker](#badge-picker)'s glyphs.
+
+**Colour means something** (owner, 2026-09-28). An icon takes a colour only when it names a
+team (the team colours), a state (live and success green, away muted, punished and warned
+amber), a risk (remove, ban and the clears in `--destructive`, on hover for a row's ×) or a
+tier (the rank's colour, as the card's shield and its Refresh rank). Toolbar, tab, menu and
+top-bar icons stay neutral, and the active tab is gold. A hue per action would stop colour
+meaning *team* or *risk*.
 
 ---
 

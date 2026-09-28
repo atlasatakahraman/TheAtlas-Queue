@@ -704,5 +704,42 @@ begin
   end if;
 end $$;
 
+-- 0029: /watch's snapshot is a whitelist. Unknown slug → null; off → name and labels only; the
+-- games, board and moderation only when shared; never ids, reasons or who acted; server only.
+do $$
+declare
+  ch uuid := gen_random_uuid();
+  s  jsonb;
+begin
+  execute 'reset role';
+  insert into public.channels (id, kick_channel_id, slug, display_name) values (ch, -401, 'qa-watch', 'qa watch');
+  insert into public.settings (channel_id, team_size) values (ch, 2);
+  insert into public.players (channel_id, kick_user_id, kick_username, riot_id, source) values (ch, -501, 'w1', 'W One#TR1', 'chat');
+  insert into public.games (channel_id, n, winner, teams, team_size, ended_at, recorded_by, request_id)
+  values (ch, 1, 1, '[[{"id": "00000000-0000-0000-0000-000000000001", "kick_username": "w1", "riot_id": "W One#TR1", "locked": false, "rank": null}], []]', 1, now(), 'qa-recorder', gen_random_uuid());
+  insert into public.player_records (channel_id, name, wins, losses, streak, best, last_game_at) values (ch, 'w1', 1, 0, 1, 1, now());
+  if public.watch_snapshot('qa-no-such-channel') is not null then raise exception 'watch: an unknown slug is not null'; end if;
+  update public.settings set watch_enabled = false where channel_id = ch;
+  s := public.watch_snapshot('QA-WATCH');
+  if s ->> 'disabled' is distinct from 'true' or s ? 'players' or s ? 'draw' then raise exception 'watch: a disabled page says more: %', s; end if;
+  update public.settings set watch_enabled = true, watch_sections = array['teams', 'queue'] where channel_id = ch;
+  s := public.watch_snapshot('qa-watch');
+  if s -> 'games' <> 'null' or s -> 'board' <> 'null' or s -> 'moderation' <> 'null' then raise exception 'watch: unshared sections leaked: %', s; end if;
+  update public.settings set watch_sections = array['teams', 'queue', 'games', 'moderation'] where channel_id = ch;
+  insert into public.moderation (channel_id, kick_username, kind, level, reason) values (ch, 'w1', 'warn', 1, 'qa-secret-reason');
+  s := public.watch_snapshot('qa-watch');
+  if jsonb_array_length(s -> 'games') = 0 or jsonb_array_length(s -> 'board') = 0 or jsonb_array_length(s -> 'moderation') = 0 then
+    raise exception 'watch: shared sections are empty: %', s;
+  end if;
+  if s::text ~ '(kick_user_id|reason|recorded_by|created_by|request_id|qa-secret-reason)' then raise exception 'watch: a private field leaked: %', s; end if;
+  if s::text ~ '"riot_id": "' then raise exception 'watch: Riot IDs without riot_ids'; end if;
+  if has_function_privilege('anon', 'public.watch_snapshot(text)', 'execute')
+     or has_function_privilege('authenticated', 'public.watch_snapshot(text)', 'execute')
+     or has_function_privilege('anon', 'public.watch_sitemap()', 'execute') then
+    raise exception 'watch: callable by a browser role';
+  end if;
+  if not exists (select 1 from public.watch_sitemap() w where w.slug = 'qa-watch') then raise exception 'watch: an enabled page is not in the sitemap'; end if;
+end $$;
+
 select 'rpc ok' as result;
 rollback;

@@ -87,6 +87,7 @@ function Sanctions({ list }: { list: Sanction[] }) {
 function SanctionRow({ m, now, respect }: { m: Sanction; now: number; respect?: number }) {
   const { t, lang } = useT();
   const act = useAct();
+  const ui = useUi();
   const canWrite = useCanWrite();
   const active = now === 0 || isActive(m, now);
   const until = m.expires_at && new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(m.expires_at));
@@ -130,6 +131,17 @@ function SanctionRow({ m, now, respect }: { m: Sanction; now: number; respect?: 
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-48 p-1.5">
+          {/* D22: August's Türü Değiştir and Süreyi Düzenle, on a sanction still running. */}
+          {active && m.kind === "warn" && (
+            <DropdownMenuItem disabled={!canWrite} onSelect={() => ui.setSanction({ name: m.kick_username, kind: "punish", edit: m })}>
+              {t("mod.convert")}
+            </DropdownMenuItem>
+          )}
+          {active && m.kind !== "warn" && (
+            <DropdownMenuItem disabled={!canWrite} onSelect={() => ui.setSanction({ name: m.kick_username, kind: m.kind, edit: m })}>
+              {t("mod.edit_length")}
+            </DropdownMenuItem>
+          )}
           {active && (
             <DropdownMenuItem
               disabled={!canWrite}

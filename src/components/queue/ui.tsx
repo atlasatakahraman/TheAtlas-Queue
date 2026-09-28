@@ -2,9 +2,11 @@
 import { createContext, useContext } from "react";
 
 import type { Tab } from "@/components/queue/tabs";
-import type { Player } from "@/types/queue";
+import type { Player, Sanction } from "@/types/queue";
 
-export type SanctionDraft = { name: string; kind: "warn" | "punish" | "ban" };
+// `edit` is a standing sanction: a warning to turn into a punishment, or a punishment or ban
+// whose length changes (D22).
+export type SanctionDraft = { name: string; kind: "warn" | "punish" | "ban"; edit?: Sanction };
 
 export type Ui = {
   tab: Tab;

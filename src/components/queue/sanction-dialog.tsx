@@ -23,10 +23,10 @@ export function SanctionDialog() {
     <ResponsiveDialog
       open={!!s}
       onOpenChange={(o) => !o && ui.setSanction(null)}
-      title={s ? t(`sanction.title.${s.kind}`, { name: s.name }) : ""}
-      description={t("sanction.private")}
+      title={s ? t(s.edit ? (s.edit.kind === "warn" ? "sanction.title.convert" : "sanction.title.edit") : `sanction.title.${s.kind}`, { name: s.name }) : ""}
+      description={t(s?.edit && s.edit.kind !== "warn" ? "sanction.edit.from_now" : "sanction.private")}
     >
-      {s && <SanctionForm key={`${s.kind}:${s.name}`} draft={s} onDone={() => ui.setSanction(null)} />}
+      {s && <SanctionForm key={`${s.kind}:${s.name}:${s.edit?.id}`} draft={s} onDone={() => ui.setSanction(null)} />}
     </ResponsiveDialog>
   );
 }
@@ -37,10 +37,19 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
   const canWrite = useCanWrite();
   const errorText = useErrorText();
   const respect = useQueue((v) => v.respect[draft.name.toLowerCase()]);
-  const [reason, setReason] = useState("");
-  const [unit, setUnit] = useState<"games" | "minutes">("games");
-  const [amount, setAmount] = useState("1");
-  const [days, setDays] = useState<(typeof BAN_DAYS)[number]>("7");
+  const from = draft.edit;
+  const convert = from?.kind === "warn";
+  const editing = !!from && !convert;
+  const [left] = useState(() => (from?.expires_at ? Date.parse(from.expires_at) - Date.now() : null));
+  const [reason, setReason] = useState(convert ? from.reason : "");
+  const [unit, setUnit] = useState<"games" | "minutes">(editing && from.games_left === null ? "minutes" : "games");
+  // Editing starts from what is left: the games, the minutes, or the shortest ban length that covers it.
+  const [amount, setAmount] = useState(
+    editing ? String(from.games_left ?? Math.max(1, Math.ceil((left ?? 0) / 60_000))) : "1",
+  );
+  const [days, setDays] = useState<(typeof BAN_DAYS)[number]>(
+    !editing ? "7" : left === null ? "permanent" : (BAN_DAYS.find((d) => d !== "permanent" && Number(d) * 86_400_000 >= left) ?? "30"),
+  );
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
 
@@ -51,8 +60,20 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
     if (draft.kind === "punish" && !amountOk) return setError(t(unit === "games" ? "sanction.games.invalid" : "sanction.minutes.invalid"));
     setBusy(true);
     const base = { p_kick_username: draft.name, p_reason: reason.trim() };
-    const res =
-      draft.kind === "warn"
+    const length = {
+      p_games: draft.kind === "punish" && unit === "games" ? n : null,
+      p_minutes: draft.kind === "punish" && unit === "minutes" ? n : null,
+    };
+    const vars = { name: draft.name };
+    const res = convert
+      ? await act("convert_warning", { p_id: from.id, ...length, p_reason: reason.trim() }, { done: "done.convert_warning", vars, silent: true })
+      : editing
+        ? await act(
+            "edit_sanction",
+            { p_id: from.id, ...length, p_days: draft.kind === "ban" && days !== "permanent" ? Number(days) : null },
+            { done: "done.edit_sanction", vars, silent: true },
+          )
+        : draft.kind === "warn"
         ? await act("warn", base, { done: "done.warn", vars: { name: draft.name }, silent: true })
         : draft.kind === "punish"
           ? await act(
@@ -126,7 +147,7 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
           </Select>
         </div>
       )}
-      <div className="flex flex-col gap-1.5">
+      {!editing && <div className="flex flex-col gap-1.5">
         <Label htmlFor="sanction-reason">{t("sanction.reason")}</Label>
         <Textarea
           id="sanction-reason"
@@ -136,7 +157,7 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
           onChange={(e) => setReason(e.target.value)}
           placeholder={t("sanction.reason.placeholder")}
         />
-      </div>
+      </div>}
       {error && <p className="text-meta text-destructive selection:bg-destructive selection:text-background">{error}</p>}
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" size="lg" className="max-md:h-11" onClick={onDone}>
@@ -149,7 +170,7 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
           className="max-md:h-11"
           disabled={busy || !canWrite}
         >
-          {t(`menu.${draft.kind}.confirm`)}
+          {editing ? t("common.save") : t(`menu.${draft.kind}.confirm`)}
         </Button>
       </div>
     </form>

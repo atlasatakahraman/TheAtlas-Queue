@@ -928,15 +928,24 @@ list is a `Select` above the article. States: an unknown topic is a 404; no load
 
 Read-only, public, and built **mobile-first**, because viewers open it from a phone.
 
-- The same masthead, minus the tools a viewer cannot use. The Live icon (`Radio`, as on the
-  dashboard, never a dot) shows whether the **stream** is live, not the connection.
+- The slim top bar of the error pages (tile, wordmark, `/ channel`), then **Live** (`Radio` and
+  the word, in `--destructive`, never a dot) while the **stream** is live; EN | TR (which also
+  writes `?lang` into the address, so a shared link opens in that language) and the theme.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
   this stream's score, rosters), **Queue** (rows without a menu; the player card only if the
-  streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results and the wins
-  board), **Management** (off by default; names and kind only, **never reasons**).
+  streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results, each with the
+  winners' names, and beside them **Most wins**, the all-time top 10, owner 2026-09-28),
+  **Management** (off by default; names and kind only, **never reasons**).
+- Teams keep their fixed slots (0028): gaps stay, as dashed empty slots.
 - States: disabled (below), nothing yet (*Nothing here yet*), a missing channel (a real 404),
   loading (each section's skeleton).
-- The draw reveal plays live; the entrance plays on load.
+- The draw reveal plays live, once per device, for a draw under 30 seconds old: a team draw's
+  names type in as on the dashboard; a pick types its names under the headline (the Cards, List
+  and Wheel stages stay on the dashboard, so /watch carries no dashboard code). The entrance
+  plays on load.
+- Live without a Supabase client: the page joins the public `watch:<slug>` topic over a bare
+  WebSocket and refetches the CDN-cached snapshot on each ping. Its JS budget is the framework
+  floor + 40 KB gzip (owner, 2026-09-28; the spec's 60 KB cannot be met on Next 16 + React).
 - When the streamer turns the page off, it says so (`watch.disabled`) and is `noindex`.
 - Footer: "TheAtlas Queue", the source link, EN | TR, theme.
 
@@ -1495,7 +1504,7 @@ language.
 
 | Route | Title | Description |
 |---|---|---|
-| `/` signed out | absolute: "TheAtlas Queue — Kick queue and fair team draws" | What it does, in one sentence, for a streamer |
+| `/` signed out | absolute: "TheAtlas Queue: Kick queue and fair team draws" | What it does, in one sentence, for a streamer |
 | `/c/<channel>` | "{tab}" → "Teams · TheAtlas Queue" | — (not indexed) |
 | `/watch/<channel>` | "{Channel}'s queue" | "Live queue and team draws for {Channel}'s stream on Kick." |
 | `/overlay/<channel>` | "Overlay" | — (not indexed) |
@@ -1508,7 +1517,7 @@ language.
 - `openGraph`: `siteName: "TheAtlas Queue"`, `type: "website"`, `locale` (`en_US` / `tr_TR`) with
   `alternateLocale`, `url`, `title`, `description`, and a 1200×630 image.
 - `twitter`: `card: "summary_large_image"`.
-- `alternates.canonical`: the page's own URL. On home and `/watch`, also
+- `alternates.canonical`: the page's own URL, with its `?lang` when it has one. On home and `/watch`, also
   `alternates.languages` with `en`, `tr` and `x-default` (the URL without `?lang`).
 - `viewport`: `width=device-width`, `initialScale: 1`, and `themeColor` per
   `prefers-color-scheme`: `#131210` dark, `#f4f0e6` light. Zoom is never disabled.
@@ -1521,7 +1530,8 @@ language.
   those, with `lastModified`.
 - **Not indexed:** the signed-in dashboard, `/welcome`, `/overlay/*`, a disabled `/watch`, and
   every error page, via `robots: { index: false, follow: false }`.
-- `robots.ts` disallows `/api/` and points to the sitemap. It does not disallow a page that
+- `robots.ts` disallows `/api/` and points to the sitemap; off production (a preview, a laptop)
+  it disallows everything. It does not disallow a page that
   carries `noindex`: Google has to crawl a page to see its `noindex`.
 - A `/watch` for a channel that does not exist returns a real **404**, not a 200 that says "not
   found".

@@ -1,3 +1,5 @@
+import type { Labels } from "@/lib/i18n";
+
 // What get_state returns and what the ch:<id> events carry (vault stage-2 contracts). Column
 // names are the database's, unchanged, so a row from an event merges straight in.
 
@@ -143,7 +145,28 @@ export type Channel = {
   created_at: string;
 };
 
-export type WatchSection = "teams" | "queue" | "moderation" | "riot_ids";
+export type WatchSection = "teams" | "queue" | "games" | "moderation" | "riot_ids";
+
+// What /watch/<slug> and /api/watch/<slug> carry (0029's watch_snapshot, a whitelist): Riot only
+// with riot_ids, games and the all-time board only with games, moderation names and kind only.
+export type WatchPlayer = Pick<Player, "id" | "kick_username" | "status" | "team" | "team_slot" | "sort_key" | "locked" | "riot_id" | "rank">;
+export type WatchGame = { n: number; winner: 1 | 2; ended_at: string; teams: [GameEntry[], GameEntry[]] };
+export type WatchSnapshot =
+  | { disabled: true; channel: { slug: string; name: string }; labels: Labels }
+  | {
+      disabled?: undefined;
+      v: number;
+      channel: { slug: string; name: string; live: boolean };
+      labels: Labels | null;
+      sections: WatchSection[];
+      team_size: number;
+      players: WatchPlayer[];
+      draw: Pick<Draw, "id" | "kind" | "n" | "result" | "created_at"> | null;
+      score: Score;
+      games: WatchGame[] | null;
+      board: { name: string; wins: number; losses: number }[] | null;
+      moderation: { kick_username: string; kind: Sanction["kind"] }[] | null;
+    };
 
 // How a draw shows itself (D22): a team draw lands by Typewriter unless "none"; a pick plays
 // the chosen reveal.

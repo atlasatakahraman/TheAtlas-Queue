@@ -6,34 +6,47 @@ import { ThemeButton } from "@/components/theme-button";
 // Not found and errors (DESIGN.md § Not found and errors): the big numeral under a slim top bar.
 // No hooks, so the server's not-found page and the client error boundaries share it.
 
+// The slim top bar: the tile and the wordmark (a link to `/`), the crumb, and the tools on the
+// right. /watch shares it with its Live mark after the crumb and its own EN | TR.
+export function SlimBar({ crumb, after, tools }: { crumb?: string; after?: React.ReactNode; tools?: React.ReactNode }) {
+  return (
+    <header className="border-b border-border bg-card">
+      <div className="mx-auto flex h-[3.75rem] w-full max-w-[1440px] items-center justify-between gap-3 px-8 max-md:px-4">
+        <span className="flex min-w-0 items-center gap-3">
+          <Link href="/" className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+            <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} className="size-9 rounded-lg dark:hidden" />
+            <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} className="hidden size-9 rounded-lg dark:block" />
+            <span className="cap-center font-serif text-title max-md:text-body max-sm:hidden">
+              TheAtlas <span className="text-brand italic">Queue</span>
+            </span>
+          </Link>
+          {crumb && (
+            <>
+              <span aria-hidden className="cap-center font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden">
+                /
+              </span>
+              <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">{crumb}</span>
+            </>
+          )}
+          {after}
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          {tools ?? (
+            <>
+              <LangSwitch />
+              <ThemeButton />
+            </>
+          )}
+        </span>
+      </div>
+    </header>
+  );
+}
+
 export function StatusPage({ crumb, children }: { crumb?: string; children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-1 flex-col">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex h-[3.75rem] w-full max-w-[1440px] items-center justify-between gap-3 px-8 max-md:px-4">
-          <span className="flex min-w-0 items-center gap-3">
-            <Link href="/" className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
-              <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} className="size-9 rounded-lg dark:hidden" />
-              <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} className="hidden size-9 rounded-lg dark:block" />
-              <span className="cap-center font-serif text-title max-md:text-body max-sm:hidden">
-                TheAtlas <span className="text-brand italic">Queue</span>
-              </span>
-            </Link>
-            {crumb && (
-              <>
-                <span aria-hidden className="cap-center font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden">
-                  /
-                </span>
-                <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">{crumb}</span>
-              </>
-            )}
-          </span>
-          <span className="flex shrink-0 items-center gap-1">
-            <LangSwitch />
-            <ThemeButton />
-          </span>
-        </div>
-      </header>
+      <SlimBar crumb={crumb} />
       {/* Centred, a little above the middle. */}
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-8 pt-12 pb-[18vh] max-md:px-4">{children}</main>
     </div>

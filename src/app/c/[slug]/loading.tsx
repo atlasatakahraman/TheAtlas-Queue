@@ -160,7 +160,6 @@ function ModerationBody() {
   );
 }
 
-// A card per day: its heading, then time · icon · sentence lines.
 // Games: the title, its view pills, search and (streamer) Clear, then one-line game rows at the
 // games-tab row height.
 function GamesBody() {
@@ -176,6 +175,7 @@ function GamesBody() {
   );
 }
 
+// A card per day: its heading, then time · icon · sentence lines.
 function HistoryBody() {
   return (
     <div className="flex flex-col gap-4">

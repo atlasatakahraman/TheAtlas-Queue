@@ -101,17 +101,20 @@ function PickBody({ picked }: { picked: DrawEntry[] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [playing, picked.length]);
 
-  // All to Team N (owner, 2026-09-27): one write, one Undo; those already there stay.
+  // All to Team N (owner, 2026-09-27): one write, one Undo; those already there stay. It closes
+  // the dialog, the pick being done (owner, 2026-09-28); a single name's move keeps it open.
   const allTo = (n: 1 | 2) => {
     const ids = here.filter((p) => !(p.status === "playing" && p.team === n)).map((p) => p.id);
     return {
       ids,
-      run: () =>
-        act("move_players", { p_ids: ids, p_team: n }, {
+      run: () => {
+        store.clearReveal();
+        return act("move_players", { p_ids: ids, p_team: n }, {
           optimistic: { ids, patch: (x) => ({ ...x, status: "playing", team: n }) },
           done: "done.move_all",
           vars: { n: ids.length, team: t(`team.${n}`) },
-        }),
+        });
+      },
     };
   };
   const taken = new Set(picked.slice(0, step).map((e) => e.id));

@@ -530,7 +530,8 @@ Cards                       List                         Wheel
 Each name carries its moves (owner, 2026-09-27): *Move to Team 1 / 2*, *Back to waiting*, *Remove
 from queue*, disabled (never hidden) when they cannot happen, and the name shows its new state; two
 or more names add **All to Team 1 / 2**, one write (`move_players`) and one Undo, disabled when
-the team lacks room for all of them. A pick moves nobody, so its toast offers Undo only when it
+the team lacks room for all of them; it closes the dialog, the pick being done, while a single
+name's move keeps it open (owner, 2026-09-28). A pick moves nobody, so its toast offers Undo only when it
 used a protection, which Undo gives back.
 
 **Everywhere at once.** `/watch` and `/overlay` play the same reveal when a new draw arrives.

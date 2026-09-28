@@ -643,6 +643,16 @@ export const en = {
   "card.channel": "This channel: {w} W {l} L",
   "card.channel.won": "won {n} in a row",
   "card.channel.lost": "lost {n} in a row",
+  "settings.after_game": "After Victory",
+  "settings.after_game.hint": "What happens once a game is recorded. Undo takes back both.",
+  "settings.after_game.none": "Only record the game",
+  "settings.after_game.shuffle": "Shuffle the teams",
+  "settings.after_game.draw_all": "New draw from queue and teams",
+  "settings.after_game.draw_queue": "New draw from the queue only",
+  "settings.after_game.queue": "Everyone back to the queue",
+  "settings.after_game.losers": "Losers back to the queue",
+  "settings.games_retention_days": "Keep games for (days)",
+  "settings.games_retention_days.hint": "1 to 365. Older games and their records go.",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

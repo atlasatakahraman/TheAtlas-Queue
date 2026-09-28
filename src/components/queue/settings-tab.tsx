@@ -18,7 +18,7 @@ import { en } from "@/lib/i18n/en";
 import { tr } from "@/lib/i18n/tr";
 import { isError, type RpcError } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
-import { DRAW_REVEALS, type Settings, type WatchSection } from "@/types/queue";
+import { AFTER_GAME, type AfterGame, DRAW_REVEALS, type Settings, type WatchSection } from "@/types/queue";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 const SECTIONS: WatchSection[] = ["teams", "queue", "moderation", "riot_ids"];
@@ -252,8 +252,8 @@ function RiotSection() {
 
 function DrawsSection() {
   const { t } = useT();
-  const s = useSection(["draw_reveal", "clear_on_offline", "perk_enabled", "perk_uses", "perk_window_days", "perk_badges"] as const);
-  const num = (k: "perk_uses" | "perk_window_days") => (
+  const s = useSection(["draw_reveal", "after_game", "games_retention_days", "clear_on_offline", "perk_enabled", "perk_uses", "perk_window_days", "perk_badges"] as const);
+  const num = (k: "perk_uses" | "perk_window_days" | "games_retention_days") => (
     <Input
       id={k}
       inputMode="numeric"
@@ -278,6 +278,24 @@ function DrawsSection() {
             ))}
           </SelectContent>
         </Select>
+      </Field>
+      {/* Games (D27) live here until Stage 12 gives Settings its Games section. */}
+      <Field label={t("settings.after_game")} hint={t("settings.after_game.hint")}>
+        <Select value={s.draft.after_game} onValueChange={(v) => void s.put("after_game", v as AfterGame)}>
+          <SelectTrigger className={cn(triggerCls, "max-w-80")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            {AFTER_GAME.map((a) => (
+              <SelectItem key={a} value={a}>
+                {t(`settings.after_game.${a}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field id="games_retention_days" label={t("settings.games_retention_days")} hint={t("settings.games_retention_days.hint")} error={s.errors.games_retention_days}>
+        {num("games_retention_days")}
       </Field>
       <SwitchField
         id="clear_on_offline"

@@ -224,8 +224,9 @@ export function usePlayerActions(p: Player) {
       vars: { name: p.kick_username, team: teamNo ? team(teamNo) : "" },
     });
   const copy = useCopy();
+  const moveToTeam = useMoveTo();
   return {
-    moveTo: (n: 1 | 2) => move("playing", n),
+    moveTo: (n: 1 | 2) => moveToTeam(p, n),
     toWaiting: () => move("waiting", null),
     toggleAway: () => (p.status === "away" ? move("waiting", null) : move("away", null)),
     remove: () =>
@@ -584,16 +585,23 @@ const releaseFocus = (e: Event) => {
 // A team card's add list, for its rows' Add player above / below (D37). Null outside a card.
 export const TeamAddContext = createContext<{ open: (row: HTMLElement, key: number) => void; full: boolean } | null>(null);
 
-// Into a team, at key in the order when given (D37: one write, one Undo).
+// Into a team, at place in the order when given (D37: one write, one Undo). Without one (an
+// empty slot, Add to Team N, a drop on the card, a menu's Move to) the player takes the team's
+// next slot, after its last row, not wherever their queue order would sort them (owner, 2026-09-28).
 export function useMoveTo() {
   const { t } = useT();
   const act = useAct();
-  return (p: Player, team: 1 | 2, key?: number) =>
-    act("move_player", { p_player: p.id, p_status: "playing", p_team: team, p_key: key ?? null }, {
+  const store = useStore();
+  return (p: Player, team: 1 | 2, place?: number) => {
+    const players = store.get().players;
+    const last = players.findLast((x) => x.status === "playing" && x.team === team && x.id !== p.id);
+    const key = place ?? (last ? placeKey(players, last.id, "after", p.id) : undefined);
+    return act("move_player", { p_player: p.id, p_status: "playing", p_team: team, p_key: key ?? null }, {
       optimistic: { ids: [p.id], patch: (x) => ({ ...x, status: "playing", team, sort_key: key ?? x.sort_key }) },
       done: "done.move_team",
       vars: { name: p.kick_username, team: t(`team.${team}`) },
     });
+  };
 }
 
 // The edge of row the pointer is on, or null where dropping d would leave it in its own slot

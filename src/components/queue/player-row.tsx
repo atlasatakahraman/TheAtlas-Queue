@@ -9,6 +9,7 @@ import {
   Copy,
   Ellipsis,
   Gamepad2,
+  GripVertical,
   Heart,
   Hourglass,
   type LucideIcon,
@@ -681,6 +682,7 @@ export function PlayerRow({
   const teamAdd = useContext(TeamAddContext);
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
   const [lifted, setLifted] = useState(false);
+  const draggable = canWrite && !touch && player.status !== "punished";
   // A roster row takes its own team's players (a reorder) and, while the team has room, anyone
   // else, who joins the team at that row (D37, owner 2026-09-27).
   const sameTeam = (d: Player) => d.status === "playing" && d.team === player.team;
@@ -727,20 +729,30 @@ export function PlayerRow({
           data-player={player.id}
           tabIndex={0}
           onKeyDown={onKeyDown}
-          draggable={canWrite && !touch && player.status !== "punished"}
+          draggable={draggable}
           onDragStart={(e) => {
             dragging = player;
             setLifted(true);
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", player.kick_username);
-            // The browser would drag a picture of the whole row: a name chip with the row's edge
-            // follows the cursor instead (owner, 2026-09-27; the Stage 7 design refines it, D25).
+            // The browser would drag a picture of the whole row: a chip follows the cursor instead
+            // (D25, DESIGN.md § Drag and drop): the initial, the name and the #TAG, in the row's
+            // edge. Built as text nodes, never markup, since names come from chat.
+            const [game, tag] = seen.riot_id ? seen.riot_id.split("#") : [player.kick_username, null];
             const chip = document.createElement("div");
-            chip.textContent = seen.riot_id?.split("#")[0] ?? player.kick_username;
             chip.className = cn(
-              "fixed -top-96 left-0 max-w-64 truncate rounded-lg border border-l-[3px] border-row-edge bg-card px-3 py-1.5 text-name text-foreground",
+              "fixed -top-96 left-0 flex max-w-64 items-center gap-2 rounded-lg border border-l-[3px] border-row-edge bg-card px-3 py-1.5 text-foreground shadow-md",
               edge,
             );
+            const part = (text: string, className: string) => {
+              const el = document.createElement("span");
+              el.textContent = text;
+              el.className = className;
+              chip.append(el);
+            };
+            part(game.slice(0, 1), "grid size-5 shrink-0 place-items-center rounded-full border border-row-edge text-caption text-muted-foreground uppercase");
+            part(game, "min-w-0 truncate text-name");
+            if (tag) part(`#${tag}`, "shrink-0 font-mono text-caption text-muted-foreground");
             document.body.append(chip);
             e.dataTransfer.setDragImage(chip, 16, chip.offsetHeight / 2);
             requestAnimationFrame(() => chip.remove());
@@ -778,7 +790,7 @@ export function PlayerRow({
           }}
           style={enterStyle?.style}
           className={cn(
-            "group/row grid items-center gap-x-3 rounded-xl border border-l-[3px] border-row-edge px-4 py-3 outline-none",
+            "group/row relative grid items-center gap-x-3 rounded-xl border border-l-[3px] border-row-edge px-4 py-3 outline-none",
             "transition-colors duration-150 ease-out hover:bg-accent focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
             table ? cn("bg-row", tableCols(ids, ranks)) : "grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] bg-background",
             edge,
@@ -786,7 +798,7 @@ export function PlayerRow({
             recent(revertedAt) && "animate-highlight",
             // The grab hand at rest, grabbing while pressed (owner, 2026-09-27, reverting cb06f3a).
             // Once the drag starts the browser draws its own cursor; CSS cannot reach it.
-            canWrite && !touch && "cursor-grab active:cursor-grabbing",
+            draggable && "cursor-grab active:cursor-grabbing",
             // The row picked up dims at once, so the drag reads as started with no pause.
             lifted && "opacity-40",
             // The drop line: gold in the queue, the team's colour on a roster (D37).
@@ -795,6 +807,10 @@ export function PlayerRow({
             enterStyle?.className,
           )}
         >
+          {/* The grip (D25): in the row's left padding, so no column moves; only where it drags. */}
+          {draggable && (
+            <GripVertical aria-hidden className="absolute top-1/2 left-0.5 size-3.5 -translate-y-1/2 text-muted-foreground/60 group-hover/row:text-muted-foreground" />
+          )}
           <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{number}</span>
           <div className="flex min-w-0 items-center gap-3">
             <PlayerAvatar player={seen} />

@@ -652,8 +652,8 @@ it) and the **account menu** (avatar, and the name from 1280px; Settings, **Sign
 stay. Checked 430 to 1440px: the wordmark and a 16-letter channel show whole.
 
 **Masthead.** No big channel title and no dateline (owner, 2026-09-23 and 2026-09-27): the top
-bar names the channel, the tab count says who waits, and Live / Offline joins the top bar with
-D25. An `sr-only` `h1` keeps the heading; the streamer's subtitle (`brand.subtitle`) shows
+bar names the channel, the tab count says who waits (Live / Offline joined the top bar with D25
+and left it in Stage 10). An `sr-only` `h1` keeps the heading; the streamer's subtitle (`brand.subtitle`) shows
 when set. Right: **the toolbar**, the same on every tab.
 
 **Toolbar.** Add player · **Pick ×1 ×2 ×3** with its source (*Waiting*, *Teams*, *Whole
@@ -728,20 +728,13 @@ on the way into the dashboard or `/welcome`.
 icon-only button has one, and every **disabled** control says why (*Teams are full*, *Only the
 streamer can do this*, *Offline: actions are paused*). No native `title=`.
 
-#### Top bar: Live / Offline (Stage 9, D25)
+#### Top bar: no Live / Offline (removed, owner 2026-09-28)
 
-```
-[▣] TheAtlas Queue / HoustonHUB  ((·)) Live 1:42    [▮▮▮ Chat]  🔍  EN|TR  ⌥  ◐  ⚙  (◉ Atlas)
-```
-
-After the breadcrumb: an icon and a word, no capsule, **never a dot** (owner, 2026-09-27).
-**Live** is `Radio` in `--success` with the time on air (`live_since`, tabular, updated each
-minute), its two outer arcs fading in turn (2s, off under reduced motion); **Offline** is
-`RadioOff`, muted. The tooltip holds the stream title. On phones the icon alone
-stays beside the channel. It rises in (`animate-enter`) once the channel has typed, so it joins
-the title's sequence instead of standing there first (owner, 2026-09-28). The wait is a timer
-from mount, the typing's own clock, never an `animation-delay`: that counts from the server
-HTML's first paint, so it rose in before the title had begun.
+Stage 9 put Live / Offline (`Radio` / `RadioOff`, the time on air, the stream title in a tooltip)
+after the breadcrumb. The owner removed it in Stage 10 (10.9): its entrance never settled beside
+the typed title, and the chat pill already says whether the queue hears the stream. The top bar
+is the tile, the wordmark, `/` and the channel (on a game's page, `/ Games / n`). `live_since`
+still drives the score's "this stream" and the stream-end clear.
 
 #### Management tab (Stage 9, D25)
 

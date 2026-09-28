@@ -120,7 +120,7 @@ function PickBody({ picked }: { picked: DrawEntry[] }) {
           {shown.map((o) => {
             const p = live.get(o.entry.id);
             return (
-              <LandingName key={o.entry.id} entry={o.entry} at={typing && !staged ? o.at : 0}>
+              <LandingName key={o.entry.id} entry={o.entry} at={typing ? o.at : 0} typed={!staged}>
                 {p ? <PickedActions p={p} /> : <span className="ml-auto text-meta text-muted-foreground">{t("pick.removed")}</span>}
               </LandingName>
             );

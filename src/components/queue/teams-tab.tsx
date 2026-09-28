@@ -247,12 +247,17 @@ function AddToTeam({ team, at, place, onClose }: { team: 1 | 2; at: HTMLElement 
   );
 }
 
-// One name landing: typed in with Typewriter, its protected tag rising with it.
-export function LandingName({ entry, at, children }: { entry: DrawEntry; at: number; children?: React.ReactNode }) {
+// One name landing: typed in with Typewriter, its protected tag rising with it. `typed={false}`
+// shows it at once, for a name a pick's Cards, List or Wheel has just revealed.
+export function LandingName({ entry, at, typed = true, children }: { entry: DrawEntry; at: number; typed?: boolean; children?: React.ReactNode }) {
   const { t } = useT();
   return (
     <div className={cn("flex items-center gap-2 rounded-xl border border-row-edge bg-background px-4 py-3", SLOT)}>
-      <Typed text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
+      {typed ? (
+        <Typed text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
+      ) : (
+        <span className="text-name">{entry.kick_username}</span>
+      )}
       {entry.locked && (
         <span className="animate-enter" style={{ animationDelay: `${at}ms` }}>
           <Tag tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>

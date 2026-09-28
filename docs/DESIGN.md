@@ -1050,11 +1050,25 @@ shadcn `Dialog` (not `AlertDialog`, which shadcn reserves for confirmations) con
 
 ### Command palette
 
-shadcn `CommandDialog`, opened by `Ctrl/⌘ K` or the masthead's search button. Groups:
-**Actions** (draw, reroll, pick ×N, add player, new session), **Players** (typing a name jumps
-to their row and opens its menu), **Go to** (tabs, Watch page), **Preferences** (theme,
-language). Every action shows its `CommandShortcut`; this and the row menu are the only places
-shortcuts are written down.
+shadcn `CommandDialog` (`max-w-xl`), opened by `Ctrl/⌘ K` or the masthead's search button.
+Reworked 2026-09-28 on the owner's free hand ("it is too simple"):
+
+- **Groups.** **Actions** (draw, reroll, pick ×N, shuffle, add player, then the two clears in
+  `destructive`), **Players**, **Go to** (the tabs, the search box), **Preferences** (theme,
+  language, animations and notifications with their state, sign out). Every item carries its
+  lucide icon, the same one its button or menu item wears.
+- **Players as rows.** Each is a small row: the 3px state edge (team colour in a game, warning
+  when punished, `row-edge` otherwise), the Kick name over the Riot ID in mono, the row's tags.
+  With nothing typed, five are listed and a muted line says how many more a name finds; typing
+  searches everyone.
+- **A player's page** (the one bold move). Choosing a player turns the palette into that player:
+  a card on top (back arrow, the state edge, the name in Newsreader `text-title`, `#TAG` and Kick
+  name under it, tags and rank on the right), the search now *Actions for {name}*, then *Show in
+  the queue* and the row menu's own sections (`usePlayerMenu`, so the two never drift). Esc, or
+  Backspace in an empty search, goes back; Esc again closes.
+- **Key legend** along the bottom on a keyboard device: ↑ ↓ *Move*, ↵ *Open*, Esc *Close* (*Back*
+  on a player's page). Every action shows its `CommandShortcut`; this and the row menu are the
+  only places shortcuts are written down.
 
 ### Team card
 

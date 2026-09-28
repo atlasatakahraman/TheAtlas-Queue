@@ -225,7 +225,7 @@ export function usePlayerActions(p: Player) {
   };
 }
 
-type Item = {
+export type Item = {
   label: string;
   icon: LucideIcon;
   shortcut?: string;
@@ -237,7 +237,8 @@ type Item = {
   disabled?: boolean;
 };
 
-function useMenu(p: Player): Item[][] {
+// The row menu's sections, also the palette's page for one player.
+export function usePlayerMenu(p: Player): Item[][] {
   const { t } = useT();
   const a = usePlayerActions(p);
   const riot = useRiot();
@@ -298,7 +299,7 @@ function useMenu(p: Player): Item[][] {
 
 function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "context" | "dropdown"; open?: boolean; onOpenChange?: (o: boolean) => void }) {
   const { t } = useT();
-  const groups = useMenu(player);
+  const groups = usePlayerMenu(player);
   const canWrite = useCanWrite();
   const riot = useRiot();
   const K =

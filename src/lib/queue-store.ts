@@ -132,7 +132,8 @@ export function createQueueStore(initial: QueueState, me: number) {
         }
         case "activity": {
           const a = r as unknown as Activity;
-          next.activity = upsert(next.activity, a, (x) => x.id === a.id)
+          // Clear history leaves its own line only (0022).
+          next.activity = upsert(a.action === "clear_history" ? [] : next.activity, a, (x) => x.id === a.id)
             .sort((x, y) => y.id - x.id)
             .slice(0, 100);
           break;

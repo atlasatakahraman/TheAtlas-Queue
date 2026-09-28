@@ -74,6 +74,11 @@ export function useDrawActions() {
       const ask = { title: t("confirm.clear_moderation.title"), body: t("confirm.clear_moderation.body"), action: t("mod.clear") };
       if (await confirm(ask)) return act("clear_moderation", {}, { done: "done.clear_moderation" });
     },
+    // No Undo: the feed is the undo stack (0022).
+    clearHistory: async () => {
+      const ask = { title: t("confirm.clear_history.title"), body: t("confirm.clear_history.body"), action: t("history.clear") };
+      if (await confirm(ask)) return act("clear_history", {}, { done: "done.clear_history", undoable: () => false });
+    },
   };
 }
 

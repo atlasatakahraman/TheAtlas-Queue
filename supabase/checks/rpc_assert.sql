@@ -433,5 +433,28 @@ begin
   end if;
 end $$;
 
+-- Clear history (0022), after the count above since it empties the feed: owner only, one line
+-- left (its own), refused when there is nothing to clear.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000001';
+  owner constant text := '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+  modr  constant text := '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+  r     jsonb;
+begin
+  perform set_config('request.jwt.claims', modr, true);
+  perform pg_temp.expect(format('select public.clear_history(%L, gen_random_uuid())', ch), 'auth.role');
+  perform set_config('request.jwt.claims', owner, true);
+  r := public.clear_history(ch, gen_random_uuid());
+  if (select count(*) from public.activity a where a.channel_id = ch) <> 1
+     or not exists (select 1 from pg_temp.rows_of(r, 'activity') e where e ->> 'action' = 'clear_history' and (e -> 'payload' ->> 'n')::int > 1) then
+    raise exception 'clear_history: feed not cleared to its own line: %', r;
+  end if;
+  execute 'reset role';
+  delete from public.activity a where a.channel_id = ch;
+  execute 'set local role authenticated';
+  perform pg_temp.expect(format('select public.clear_history(%L, gen_random_uuid())', ch), 'history.empty');
+end $$;
+
 select 'rpc ok' as result;
 rollback;

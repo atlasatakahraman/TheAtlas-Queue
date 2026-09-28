@@ -265,6 +265,7 @@ export const en = {
   "act.pick_from_all": "{actor} picked {n} from the whole queue",
   "act.shuffle_teams": "{actor} shuffled the teams",
   "act.clear_teams": "{actor} cleared the teams",
+  "act.clear_history": "{actor} cleared the history",
   "act.clear_moderation": "{actor} cleared the sanctions",
   "act.warn": "{actor} warned {target}",
   "act.punish": "{actor} punished {target}",
@@ -452,6 +453,7 @@ export const en = {
   "done.clear_queue": "Queue cleared.",
   "done.shuffle_teams": "Teams shuffled.",
   "done.clear_teams": "Teams cleared.",
+  "done.clear_history": "History cleared.",
   "done.clear_moderation": "Sanctions cleared.",
   "done.reorder": "{name} moved.",
   "pick.label": "Pick",
@@ -485,6 +487,10 @@ export const en = {
   "mod.new.hint": "For someone who is not in the queue: their Kick name as it appears in chat.",
   "mod.new.name": "Kick name",
   "mod.new.invalid": "Letters, numbers, _ and - only.",
+  "history.clear": "Clear history",
+  "confirm.clear_history.title": "Clear the history?",
+  "confirm.clear_history.body": "Every line goes for everyone, and nothing before it can be undone. This cannot be undone either.",
+  "error.history.empty": "There is no history to clear.",
   "mod.clear": "Clear sanctions",
 } satisfies Record<string, string>;
 

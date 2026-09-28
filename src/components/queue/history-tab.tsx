@@ -34,7 +34,9 @@ import { Fragment, useMemo } from "react";
 import { useT } from "@/components/i18n";
 import { FilterPills } from "@/components/queue/filter-pills";
 import { Tag } from "@/components/queue/player-row";
-import { useQueue } from "@/components/queue/store";
+import { useCanWrite, useQueue } from "@/components/queue/store";
+import { useDrawActions } from "@/components/queue/teams-tab";
+import { Button } from "@/components/ui/button";
 import { enter, useUi } from "@/components/queue/ui";
 import { useStored } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
@@ -65,6 +67,7 @@ const LOOK: Record<string, [LucideIcon, string, Exclude<Kind, "all">]> = {
   shuffle_teams: [Shuffle, "text-brand", "teams"],
   clear_teams: [Eraser, "text-destructive", "teams"],
   clear_moderation: [Trash2, "text-destructive", "moderation"],
+  clear_history: [Trash2, "text-destructive", "moderation"],
   warn: [TriangleAlert, "text-warning", "moderation"],
   punish: [Hourglass, "text-warning", "moderation"],
   ban: [Ban, "text-destructive", "moderation"],
@@ -104,6 +107,9 @@ export function HistoryTab() {
   const ui = useUi();
   const now = useNow();
   const activity = useQueue((v) => v.activity);
+  const role = useQueue((v) => v.role);
+  const canWrite = useCanWrite();
+  const { clearHistory } = useDrawActions();
   const [kind, setKind] = useStored<Kind>("queue.history-kind", "all", KINDS);
   const e3 = enter(ui.entering, 3);
   const e4 = enter(ui.entering, 4);
@@ -141,16 +147,31 @@ export function HistoryTab() {
     <div className="flex flex-col gap-4">
       <div style={e3.style} className={cn("flex flex-wrap items-end justify-between gap-4", e3.className)}>
         <h2 className="font-serif text-title">{t("tab.history")}</h2>
-        <FilterPills
-          label={t("mod.show")}
-          value={kind}
-          onChange={setKind}
-          options={KINDS.map((k) => ({
-            value: k,
-            label: t(k === "all" ? "filter.all" : k === "chat" ? "history.chat" : `tab.${k}`),
-            count: counts[k],
-          }))}
-        />
+        <div className="flex flex-wrap items-center gap-2 max-md:w-full">
+          <FilterPills
+            label={t("mod.show")}
+            value={kind}
+            onChange={setKind}
+            options={KINDS.map((k) => ({
+              value: k,
+              label: t(k === "all" ? "filter.all" : k === "chat" ? "history.chat" : `tab.${k}`),
+              count: counts[k],
+            }))}
+          />
+          {/* Owner only, as Clear sanctions (owner, 2026-09-28). */}
+          {role === "owner" && (
+            <Button
+              variant="destructive"
+              size="lg"
+              className="max-md:h-11"
+              disabled={!canWrite || activity.length === 0 || (activity.length === 1 && activity[0].action === "clear_history")}
+              onClick={() => void clearHistory()}
+            >
+              <Trash2 aria-hidden />
+              {t("history.clear")}
+            </Button>
+          )}
+        </div>
       </div>
       <div style={e4.style} className={cn("flex flex-col gap-4", e4.className)}>
         {days[0].rows.length === 0 ? (

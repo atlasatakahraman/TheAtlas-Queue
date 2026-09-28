@@ -658,7 +658,7 @@ without a reason written here.
 | **Queue** (with count) | Filters All / Waiting / In game / Away / Punished · search · the queue table · right: *From chat* feed and four stat tiles |
 | **Teams** | The match headline · two team cards (side by side from 1024px) · the fair-play switch · Clear teams / Shuffle current teams / Reroll / Pick from waiting / Draw teams (primary) |
 | **Management** (TR *Yönetim*) | **New action** (sanction a Kick name that is not in the queue) · **Clear sanctions** (streamer only, undoable) · the sanctions: warnings, punishments, bans. Stage 9: [three tables](#management-tab-stage-9-d25) |
-| **History** (TR *Geçmiş*, `History`) | Who did what ([Roles](#roles-streamer-and-moderators)), its own tab (owner, 2026-09-27): filter All / Queue / Teams / Management / Chat and stream, with counts; one card per day (*today*, *yesterday*, then the date), a line per change: time (tabular) · the action's icon in its colour (a move into a team in that team's colour) · the sentence, names in `foreground` on a muted sentence. Undone lines are struck through with an *undone* tag |
+| **History** (TR *Geçmiş*, `History`) | Who did what ([Roles](#roles-streamer-and-moderators)), its own tab (owner, 2026-09-27): filter All / Queue / Teams / Management / Chat and stream, with counts; one card per day (*today*, *yesterday*, then the date), a line per change: time (tabular) · the action's icon in its colour (a move into a team in that team's colour) · the sentence, names in `foreground` on a muted sentence. Undone lines are struck through with an *undone* tag. **Clear history** (streamer only, destructive, asks first; owner, 2026-09-28) sits beside the filter: the feed is also the undo stack, so nothing before it can be undone and the clear itself has no Undo; its own line is what is left |
 | **Games** (Stage 10) | [This stream's score, Games and Stats](#games-tab-maçlar-stage-10-d27) |
 | **Settings** | Streamer only, **not in the tab bar** (opened from the top bar). Sections: Queue & commands · Riot · Draws & perks · Moderators · Watch page & overlay · Labels & language · Your data. Stage 12: [its own page](#settings-page-cchannelsettings-stage-12-d20-d30) |
 
@@ -899,7 +899,7 @@ away, moderation, draw and reroll (Undo restores the previous result), removing 
 A row's `×` and every other single-player action stop there: no dialog.
 
 **Bulk and moderation actions also ask first** (owner, 2026-09-27, amending D26): *Clear queue*,
-*Clear teams*, *Clear sanctions*, and in Stage 10 *Delete game* and *Remove from all history*.
+*Clear teams*, *Clear sanctions*, *Clear history* (no Undo toast: it empties the undo stack), and in Stage 10 *Delete game* and *Remove from all history*.
 Their buttons and menu items wear the destructive look (`variant="destructive"`), and pressing
 one opens a shadcn `AlertDialog` (`confirm()` in `confirm.tsx`, one host in the dashboard) that
 says what goes and how many, with **Cancel** and the action's own name as a destructive

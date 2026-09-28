@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
-import { draggedPlayer, PlayerRow, RankText, Tag, TeamAddContext, useMoveTo, useRiot } from "@/components/queue/player-row";
+import { draggedPlayer, PlayerRow, RankText, Tag, TeamAddContext, useMoveTo, useRanks, useRiotIds } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typed, useMotion } from "@/components/prefs";
@@ -188,7 +188,7 @@ function AddToTeam({ team, at, place, onClose }: { team: 1 | 2; at: HTMLElement 
   const { t } = useT();
   const ui = useUi();
   const moveTo = useMoveTo();
-  const riot = useRiot();
+  const riot = useRiotIds();
   // Select the stable array and filter outside: a selector that builds a new array makes
   // useSyncExternalStore see a new snapshot every render and loop.
   const players = useQueue((v) => v.players);
@@ -357,7 +357,7 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
   const waiting = useMemo(() => players.filter((p) => p.status === "waiting"), [players]);
   const playing = players.filter((p) => p.status === "playing").length;
   const { shuffle, clearTeams } = useDrawActions();
-  const riot = useRiot();
+  const riot = useRiotIds();
   return (
     <ContextMenuContent className="min-w-60 p-1.5">
       <ContextMenuLabel className={cn("font-normal", team === 1 ? "text-team-1" : "text-team-2")}>
@@ -500,7 +500,7 @@ export function TeamsTab() {
   const landing = useLanding(revealing, rosters);
   const e3 = enter(ui.entering, 3);
   const e4 = enter(ui.entering, 4);
-  const riot = useRiot();
+  const riot = useRanks();
 
   return (
     <div className="flex flex-col gap-6">

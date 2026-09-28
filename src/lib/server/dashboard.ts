@@ -33,8 +33,9 @@ async function membership(channelId: string, ownerOnly = false): Promise<{ broad
 export async function lookupRank(channelId: string, riotId: string): Promise<boolean> {
   if (typeof riotId !== "string" || !RIOT_ID.test(riotId) || !(await membership(channelId))) return false;
   const db = adminDb();
-  const { data: s } = await db.from("settings").select("riot_enabled, riot_region").eq("channel_id", channelId).single();
-  if (!s?.riot_enabled) return false;
+  const { data: s } = await db.from("settings").select("riot_enabled, require_riot_id, riot_region").eq("channel_id", channelId).single();
+  // Ranks need Riot IDs on too (0023).
+  if (!s?.riot_enabled || !s.require_riot_id) return false;
   const rank = await fetchRank(riotId, s.riot_region);
   if (!rank) return false;
   const { error } = await db.rpc("set_riot_rank", {

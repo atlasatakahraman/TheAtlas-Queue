@@ -205,11 +205,19 @@ function RiotSection() {
   const s = useSection(["riot_enabled", "require_riot_id", "riot_region"] as const);
   return (
     <Section title={t("settings.riot")} step={4}>
-      <SwitchField id="riot_enabled" label={t("settings.riot_enabled")} hint={t("settings.riot_enabled.hint")} checked={s.draft.riot_enabled} onChange={(v) => void s.put("riot_enabled", v)} />
-      {/* The rest only means something with Riot on (owner, 2026-09-27). */}
-      {s.draft.riot_enabled && (
+      {/* Riot IDs first, ranks under them: a lookup needs a Riot ID (owner, 2026-09-28). Look up
+          ranks keeps its own value while Riot IDs are off, and shows off and disabled. */}
+      <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => void s.put("require_riot_id", v)} />
+      <SwitchField
+        id="riot_enabled"
+        label={t("settings.riot_enabled")}
+        hint={t(s.draft.require_riot_id ? "settings.riot_enabled.hint" : "settings.riot_enabled.needs")}
+        checked={s.draft.require_riot_id && s.draft.riot_enabled}
+        disabled={!s.draft.require_riot_id}
+        onChange={(v) => void s.put("riot_enabled", v)}
+      />
+      {s.draft.require_riot_id && s.draft.riot_enabled && (
         <>
-          <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => void s.put("require_riot_id", v)} />
           <Field label={t("settings.riot_region")} hint={t("settings.riot_region.hint")} error={s.errors.riot_region}>
             <Select value={s.draft.riot_region} onValueChange={(v) => void s.put("riot_region", v)}>
               <SelectTrigger className={cn(triggerCls, "max-w-60")}>
@@ -377,7 +385,7 @@ function WatchSectionSettings() {
   const { t } = useT();
   const s = useSection(["watch_enabled", "watch_sections"] as const);
   const slug = useQueue((v) => v.channel.slug);
-  const riot = useQueue((v) => v.settings.riot_enabled);
+  const riot = useQueue((v) => v.settings.require_riot_id);
   const toggle = (x: WatchSection, on: boolean) =>
     void s.put("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
   return (

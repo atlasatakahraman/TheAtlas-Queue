@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
-import { useMoveTo } from "@/components/queue/player-row";
+import { useMoveTo, useRanks } from "@/components/queue/player-row";
 import { ResponsiveDialog } from "@/components/queue/responsive-dialog";
 import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
@@ -89,7 +89,7 @@ function AddPlayerForm({ team, at, onDone }: { team: 1 | 2 | null; at: number | 
   const now = useNow();
   const channelId = useQueue((v) => v.channel.id);
   const required = useQueue((v) => v.settings.require_riot_id);
-  const riotEnabled = useQueue((v) => v.settings.riot_enabled);
+  const riotEnabled = useRanks();
   const activity = useQueue((v) => v.activity);
   const players = useQueue((v) => v.players);
   const [name, setName] = useState("");
@@ -224,7 +224,7 @@ function EditPlayerForm() {
   const { lookupRank } = useServerActions();
   const channelId = useQueue((v) => v.channel.id);
   const required = useQueue((v) => v.settings.require_riot_id);
-  const riotEnabled = useQueue((v) => v.settings.riot_enabled);
+  const riotEnabled = useRanks();
   const [name, setName] = useState(p.kick_username);
   const [riot, setRiot] = useState(p.riot_id ?? "");
   const [errors, setErrors] = useState<Errors>({});

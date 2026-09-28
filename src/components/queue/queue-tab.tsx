@@ -3,7 +3,7 @@ import { MessageSquareText, Search } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
 import { FilterPills } from "@/components/queue/filter-pills";
-import { PlayerRow, TableHeader, useRiot } from "@/components/queue/player-row";
+import { PlayerRow, TableHeader, useRiotIds } from "@/components/queue/player-row";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { enter, SearchRefContext, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
@@ -179,7 +179,7 @@ function Feed() {
   const { t } = useT();
   const lines = useChatLines();
   const now = useNow();
-  const riot = useRiot();
+  const riot = useRiotIds();
   if (lines.length === 0) return <p className="text-meta text-muted-foreground">{t("feed.empty")}</p>;
   return (
     <ol className="flex flex-col gap-2.5">

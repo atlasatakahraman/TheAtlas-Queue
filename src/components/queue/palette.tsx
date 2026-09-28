@@ -26,7 +26,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { useSetLang, useT } from "@/components/i18n";
 import { usePrefs } from "@/components/prefs";
-import { PlayerTags, RankText, usePlayerMenu, useRiot } from "@/components/queue/player-row";
+import { PlayerTags, RankText, usePlayerMenu, useRanks, useRiotIds } from "@/components/queue/player-row";
 import { useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { signOutNow } from "@/components/queue/header";
 import { useDrawActions, usePick } from "@/components/queue/teams-tab";
@@ -166,7 +166,8 @@ export function Palette() {
 // and Kick name under it, their tags and rank on the right, and a way back.
 function PlayerCard({ player, onBack }: { player: Player; onBack: () => void }) {
   const { t } = useT();
-  const riot = useRiot();
+  const riot = useRiotIds();
+  const ranks = useRanks();
   const [game, tag] = riot && player.riot_id ? player.riot_id.split("#") : [player.kick_username, null];
   return (
     <div className="flex items-center gap-3 px-2 pt-2 pb-3">
@@ -191,7 +192,7 @@ function PlayerCard({ player, onBack }: { player: Player; onBack: () => void }) 
       </div>
       <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-x-2.5 gap-y-1">
         <PlayerTags player={player} />
-        {riot && <RankText player={player} />}
+        {ranks && <RankText player={player} />}
       </div>
     </div>
   );
@@ -242,7 +243,7 @@ function RootCommands({ search, run, onPlayer }: { search: string; run: Run; onP
   const canWrite = useCanWrite();
   const role = useQueue((v) => v.role);
   const players = useQueue((v) => v.players);
-  const riot = useRiot();
+  const riot = useRiotIds();
   const prefs = usePrefs();
   const standingTeams = useQueue((v) => v.draw?.kind === "teams");
   const setLang = useSetLang();

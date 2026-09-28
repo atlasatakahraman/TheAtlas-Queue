@@ -936,12 +936,17 @@ The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs,
   unranked and no-games rows go last. Remembered per browser (`queue.sort`). *Kick* does not
   sort. **Sorting is a view**: Pick and the draw still use the queue order, and dragging is off
   while sorted (the grips go).
-- **Riot off** (`riot_enabled` false): *Kick*, *Rank* and *Win rate* leave the table
-  (`TABLE_COLS_PLAIN`) and the player cell shows the Kick name. Nothing else that needs Riot shows
-  either (owner, 2026-09-27): the team card's average rank, the Riot ID card, *Copy Riot ID*,
-  Riot IDs in the palette, the add lists and the feed, Settings' *Require a Riot ID* and region,
-  and the watch page's *Riot IDs* switch. Players keep their stored Riot IDs; turning Riot back
-  on shows them again.
+- **Riot IDs are the master switch** (owner, 2026-09-28). Settings → Riot lists *Require Riot
+  ID* first and *Look up ranks* under it, disabled (and shown off) while Riot IDs are off; Region
+  appears with ranks. Ranks keep their own value, so turning Riot IDs back on brings them back.
+  - **Riot IDs off** (`require_riot_id` false): *Kick*, *Rank* and *Win rate* leave the table
+    (`TABLE_COLS_PLAIN`) and the player cell shows the Kick name. Nothing else that needs Riot
+    shows either: the team card's average rank, the Riot ID card, *Copy Riot ID*, Riot IDs in the
+    palette, the add lists and the feed, and the watch page's *Riot IDs* switch.
+  - **Riot IDs on, ranks off**: the Riot name and *Kick* column show (`TABLE_COLS_IDS`), but no
+    *Rank*, *Win rate*, profile icon or average rank, and nothing is looked up (chat joins get no
+    region from `webhook_context`, 0023; manual adds skip `lookupRank`).
+  - Players keep their stored Riot IDs and ranks either way; turning a switch back on shows them.
 - **Loading Riot (D25).** Rank and win-rate cells hold a `Skeleton` of their own width until the
   data lands; the Queue heading gets a muted *Loading ranks 3* counter that pulses. Nothing shifts.
 - **Row buttons (D34).** Visible, labelled, in this order before `⋯`, each with a tooltip:

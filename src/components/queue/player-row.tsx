@@ -68,7 +68,10 @@ const TIER_MARK: Record<string, string> = {
 };
 const APEX = new Set(["MASTER", "GRANDMASTER", "CHALLENGER"]);
 
-export const useRiot = () => useQueue((v) => v.settings.riot_enabled);
+// Riot IDs are the master switch (owner, 2026-09-28): Require Riot ID shows and asks for them;
+// ranks (Look up ranks) need it on as well.
+export const useRiotIds = () => useQueue((v) => v.settings.require_riot_id);
+export const useRanks = () => useQueue((v) => v.settings.require_riot_id && v.settings.riot_enabled);
 
 export function RankText({ player, className }: { player: Player; className?: string }) {
   const { t } = useT();
@@ -241,7 +244,7 @@ export type Item = {
 export function usePlayerMenu(p: Player): Item[][] {
   const { t } = useT();
   const a = usePlayerActions(p);
-  const riot = useRiot();
+  const riot = useRiotIds();
   const ui = useUi();
   const store = useStore();
   const teamAdd = useContext(TeamAddContext);
@@ -301,7 +304,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
   const { t } = useT();
   const groups = usePlayerMenu(player);
   const canWrite = useCanWrite();
-  const riot = useRiot();
+  const riot = useRiotIds();
   const K =
     kit === "context"
       ? { Item: ContextMenuItem, Sep: ContextMenuSeparator, Short: ContextMenuShortcut, Label: ContextMenuLabel }
@@ -415,7 +418,7 @@ function Joined({ player }: { player: Player }) {
 function PlayerName({ player, stacked, typeAt }: { player: Player; stacked: boolean; typeAt?: number }) {
   const { t } = useT();
   const touch = useIsTouch();
-  const required = useQueue((v) => v.settings.riot_enabled && v.settings.require_riot_id);
+  const required = useRiotIds();
   const fairPlay = useQueue((v) => v.settings.fair_play);
   const now = useNow();
   const [game, tag] = player.riot_id ? player.riot_id.split("#") : [player.kick_username, null];
@@ -590,11 +593,14 @@ function useReorder() {
 // 32px into Joined, owner 2026-09-28); the player column takes twice the Kick
 // column, since its name shares the line with the respect score and tags (at 1280×720 the name
 // had 53px of 175, owner 2026-09-27).
-// With Riot off (owner, 2026-09-27) the Kick, Rank and Win rate columns go: the name is the Kick
-// name and there is no rank to show.
+// With Riot IDs off (owner, 2026-09-27) the Kick, Rank and Win rate columns go: the name is the
+// Kick name and there is no rank to show. Riot IDs without ranks keep Kick (2026-09-28).
 export const TABLE_COLS_PLAIN = "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_8.5rem] lg:grid-cols-[2rem_minmax(0,1fr)_5.5rem_8.5rem]";
 export const TABLE_COLS =
   "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_8.5rem] lg:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_4.5rem_5.5rem_8.5rem]";
+const TABLE_COLS_IDS =
+  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem] lg:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_5.5rem_8.5rem]";
+const tableCols = (ids: boolean, ranks: boolean) => (ranks ? TABLE_COLS : ids ? TABLE_COLS_IDS : TABLE_COLS_PLAIN);
 
 // A player row (DESIGN.md § Recipes → Queue row). "table" is the Queue tab's row; "roster" is a
 // team card's row: number, avatar, name#tag, rank, menu, on the floor colour.
@@ -624,10 +630,15 @@ export function PlayerRow({
   const [mountedAt] = useState(() => Date.now());
   const recent = (at?: number) => !!at && at > mountedAt - 2000;
   const table = variant === "table";
-  const riot = useRiot();
-  // What the row shows: with Riot off, no Riot ID, rank or profile icon, though the player keeps
-  // them (actions and the edit dialog get the real player, so nothing stored is lost).
-  const seen = useMemo(() => (riot ? player : { ...player, riot_id: null, rank: null }), [riot, player]);
+  const ids = useRiotIds();
+  const ranks = useRanks();
+  // What the row shows: no Riot ID with Riot IDs off, no rank or profile icon with ranks off,
+  // though the player keeps them (actions and the edit dialog get the real player, so nothing
+  // stored is lost).
+  const seen = useMemo(
+    () => (ranks ? player : { ...player, riot_id: ids ? player.riot_id : null, rank: null }),
+    [ids, ranks, player],
+  );
   const touch = useIsTouch();
   const reorder = useReorder();
   const moveTo = useMoveTo();
@@ -734,7 +745,7 @@ export function PlayerRow({
           className={cn(
             "group/row grid items-center gap-x-3 rounded-xl border border-l-[3px] border-row-edge px-4 py-3 outline-none",
             "transition-colors duration-150 ease-out hover:bg-accent focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
-            table ? cn("bg-row", riot ? TABLE_COLS : TABLE_COLS_PLAIN) : "grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] bg-background",
+            table ? cn("bg-row", tableCols(ids, ranks)) : "grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] bg-background",
             edge,
             recent(arrivedAt) && "animate-arrive",
             recent(revertedAt) && "animate-highlight",
@@ -759,14 +770,14 @@ export function PlayerRow({
               <PlayerTags player={player} showState={table} />
             </div>
           </div>
-          {table && riot && <span className="truncate text-meta text-muted-foreground max-md:hidden">{player.kick_username}</span>}
+          {table && ids && <span className="truncate text-meta text-muted-foreground max-md:hidden">{player.kick_username}</span>}
           {/* Always a cell, so rows with and without a rank keep the next columns in place. */}
-          {(riot || !table) && (
+          {(ranks || !table) && (
             <span className={table ? "max-md:hidden" : "max-sm:hidden"}>
               <RankText player={seen} />
             </span>
           )}
-          {table && riot && (
+          {table && ranks && (
             <span className="max-lg:hidden">
               <WinRate player={seen} />
             </span>
@@ -790,15 +801,16 @@ export function PlayerRow({
 // The table's header row, on the same grid as the rows.
 export function TableHeader() {
   const { t } = useT();
-  const riot = useRiot();
+  const ids = useRiotIds();
+  const ranks = useRanks();
   const th = "text-caption text-muted-foreground uppercase select-none";
   return (
-    <div aria-hidden className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", riot ? TABLE_COLS : TABLE_COLS_PLAIN)}>
+    <div aria-hidden className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", tableCols(ids, ranks))}>
       <span className={th}>#</span>
       <span className={th}>{t("col.player")}</span>
-      {riot && <span className={th}>{t("col.kick")}</span>}
-      {riot && <span className={th}>{t("col.rank")}</span>}
-      {riot && <span className={cn(th, "max-lg:hidden")}>{t("col.winrate")}</span>}
+      {ids && <span className={th}>{t("col.kick")}</span>}
+      {ranks && <span className={th}>{t("col.rank")}</span>}
+      {ranks && <span className={cn(th, "max-lg:hidden")}>{t("col.winrate")}</span>}
       <span className={cn(th, "max-lg:hidden")}>{t("col.joined")}</span>
       <span />
     </div>

@@ -895,16 +895,20 @@ export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> })
       {/* While sorted, the # itself is the way back (owner, 2026-09-28): muted like the other
           headers, foreground on hover. */}
       {sort.key ? (
-        <Tip label={t("sort.reset")}>
-          <button
-            type="button"
-            aria-label={t("sort.reset")}
-            onClick={sort.reset}
-            className={cn(th, "-mx-1 w-fit rounded-sm px-1 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40")}
-          >
-            #
-          </button>
-        </Tip>
+        // A flex cell, so the tooltip's trigger is the # and not the whole 2rem column (owner,
+        // 2026-09-28: the arrow pointed past it).
+        <span className="flex">
+          <Tip label={t("sort.reset")}>
+            <button
+              type="button"
+              aria-label={t("sort.reset")}
+              onClick={sort.reset}
+              className={cn(th, "-mx-1 w-fit rounded-sm px-1 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40")}
+            >
+              #
+            </button>
+          </Tip>
+        </span>
       ) : (
         <span className={th}>#</span>
       )}

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { useSetLang, useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { ConnectionPill } from "@/components/queue/connection-pill";
@@ -91,6 +92,9 @@ function AccountMenu() {
 // The top bar (August's header): the TheAtlas tile and wordmark; right, the connection pill,
 // search, EN | TR, GitHub, theme, settings and the account. Under 1024px the middle tools fold
 // into ⋯ and the pill, ⋯ and the account stay.
+// Module state: kept across client navigation, fresh on a reload (and never set on the server).
+let wordmarkTyped = false;
+
 export function TopBar() {
   const { t, lang } = useT();
   const ui = useUi();
@@ -99,8 +103,16 @@ export function TopBar() {
   const slug = useQueue((v) => v.channel.slug);
   // On phones the channel types first: the wordmark before it is hidden there.
   const phone = useMedia("(max-width: 639px)");
+  // The wordmark types once per page load: coming back without a reload (a game's page to the
+  // tabs, Back) it stands and only the slash onwards types, from the start (owner, 2026-09-28).
+  const [again] = useState(() => wordmarkTyped);
+  useEffect(() => {
+    wordmarkTyped = true;
+  }, []);
+  const shift = again ? -15 * 40 : 0;
+  const channelAt = phone ? 0 : 17 * 40 + shift;
   // A game's crumbs type on one beat after the channel's last letter.
-  const crumbAt = (phone ? 0 : 17 * 40) + ([...channel].length + 2) * 40;
+  const crumbAt = channelAt + ([...channel].length + 2) * 40;
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
   return (
@@ -114,18 +126,18 @@ export function TopBar() {
         {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
             steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
         <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
-          <Typed text="TheAtlas" />{" "}
+          {again ? "TheAtlas" : <Typed text="TheAtlas" />}{" "}
           <span className="text-brand italic selection:bg-foreground selection:text-background">
-            <Typed text="Queue" startDelay={9 * 40} />
+            {again ? "Queue" : <Typed text="Queue" startDelay={9 * 40} />}
           </span>
         </span>
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
             the way back to the selection page. On phones it stands in for the wordmark. */}
         <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>
-          <Typed text="/" startDelay={15 * 40} />
+          <Typed text="/" startDelay={15 * 40 + shift} />
         </span>
         <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
-          <Typed text={channel} startDelay={phone ? 0 : 17 * 40} />
+          <Typed text={channel} startDelay={channelAt} />
         </span>
         {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab. */}
         {ui.game !== null && (

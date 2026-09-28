@@ -31,10 +31,8 @@ import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { useAct, useCanWrite, useQueue, useServerActions, useStore } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
-import { REVEAL } from "@/components/queue/teams-tab";
-import { Typed } from "@/components/prefs";
+import { NameText, PlayerAvatar, RankText, Tag } from "@/components/queue/team-card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -61,17 +59,12 @@ import { CardTrigger } from "@/components/queue/player-card";
 import { type SortKey, useQueueSort } from "@/components/queue/sort";
 import { useIsTouch } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
-import type { LabelKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Player, Sanction } from "@/types/queue";
 import { MID, ROW, ROW_BUTTONS, ROW_ROSTER, TABLE_HEAD, WIDE, tableCols } from "@/components/queue/geometry";
 
-const TIER_MARK: Record<string, string> = {
-  IRON: "bg-rank-iron", BRONZE: "bg-rank-bronze", SILVER: "bg-rank-silver", GOLD: "bg-rank-gold",
-  PLATINUM: "bg-rank-platinum", EMERALD: "bg-rank-emerald", DIAMOND: "bg-rank-diamond", MASTER: "bg-rank-master",
-  GRANDMASTER: "bg-rank-grandmaster", CHALLENGER: "bg-rank-challenger",
-};
-const APEX = new Set(["MASTER", "GRANDMASTER", "CHALLENGER"]);
+// Drawn by the shared team card module; exported here too, where the dashboard has always found them.
+export { PlayerAvatar, PROFILE_ICON, RankText, Tag } from "@/components/queue/team-card";
 
 // Riot IDs are the master switch (owner, 2026-09-28): Require Riot ID shows and asks for them;
 // ranks (Look up ranks) need it on as well.
@@ -86,54 +79,6 @@ export const rankPending = (p: Player, now: number) =>
 export function useRankPending(p: Player) {
   const ranks = useRanks();
   return rankPending(p, useNow(5_000)) && ranks;
-}
-
-export function RankText({ player, className }: { player: Player; className?: string }) {
-  const { t } = useT();
-  const r = player.rank;
-  if (!r?.tier) return null;
-  const tier = t(`rank.${r.tier}` as LabelKey);
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 text-meta text-muted-foreground", className)}>
-      {/* The tier's colour as a 3px bar, the row's own edge in small (no dots, owner 2026-09-27). */}
-      <span className={cn("h-3 w-[3px] shrink-0 rounded-[1px]", TIER_MARK[r.tier] ?? "bg-muted-foreground")} aria-hidden />
-      {APEX.has(r.tier) ? `${tier} ${r.lp ?? 0} LP` : `${tier} ${r.division ?? ""}`.trim()}
-    </span>
-  );
-}
-
-// Tags (D36): an icon and a word in the role colour, no capsule; colour is never the only signal
-// (DESIGN.md § Recipes → Tags). `fold` tags sit on a name's line: under 20rem of line the word
-// folds into a tooltip and the icon stays, after the name has truncated.
-const TONES = {
-  brand: "text-brand",
-  "team-1": "text-team-1",
-  "team-2": "text-team-2",
-  muted: "text-muted-foreground",
-  success: "text-success",
-  warning: "text-warning",
-  destructive: "text-destructive",
-};
-
-export function Tag({ tone, icon: Icon, fold = false, children }: {
-  tone: keyof typeof TONES;
-  icon?: LucideIcon;
-  fold?: boolean;
-  children: React.ReactNode;
-}) {
-  const tag = (
-    <span className={cn("inline-flex shrink-0 items-center gap-1 text-meta font-medium select-none", TONES[tone])}>
-      {Icon && <Icon className="size-3.5 shrink-0" aria-hidden />}
-      <span className={cn(fold && "@max-xs/name:sr-only")}>{children}</span>
-    </span>
-  );
-  if (!fold) return tag;
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{tag}</TooltipTrigger>
-      <TooltipContent>{children}</TooltipContent>
-    </Tooltip>
-  );
 }
 
 export function activeSanctions(moderation: Sanction[], name: string) {
@@ -406,20 +351,6 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
   );
 }
 
-// Riot profile icon, as the August queue showed it. ponytail: Data Dragon is versioned; icons
-// newer than this version fall back to the initial. Bump the version when that shows.
-export const PROFILE_ICON = (id: number) => `https://ddragon.leagueoflegends.com/cdn/15.7.1/img/profileicon/${id}.png`;
-
-export function PlayerAvatar({ player }: { player: Player }) {
-  const name = player.riot_id?.split("#")[0] || player.kick_username;
-  return (
-    <Avatar className="size-9 border border-row-edge">
-      {player.rank?.icon != null && <AvatarImage src={PROFILE_ICON(player.rank.icon)} alt="" />}
-      <AvatarFallback className="bg-transparent text-meta text-muted-foreground uppercase">{name.slice(0, 1)}</AvatarFallback>
-    </Avatar>
-  );
-}
-
 // Respect (spec § Respect score): 100 is a clean record.
 export function RespectBadge({ name }: { name: string }) {
   const { t } = useT();
@@ -467,22 +398,7 @@ function Joined({ player }: { player: Player }) {
 // no card.
 function PlayerName({ player, seen, stacked, typeAt, keyboard }: { player: Player; seen: Player; stacked: boolean; typeAt?: number; keyboard: boolean }) {
   const required = useRiotIds();
-  const [game, tag] = seen.riot_id ? seen.riot_id.split("#") : [seen.kick_username, null];
-  const name = (
-    <span className={cn("flex min-w-0", stacked ? "flex-col" : "items-baseline gap-1")}>
-      <span className="truncate text-name">
-        {typeAt === undefined ? game : <Typed text={game} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={typeAt} />}
-      </span>
-      {tag && (
-        <span
-          style={typeAt === undefined ? undefined : { animationDelay: `${typeAt + [...game].length * REVEAL.speed}ms` }}
-          className={cn("truncate font-mono text-caption tracking-normal normal-case text-muted-foreground", typeAt !== undefined && "animate-enter")}
-        >
-          #{tag}
-        </span>
-      )}
-    </span>
-  );
+  const name = <NameText player={seen} stacked={stacked} typeAt={typeAt} />;
   if (!seen.riot_id && !required) return name;
   return (
     <CardTrigger player={player} seen={seen} keyboard={keyboard}>

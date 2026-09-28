@@ -936,11 +936,15 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
   streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results, each with the
   winners' names, and beside them **Most wins**, the all-time top 10, owner 2026-09-28),
   **Management** (off by default; names and kind only, **never reasons**).
-- Teams keep their fixed slots (0028): gaps stay, as dashed empty slots.
+- The team cards are the dashboard's own (owner, 2026-09-28): one store-free component
+  (`team-card.tsx`) draws the colour edge, the count and average, the slots, the roster rows
+  (number, avatar, name#tag, tags, rank) and the empty slots; the dashboard wraps it with Add,
+  Victory, row buttons, menus and drag, /watch uses it bare. Teams keep their fixed slots (0028):
+  gaps stay, as dashed empty slots.
 - States: disabled (below), nothing yet (*Nothing here yet*), a missing channel (a real 404),
   loading (each section's skeleton).
 - The draw reveal plays live, once per device, for a draw under 30 seconds old: a team draw's
-  names type in as on the dashboard; a pick types its names under the headline (the Cards, List
+  rows land in the rosters and type their names, as on the dashboard; a pick types its names under the headline (the Cards, List
   and Wheel stages stay on the dashboard, so /watch carries no dashboard code). The entrance
   plays on load.
 - Live without a Supabase client: the page joins the public `watch:<slug>` topic over a bare

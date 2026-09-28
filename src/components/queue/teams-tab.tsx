@@ -4,7 +4,7 @@ import { Fragment, useCallback, useContext, useEffect, useMemo, useState } from 
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
-import { draggedPlayer, PlayerRow, RankText, Tag, TeamAddContext, useMoveTo, useRanks, useRiotIds } from "@/components/queue/player-row";
+import { draggedPlayer, PlayerRow, Tag, TeamAddContext, useMoveTo, useRanks, useRiotIds } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typed, useMotion } from "@/components/prefs";
@@ -28,11 +28,11 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import { Switch } from "@/components/ui/switch";
 import { useStored } from "@/components/use-client-state";
 import { isError, type QueueView } from "@/lib/queue-store";
-import { averageRank } from "@/lib/rank";
 import { cn } from "@/lib/utils";
-import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
-import { REVEAL, revealDuration, revealOrder } from "@/components/queue/reveal-order";
-import { CARD_HEAD, MIRROR, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
+import type { ChangeEvent, DrawEntry, Player } from "@/types/queue";
+import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
+import { Avg, EMPTY_SLOT, EmptySlotBody, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
+import { SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
 
 export { REVEAL };
 
@@ -135,7 +135,6 @@ export { revealOrder };
 // Each is its own place (owner, 2026-09-28): adding here, or dropping a player here, puts them
 // in this slot, not after the team's last row.
 function EmptySlot({ n }: { n: number }) {
-  const { t } = useT();
   const add = useContext(TeamAddContext);
   const moveTo = useMoveTo();
   const [over, setOver] = useState(false);
@@ -163,37 +162,14 @@ function EmptySlot({ n }: { n: number }) {
         void moveTo(d, add.team, n);
       }}
       className={cn(
-        "grid grid-cols-[1.25rem_minmax(0,1fr)] items-center gap-x-3 rounded-xl border border-dashed border-row-edge px-4 py-3 text-left",
-        SLOT,
+        EMPTY_SLOT,
         "outline-none enabled:hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40",
         over && "bg-accent",
       )}
     >
-      <span className="font-serif text-numeral text-muted-foreground/50 tabular-nums select-none">{n}</span>
-      <span className="inline-flex items-center gap-2 text-meta text-muted-foreground">
-        <UserPlus className="size-4" aria-hidden />
-        {t("teams.slot.empty")}
-      </span>
+      <EmptySlotBody n={n} />
     </button>
   );
-}
-
-// A team's slots in order, a player or null: each player in their own slot, one without a free
-// one of their own (a write still landing) in the first empty slot.
-function slotLayout(roster: Player[], size: number): (Player | null)[] {
-  const out: (Player | null)[] = Array.from({ length: Math.max(size, roster.length) }, () => null);
-  const rest: Player[] = [];
-  for (const p of roster) {
-    const i = (p.team_slot ?? 0) - 1;
-    if (i >= 0 && i < out.length && !out[i]) out[i] = p;
-    else rest.push(p);
-  }
-  for (const p of rest) {
-    const i = out.indexOf(null);
-    if (i < 0) out.push(p);
-    else out[i] = p;
-  }
-  return out;
 }
 
 // A team card's Add (owner, 2026-09-23): a waiting player straight into this team, or a new one
@@ -312,7 +288,8 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
   // Drop target for a player of the other team, or anyone dragged here (August's team boxes).
   const takes = (d: ReturnType<typeof draggedPlayer>) => !!d && !(d.status === "playing" && d.team === team);
   const card = (
-    <section
+    <TeamCardView
+      team={team}
       data-team-card
       onDragOver={(e) => {
         if (!takes(draggedPlayer())) return;
@@ -334,35 +311,22 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
         e.preventDefault();
         void moveTo(d, team);
       }}
-      className={cn(
-        "flex min-w-0 flex-col overflow-hidden rounded-xl bg-card",
-        over && (team === 1 ? "ring-2 ring-team-1/60" : "ring-2 ring-team-2/60"),
-      )}
-    >
-      <div className={cn("h-[5px]", team === 1 ? "bg-team-1" : "bg-team-2")} aria-hidden />
-      <div className="flex flex-col gap-3 p-4">
-        {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
-        <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} slot={add?.slot} onClose={() => setAdd(null)} />
-        <header aria-label={t(`team.${team}`)} className={cn(CARD_HEAD, team === 2 && MIRROR)}>
-          {refused ? (
-            <span role="status" className="text-destructive">
-              {t("why.team_full", { team: t(`team.${team}`), n: count, size })}
-            </span>
-          ) : (
-            <span className="flex min-w-0 items-center gap-3">
-              {/* The count in Newsreader, as the tab counts, and gold alone once the team is full
-                  (owner, 2026-09-28); {n} is left in the label to place it. No colour square: the
-                  card's top edge carries the team colour. */}
-              <span className="tabular-nums">
-                {t("teams.count", { size })
-                  .split("{n}")
-                  .flatMap((part, i) => (i === 0 ? [part] : [<span key={i} className={cn("font-serif font-medium", count >= size && "text-brand")}>{count}</span>, part]))}
-              </span>
-              {avg}
-            </span>
-          )}
-          {/* Victory beside Add, on the inner side of it (owner, 2026-09-28). */}
-          <span className={cn("flex shrink-0 items-center gap-2", team === 2 && MIRROR)}>
+      className={cn(over && (team === 1 ? "ring-2 ring-team-1/60" : "ring-2 ring-team-2/60"))}
+      head={
+        refused ? (
+          <span role="status" className="text-destructive">
+            {t("why.team_full", { team: t(`team.${team}`), n: count, size })}
+          </span>
+        ) : (
+          // No colour square: the card's top edge carries the team colour.
+          <span className="flex min-w-0 items-center gap-3">
+            <TeamCount count={count} size={size} />
+            {avg}
+          </span>
+        )
+      }
+      actions={
+        <>
           {victory}
           <Tip
             label={
@@ -387,13 +351,12 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
               {t("teams.add", { team: t(`team.${team}`) })}
             </Button>
           </Tip>
-          </span>
-        </header>
-        <div data-rows className="@container flex flex-col gap-1.5">
-          <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
-        </div>
-      </div>
-    </section>
+        </>
+      }
+    >
+      <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} slot={add?.slot} onClose={() => setAdd(null)} />
+      <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
+    </TeamCardView>
   );
   // Right-click on the card (not on a player, whose row has its own menu): this team's menu.
   return (
@@ -465,33 +428,6 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
       </ContextMenuItem>
     </ContextMenuContent>
   );
-}
-
-function Avg({ players }: { players: Player[] }) {
-  const { t } = useT();
-  const avg = averageRank(players);
-  if (!avg) return null;
-  return (
-    <span className="inline-flex items-baseline gap-1.5">
-      {t("teams.avg")}
-      <RankText player={{ rank: { tier: avg.tier, division: avg.division, lp: null, icon: null } } as Player} />
-    </span>
-  );
-}
-
-// A fresh draw lands in the live rosters themselves: each drawn row rises into its slot and types
-// the name it keeps showing, so nothing is swapped when the reveal ends (owner, 2026-09-27: the
-// avatars used to jump in after the names). Rows land in roster order, alternating teams.
-function useLanding(draw: Draw | null, rosters: Player[][]) {
-  return useMemo(() => {
-    if (!draw) return null;
-    const ids = new Set((draw.result.teams ?? []).flat().map((e) => e.id));
-    const lists = rosters.map((r) =>
-      r.filter((p) => ids.has(p.id)).map((p) => ({ id: p.id, kick_username: p.riot_id?.split("#")[0] ?? p.kick_username, locked: p.locked })),
-    );
-    const order = revealOrder(lists);
-    return { at: new Map(order.map((o) => [o.entry.id, o.at])), duration: revealDuration(order) };
-  }, [draw, rosters]);
 }
 
 // Ends the reveal once the last name has landed; the average rank then appears.

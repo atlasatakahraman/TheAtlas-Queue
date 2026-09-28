@@ -6,17 +6,17 @@ import { LangSwitch } from "@/components/lang-switch";
 import { Typed } from "@/components/prefs";
 import { ThemeButton } from "@/components/theme-button";
 import { useNow } from "@/components/use-now";
-import { MAIN, SLOT, TEAMS_GRID, CARD_HEAD, MIRROR, ROW } from "@/components/queue/geometry";
+import { MAIN, ROW, ROW_ROSTER, TEAMS_GRID } from "@/components/queue/geometry";
 import { REVEAL, revealDuration, revealOrder } from "@/components/queue/reveal-order";
+import { Avg, EMPTY_SLOT, EmptySlotBody, NameText, PlayerAvatar, RankText, slotLayout, Tag, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
 import { SlimBar } from "@/components/status-page";
 import { useWatch } from "@/components/watch/use-watch";
-import type { LabelKey, Lang } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { DrawEntry, GameEntry, Rank, WatchSnapshot } from "@/types/queue";
+import type { DrawEntry, GameEntry, WatchSnapshot } from "@/types/queue";
 
 type Live = Exclude<WatchSnapshot, { disabled: true }>;
 const SOURCE = "https://github.com/atlasatakahraman/TheAtlas-Queue";
-const APEX = new Set(["MASTER", "GRANDMASTER", "CHALLENGER"]);
 
 // DESIGN.md § /watch/<channel>: read-only, public, mobile-first. The streamer chooses the sections
 // (Teams, Queue, Games, Management); the reveal plays live; the entrance plays on load.
@@ -65,9 +65,11 @@ export function Tools() {
 function Page({ snap }: { snap: Live }) {
   const { t } = useT();
   const on = (s: Live["sections"][number]) => snap.sections.includes(s);
-  const playing = snap.players.filter((p) => p.status === "playing");
+  const playing = useMemo(() => snap.players.filter((p) => p.status === "playing"), [snap.players]);
   const waiting = snap.players.filter((p) => p.status === "waiting");
   const reveal = useReveal(snap.draw);
+  const rosters = useMemo(() => ([1, 2] as const).map((n) => playing.filter((p) => p.team === n)), [playing]);
+  const landing = useLanding(reveal?.kind === "teams" ? reveal : null, rosters);
   const shown = [
     on("teams") && (playing.length > 0 || reveal),
     on("queue"),
@@ -106,8 +108,8 @@ function Page({ snap }: { snap: Live }) {
             <Headline score={snap.score} />
             {reveal?.kind === "pick" && <Picked entries={reveal.result.picked ?? []} />}
             <div className={TEAMS_GRID}>
-              {([1, 2] as const).map((team) => (
-                <TeamCard key={team} team={team} snap={snap} reveal={reveal?.kind === "teams" ? reveal : null} />
+              {rosters.map((roster, i) => (
+                <TeamCard key={i} team={(i + 1) as 1 | 2} roster={roster} size={snap.team_size} landing={landing} />
               ))}
             </div>
           </section>
@@ -123,7 +125,7 @@ function Page({ snap }: { snap: Live }) {
                   <li key={p.id} className={cn(ROW, "grid-cols-[2rem_minmax(0,1fr)_auto] border-l-row-edge bg-row")}>
                     <span className="font-serif text-numeral text-muted-foreground tabular-nums">{i + 1}</span>
                     <Name name={p.kick_username} locked={p.locked} riot={p.riot_id} />
-                    <RankText rank={p.rank} />
+                    <RankText player={p} />
                   </li>
                 ))}
               </ol>
@@ -222,71 +224,53 @@ function Headline({ score }: { score: Live["score"] }) {
   );
 }
 
-function TeamCard({ team, snap, reveal }: { team: 1 | 2; snap: Live; reveal: Live["draw"] }) {
-  const { t } = useT();
-  const roster = snap.players.filter((p) => p.status === "playing" && p.team === team);
-  // Each player in their own slot (0028); gaps stay gaps.
-  const slots: (typeof roster[number] | null)[] = Array.from({ length: snap.team_size }, () => null);
-  const rest: typeof roster = [];
-  for (const p of roster) {
-    const i = (p.team_slot ?? 0) - 1;
-    if (i >= 0 && i < slots.length && !slots[i]) slots[i] = p;
-    else rest.push(p);
-  }
-  for (const p of rest) {
-    const i = slots.indexOf(null);
-    if (i < 0) slots.push(p);
-    else slots[i] = p;
-  }
-  const landing = useMemo(() => {
-    const lists = reveal?.result.teams;
-    return lists ? new Map(revealOrder(lists).map((o) => [o.entry.id, o.at])) : null;
-  }, [reveal]);
-  const count = roster.length;
+// A team card as the dashboard draws it (owner, 2026-09-28: one card), without its buttons, menus
+// or drag: each player in their own slot (0028), gaps stay empty slots, and a fresh draw lands
+// in the rosters themselves, typing each name in.
+function TeamCard({ team, roster, size, landing }: { team: 1 | 2; roster: Live["players"]; size: number; landing: ReturnType<typeof useLanding> }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-card p-4">
-      <div className={cn(CARD_HEAD, team === 2 && MIRROR)}>
-        <span className={cn("font-serif text-team", team === 1 ? "text-team-1" : "text-team-2")}>{t(`team.${team}`)}</span>
-        <span className="tabular-nums">{t("teams.count", { n: count, size: snap.team_size })}</span>
-      </div>
-      <ol className="flex flex-col gap-2">
-        {/* While a draw lands, its names fill from the top and the rest of the team size stays as
-            empty slots, so the card keeps its height (owner, 2026-09-28). */}
-        {landing
-          ? [
-              ...reveal!.result.teams![team - 1].map((e) => <Landing key={e.id} entry={e} at={landing.get(e.id) ?? 0} team={team} />),
-              ...Array.from({ length: Math.max(0, snap.team_size - reveal!.result.teams![team - 1].length) }, (_, i) => <EmptySlot key={`slot-${i}`} />),
-            ]
-          : slots.map((p, i) =>
-              p ? (
-                <li key={p.id} className={cn(ROW, SLOT, "grid-cols-[1.25rem_minmax(0,1fr)_auto] bg-background", team === 1 ? "border-l-team-1" : "border-l-team-2")}>
-                  <span className="text-meta text-muted-foreground tabular-nums">{i + 1}</span>
-                  <Name name={p.kick_username} locked={p.locked} riot={p.riot_id} />
-                  <RankText rank={p.rank} />
-                </li>
-              ) : (
-                <EmptySlot key={`slot-${i}`} />
-              ),
-            )}
-      </ol>
-    </div>
+    <TeamCardView
+      team={team}
+      head={
+        <span className="flex min-w-0 items-center gap-3">
+          <TeamCount count={roster.length} size={size} />
+          {!landing && <Avg players={roster} />}
+        </span>
+      }
+    >
+      {slotLayout(roster, size).map((p, n) =>
+        p ? (
+          <RosterRow key={p.id} player={p} n={n + 1} at={landing?.at.get(p.id)} />
+        ) : (
+          <div key={`slot-${n}`} className={EMPTY_SLOT}>
+            <EmptySlotBody n={n + 1} />
+          </div>
+        ),
+      )}
+    </TeamCardView>
   );
 }
 
-const EmptySlot = () => <li className={cn(SLOT, "rounded-xl border border-dashed border-row-edge")} aria-hidden />;
-
-function Landing({ entry, at, team }: { entry: DrawEntry; at: number; team: 1 | 2 }) {
+// The dashboard's roster row (PlayerRow's "roster"): number, avatar, name#tag, tags, rank.
+function RosterRow({ player, n, at }: { player: Live["players"][number]; n: number; at?: number }) {
   const { t } = useT();
   return (
-    <li className={cn(ROW, SLOT, "flex bg-background", team === 1 ? "border-l-team-1" : "border-l-team-2")}>
-      <Typed text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
-      {entry.locked && (
-        <span className="ml-2 inline-flex animate-enter items-center gap-1 text-meta font-medium text-brand" style={{ animationDelay: `${at}ms` }}>
-          <ShieldCheck className="size-3.5" aria-hidden />
-          {t("tag.protected")}
-        </span>
-      )}
-    </li>
+    <div
+      style={at === undefined ? undefined : { animationDelay: `${at}ms` }}
+      className={cn(ROW, ROW_ROSTER, player.team === 2 ? "border-l-team-2" : "border-l-team-1", at !== undefined && "animate-enter")}
+    >
+      <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{n}</span>
+      <div className="flex min-w-0 items-center gap-3">
+        <PlayerAvatar player={player} />
+        <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
+          <NameText player={player} stacked={false} typeAt={at} />
+          {player.locked && <Tag fold tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>}
+        </div>
+      </div>
+      <div className="max-sm:hidden">
+        <RankText player={player} />
+      </div>
+    </div>
   );
 }
 
@@ -316,17 +300,6 @@ function Name({ name, locked, riot }: { name: string; locked: boolean; riot: str
         )}
       </span>
       {riot && <span className="truncate text-meta text-muted-foreground">{riot}</span>}
-    </span>
-  );
-}
-
-function RankText({ rank }: { rank: Rank }) {
-  const { t } = useT();
-  if (!rank?.tier) return <span />;
-  const tier = t(`rank.${rank.tier}` as LabelKey);
-  return (
-    <span className="text-meta whitespace-nowrap text-muted-foreground">
-      {APEX.has(rank.tier) ? `${tier} ${rank.lp ?? 0} LP` : `${tier} ${rank.division ?? ""}`.trim()}
     </span>
   );
 }

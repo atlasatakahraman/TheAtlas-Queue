@@ -30,6 +30,8 @@ export type Ui = {
   account: { name: string; image: string | null };
   // True during the first page load only: the entrance never replays (DESIGN.md § Motion).
   entering: boolean;
+  // The game whose page this is, or null on the dashboard.
+  game: number | null;
 };
 
 export const UiContext = createContext<Ui | null>(null);

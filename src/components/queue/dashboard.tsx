@@ -1,5 +1,6 @@
 "use client";
 import { Heart, HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords, Trophy } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
 import { TopBar } from "@/components/queue/header";
@@ -17,6 +18,7 @@ import { SettingsTab } from "@/components/queue/settings-tab";
 import { QueueProvider, useAct, useQueue, useStore } from "@/components/queue/store";
 import { TeamsTab } from "@/components/queue/teams-tab";
 import { LAST_CHANNEL_COOKIE, TAB_COOKIE, type Tab } from "@/components/queue/tabs";
+import { GamePage } from "@/components/queue/game-page";
 import { GamesTab } from "@/components/queue/games-tab";
 import { HistoryTab } from "@/components/queue/history-tab";
 import { enter, type SanctionDraft, SearchRefContext, UiContext } from "@/components/queue/ui";
@@ -26,21 +28,23 @@ import { useNow } from "@/components/use-now";
 import { SLIDE, useSlide } from "@/components/use-slide";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import type { DashboardActions, Player, QueueState } from "@/types/queue";
+import type { DashboardActions, GameView, Player, QueueState } from "@/types/queue";
 
 type Account = { name: string; image: string | null };
 
-export function Dashboard({ initial, me, account, tab, actions }: {
+export function Dashboard({ initial, me, account, tab, actions, game }: {
   initial: QueueState;
   me: number;
   account: Account;
   tab: Tab;
   actions: DashboardActions;
+  // A game's page (/c/<channel>/games/<n>): the page in place of the tabs.
+  game?: GameView;
 }) {
   return (
     <QueueProvider initial={initial} me={me} actions={actions}>
       <ChannelLabels>
-        <Shell initialTab={tab} account={account} />
+        <Shell initialTab={tab} account={account} game={game} />
       </ChannelLabels>
     </QueueProvider>
   );
@@ -55,7 +59,7 @@ function ChannelLabels({ children }: { children: React.ReactNode }) {
 const ICONS = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, history: HistoryIcon, games: Trophy, settings: Settings2 } as const;
 const ORDER: Tab[] = ["queue", "teams", "moderation", "history", "games", "settings"];
 
-function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
+function Shell({ initialTab, account, game }: { initialTab: Tab; account: Account; game?: GameView }) {
   const { t } = useT();
   const role = useQueue((v) => v.role);
   const slug = useQueue((v) => v.channel.slug);
@@ -109,7 +113,13 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   }, [tab, t]);
 
   // ?tab= in the URL, and a cookie so the server renders the same tab next time.
+  const router = useRouter();
   const setTab = useCallback((next: Tab) => {
+    // From a game's page a tab is the dashboard again.
+    if (game) {
+      document.cookie = `${TAB_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+      return router.push(`/c/${slug}?tab=${next}`);
+    }
     setDir(Math.sign(ORDER.indexOf(next) - ORDER.indexOf(tabRef.current)));
     tabRef.current = next;
     setTabState(next);
@@ -117,7 +127,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
     const url = new URL(window.location.href);
     url.searchParams.set("tab", next);
     window.history.replaceState(null, "", url);
-  }, []);
+  }, [game, router, slug]);
 
   if (lost) return <NotMember />;
 
@@ -133,7 +143,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const active = tabs.indexOf(tab);
 
   return (
-    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, addAt, setAddAt, editing, setEditing, sanction, setSanction, focusSearch, entering, account }}>
+    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, addAt, setAddAt, editing, setEditing, sanction, setSanction, focusSearch, entering, account, game: game?.n ?? null }}>
       <SearchRefContext.Provider value={search}>
       <PageMenu>
       {/* The top bar runs the full width on its own ground (August's header); its content keeps
@@ -144,12 +154,15 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
         </div>
       </div>
       <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-6 px-8 pt-8 pb-4 max-md:px-4 max-md:pt-6 max-md:pb-28">
-        <Masthead />
+        {!game && <Masthead />}
         {offline && (
           <div role="status" className="rounded-lg border border-warning/45 px-4 py-2.5 text-meta text-foreground">
             {t("offline.banner")}
           </div>
         )}
+        {game ? (
+          <GamePage view={game} />
+        ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="gap-6">
           {/* Full width, equal tabs (August). A raised card slides under the active tab; each tab
               carries its icon (gold when active, tilting on hover like the buttons) and a live count
@@ -214,6 +227,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
             </TabsContent>
           )}
         </Tabs>
+        )}
         {/* The credit August carried, as a sentence with a heart (owner, 2026-09-28; its hover
             easter egg stays removed, spec D14). */}
         <footer className="mt-auto flex items-center justify-center gap-1 pt-6 text-caption text-muted-foreground/70 select-none">

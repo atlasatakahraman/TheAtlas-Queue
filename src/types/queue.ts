@@ -83,6 +83,9 @@ export type PlayerRecord = {
 };
 // This stream's score: games since the stream went live (or the last 12 hours offline).
 export type Score = { since: string; t1: number; t2: number };
+// A game's page (/c/<channel>/games/<n>): the game (null when removed or unknown), the numbers
+// either side of it and the channel records of the names in it.
+export type GameView = { n: number; game: Game | null; prev: number | null; next: number | null; records: PlayerRecord[] };
 
 // What Victory does next (Settings, D27): record only, shuffle, a new draw from queue + teams or
 // from the queue only, everyone back to the queue, losers back.

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Ellipsis, LogOut, Radio, RadioOff, Search, Settings } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { useSetLang, useT } from "@/components/i18n";
@@ -147,6 +148,7 @@ export function TopBar() {
   const ui = useUi();
   const role = useQueue((v) => v.role);
   const channel = useQueue((v) => v.channel.display_name);
+  const slug = useQueue((v) => v.channel.slug);
   // On phones the channel types first: the wordmark before it is hidden there.
   const phone = useMedia("(max-width: 639px)");
   const motion = useMotion();
@@ -176,6 +178,17 @@ export function TopBar() {
         <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
           <Typed text={channel} startDelay={phone ? 0 : 17 * 40} />
         </span>
+        {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab. */}
+        {ui.game !== null && (
+          <span className="flex shrink-0 items-baseline gap-3 cap-center font-serif text-title text-muted-foreground max-xl:text-body">
+            <span aria-hidden>/</span>
+            <Link href={`/c/${slug}?tab=games`} className="rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40">
+              {t("tab.games")}
+            </Link>
+            <span aria-hidden>/</span>
+            <span className="text-foreground tabular-nums">{ui.game}</span>
+          </span>
+        )}
         {/* After the channel's last letter and its 200ms sharpening. */}
         <LiveStatus after={motion ? (phone ? 0 : 17 * 40) + [...channel].length * 40 + 200 : 0} />
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}

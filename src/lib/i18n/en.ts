@@ -630,6 +630,16 @@ export const en = {
   "confirm.forget.title": "Remove {name} from all history?",
   "confirm.forget.body": "Their name leaves every game and their record is deleted. Undo brings it back.",
   "done.forget_player": "{name} removed from all history.",
+  "game.tab_title": "Game {n}",
+  "game.back": "Back to Games",
+  "game.title": "{team} won game {n}",
+  "game.prev": "Previous game",
+  "game.next": "Next game",
+  "game.missing.title": "Game {n} is not here",
+  "game.missing.body": "It was removed, or this channel never had it.",
+  "game.removed_player": "Removed player",
+  "game.record": "{w} W {l} L",
+  "game.winner": "Winner",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

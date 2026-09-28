@@ -103,6 +103,11 @@ export type Channel = {
 
 export type WatchSection = "teams" | "queue" | "moderation" | "riot_ids";
 
+// How a draw shows itself (D22): a team draw lands by Typewriter unless "none"; a pick plays
+// the chosen reveal.
+export const DRAW_REVEALS = ["typewriter", "cards", "list", "wheel", "none"] as const;
+export type DrawReveal = (typeof DRAW_REVEALS)[number];
+
 export type Settings = {
   channel_id: string;
   join_command: string;
@@ -115,7 +120,8 @@ export type Settings = {
   require_riot_id: boolean;
   riot_region: string;
   fair_play: boolean;
-  draw_reveal: "typewriter" | "none";
+  draw_reveal: DrawReveal;
+  clear_on_offline: boolean;
   stream_locale: Lang;
   watch_enabled: boolean;
   watch_sections: WatchSection[];

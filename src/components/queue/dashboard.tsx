@@ -14,7 +14,7 @@ import { QueueTab } from "@/components/queue/queue-tab";
 import { RevealDriver } from "@/components/queue/reveal";
 import { SanctionDialog } from "@/components/queue/sanction-dialog";
 import { SettingsTab } from "@/components/queue/settings-tab";
-import { QueueProvider, useQueue } from "@/components/queue/store";
+import { QueueProvider, useAct, useQueue, useStore } from "@/components/queue/store";
 import { TeamsTab } from "@/components/queue/teams-tab";
 import { LAST_CHANNEL_COOKIE, TAB_COOKIE, type Tab } from "@/components/queue/tabs";
 import { HistoryTab } from "@/components/queue/history-tab";
@@ -24,6 +24,7 @@ import type { Labels } from "@/lib/i18n";
 import { useNow } from "@/components/use-now";
 import { SLIDE, useSlide } from "@/components/use-slide";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import type { DashboardActions, Player, QueueState } from "@/types/queue";
 
 type Account = { name: string; image: string | null };
@@ -222,6 +223,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
       <ConfirmHost />
       <Hotkeys />
       <RevealDriver />
+      <StreamEndNotice />
 
       {/* Mobile: the tabs move to a bottom bar (DESIGN.md § Mobile). */}
       <nav
@@ -261,4 +263,31 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
       </SearchRefContext.Provider>
     </UiContext.Provider>
   );
+}
+
+// The stream ended and the server cleared the queue (0024): every open dashboard says so once,
+// with the Undo the clear carries. Lines already in the feed when the page opened stay quiet.
+function StreamEndNotice() {
+  const { t } = useT();
+  const store = useStore();
+  const act = useAct();
+  const seen = useRef<Set<number> | null>(null);
+  useEffect(() => {
+    const check = () => {
+      const feed = store.get().activity;
+      if (!seen.current) return void (seen.current = new Set(feed.map((a) => a.id)));
+      for (const a of feed) {
+        if (seen.current.has(a.id)) continue;
+        seen.current.add(a.id);
+        if (a.action !== "stream_offline" || !a.payload.count || a.undone_at) continue;
+        toast(t("done.stream_offline", { n: String(a.payload.count) }), {
+          duration: 15_000,
+          action: { label: t("common.undo"), onClick: () => void act("undo", { p_activity: a.id }) },
+        });
+      }
+    };
+    check();
+    return store.subscribe(check);
+  }, [store, act, t]);
+  return null;
 }

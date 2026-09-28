@@ -16,7 +16,7 @@ import { en } from "@/lib/i18n/en";
 import { tr } from "@/lib/i18n/tr";
 import { isError, type RpcError } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
-import type { Settings, WatchSection } from "@/types/queue";
+import { DRAW_REVEALS, type Settings, type WatchSection } from "@/types/queue";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 const SECTIONS: WatchSection[] = ["teams", "queue", "moderation", "riot_ids"];
@@ -241,7 +241,7 @@ function RiotSection() {
 
 function DrawsSection() {
   const { t } = useT();
-  const s = useSection(["draw_reveal", "perk_enabled", "perk_uses", "perk_window_days", "perk_badges"] as const);
+  const s = useSection(["draw_reveal", "clear_on_offline", "perk_enabled", "perk_uses", "perk_window_days", "perk_badges"] as const);
   const num = (k: "perk_uses" | "perk_window_days") => (
     <Input
       id={k}
@@ -260,11 +260,21 @@ function DrawsSection() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper">
-            <SelectItem value="typewriter">{t("settings.draw_reveal.typewriter")}</SelectItem>
-            <SelectItem value="none">{t("settings.draw_reveal.none")}</SelectItem>
+            {DRAW_REVEALS.map((r) => (
+              <SelectItem key={r} value={r}>
+                {t(`settings.draw_reveal.${r}`)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </Field>
+      <SwitchField
+        id="clear_on_offline"
+        label={t("settings.clear_on_offline")}
+        hint={t("settings.clear_on_offline.hint")}
+        checked={s.draft.clear_on_offline}
+        onChange={(v) => void s.put("clear_on_offline", v)}
+      />
       <SwitchField id="perk_enabled" label={t("settings.perk_enabled")} hint={t("settings.perk_enabled.hint")} checked={s.draft.perk_enabled} onChange={(v) => void s.put("perk_enabled", v)} />
       {s.draft.perk_enabled && (
         <>

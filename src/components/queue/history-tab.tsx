@@ -208,7 +208,8 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
     : a.action === "move_player"
       ? t(a.payload.status === "away" ? "act.where.away" : "act.where.waiting")
       : "";
-  const key = `act.${a.action}`;
+  // A stream end that cleared the queue (0024) says so, with the count.
+  const key = a.action === "stream_offline" && a.payload.count ? "act.stream_offline_cleared" : `act.${a.action}`;
   const text = isLabelKey(key) ? t(key as LabelKey, { n: String(a.payload.count ?? a.payload.n ?? "") }) : t("act.other", { action: a.action });
   const name = "font-medium text-foreground";
   const team = toTeam === 2 ? "text-team-2" : "text-team-1";

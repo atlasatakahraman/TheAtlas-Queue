@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useStored } from "@/components/use-client-state";
+import { sortPlayers, useQueueSort } from "@/components/queue/sort";
 import { useNow } from "@/components/use-now";
 import { isLabelKey } from "@/lib/i18n";
 import { ago } from "@/lib/time";
@@ -51,13 +52,20 @@ export function QueueTab() {
     return c;
   }, [players]);
   const q = query.trim().toLowerCase();
-  const shown = players
-    .map((p, i) => ({ p, n: i + 1 }))
-    .filter(
-      ({ p }) =>
-        (filter === "all" || p.status === filter) &&
-        (!q || p.kick_username.toLowerCase().includes(q) || p.riot_id?.toLowerCase().includes(q)),
-    );
+  const ids = useRiotIds();
+  const sort = useQueueSort(useRanks());
+  const shown = sortPlayers(
+    players
+      .map((p, i) => ({ p, n: i + 1 }))
+      .filter(
+        ({ p }) =>
+          (filter === "all" || p.status === filter) &&
+          (!q || p.kick_username.toLowerCase().includes(q) || p.riot_id?.toLowerCase().includes(q)),
+      ),
+    sort.key,
+    sort.dir,
+    ids,
+  );
   // The pieces the eye lands on arrive in reading order: title and filters, the rows, then the
   // side panel (owner, 2026-09-27).
   const [e3, e4, e5] = [enter(ui.entering, 3), enter(ui.entering, 4), enter(ui.entering, 5)];
@@ -108,7 +116,7 @@ export function QueueTab() {
           <p className="py-10 text-muted-foreground">{t("queue.none_match")}</p>
         ) : (
           <div data-rows className="flex flex-col gap-1.5">
-            <TableHeader />
+            <TableHeader sort={sort} />
             {shown.map(({ p, n }, i) => (
               <PlayerRow
                 key={p.id}
@@ -116,6 +124,7 @@ export function QueueTab() {
                 number={n}
                 arrivedAt={arrived[p.id]}
                 revertedAt={reverted[p.id]}
+                sorted={!!sort.key}
                 enterStyle={i < 12 ? enter(ui.entering, 4 + i) : undefined}
               />
             ))}

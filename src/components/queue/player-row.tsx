@@ -1,6 +1,8 @@
 "use client";
 import {
+  ArrowDown,
   ArrowDownToLine,
+  ArrowUp,
   ArrowLeftRight,
   ArrowUpToLine,
   Ban,
@@ -15,6 +17,7 @@ import {
   type LucideIcon,
   Pencil,
   RefreshCw,
+  RotateCcw,
   ShieldCheck,
   ShieldOff,
   Sparkles,
@@ -58,6 +61,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tip } from "@/components/tip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { type SortKey, useQueueSort } from "@/components/queue/sort";
 import { useIsTouch } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
 import type { LabelKey } from "@/lib/i18n";
@@ -659,6 +663,7 @@ export function PlayerRow({
   revertedAt,
   enterStyle,
   landAt,
+  sorted = false,
 }: {
   player: Player;
   number?: number;
@@ -668,6 +673,8 @@ export function PlayerRow({
   enterStyle?: { className?: string; style?: React.CSSProperties };
   /** A fresh draw landing this row: it rises in at this many ms and types its name. */
   landAt?: number;
+  /** A column sort is on (D35): the row does not drag. */
+  sorted?: boolean;
 }) {
   const a = usePlayerActions(player);
   const canWrite = useCanWrite();
@@ -694,7 +701,7 @@ export function PlayerRow({
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
   const [lifted, setLifted] = useState(false);
   const pending = useRankPending(player);
-  const draggable = canWrite && !touch && player.status !== "punished";
+  const draggable = canWrite && !touch && !sorted && player.status !== "punished";
   // A roster row takes its own team's players (a reorder) and, while the team has room, anyone
   // else, who joins the team at that row (D37, owner 2026-09-27).
   const sameTeam = (d: Player) => d.status === "playing" && d.team === player.team;
@@ -861,20 +868,46 @@ export function PlayerRow({
   );
 }
 
-// The table's header row, on the same grid as the rows.
-export function TableHeader() {
+// The table's header row, on the same grid as the rows. Player, Rank, Win rate and Joined sort
+// the view (D35); while sorted, # turns into the way back to the queue order.
+export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> }) {
   const { t } = useT();
   const ids = useRiotIds();
   const ranks = useRanks();
   const th = "text-caption text-muted-foreground uppercase select-none";
+  const col = (key: SortKey, label: string, className?: string) => {
+    const on = sort.key === key;
+    const Arrow = sort.dir === "desc" ? ArrowDown : ArrowUp;
+    return (
+      <span className={className}>
+        <button
+          type="button"
+          onClick={() => sort.toggle(key)}
+          aria-label={on ? t(sort.dir === "desc" ? "sort.by.desc" : "sort.by.asc", { col: label }) : t("sort.by", { col: label })}
+          className={cn(th, "-mx-1 inline-flex items-center gap-1 rounded-sm px-1 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40", on && "text-foreground")}
+        >
+          {label}
+          {on && <Arrow aria-hidden className="size-3.5" />}
+        </button>
+      </span>
+    );
+  };
   return (
-    <div aria-hidden className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", tableCols(ids, ranks))}>
-      <span className={th}>#</span>
-      <span className={th}>{t("col.player")}</span>
+    <div className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", tableCols(ids, ranks))}>
+      {sort.key ? (
+        <Tip label={t("sort.reset")}>
+          <Button variant="ghost" size="icon-xs" className="-ml-1 text-foreground" aria-label={t("sort.reset")} onClick={sort.reset}>
+            <RotateCcw aria-hidden />
+          </Button>
+        </Tip>
+      ) : (
+        <span className={th}>#</span>
+      )}
+      {col("name", t("col.player"))}
       {ids && <span className={th}>{t("col.kick")}</span>}
-      {ranks && <span className={th}>{t("col.rank")}</span>}
-      {ranks && <span className={cn(th, "max-lg:hidden")}>{t("col.winrate")}</span>}
-      <span className={cn(th, "max-lg:hidden")}>{t("col.joined")}</span>
+      {ranks && col("rank", t("col.rank"))}
+      {ranks && col("winrate", t("col.winrate"), "max-lg:hidden")}
+      {col("joined", t("col.joined"), "max-lg:hidden")}
       <span />
     </div>
   );

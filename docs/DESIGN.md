@@ -1028,7 +1028,8 @@ The contract Stage 9 builds (D25, D31, D34, D35, D36, D37); where today differs,
   dashed when away, `row-edge` waiting. **One line**: the name cell never wraps.
 - **Header (D35).** *Player* (sorts by name, Turkish collation), *Rank*, *Win rate* and *Joined*
   are buttons: `text-caption uppercase`, muted; the sorted one is foreground with `ArrowUp` /
-  `ArrowDown` (14px) and carries `aria-sort`. A second click flips it. While a column sort is on,
+  `ArrowDown` (14px) and says its direction in its label (the rows are not a table grid, so
+  `aria-sort` would have no row to sit in). A second click flips it. While a column sort is on,
   the `#` header becomes `↺` (tooltip *Back to queue order · Dragging is off while sorted*);
   unranked and no-games rows go last. Remembered per browser (`queue.sort`). *Kick* does not
   sort. **Sorting is a view**: Pick and the draw still use the queue order, and dragging is off

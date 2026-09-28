@@ -1,17 +1,23 @@
 "use client";
-import { Dices, ListOrdered, Moon, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
+import { ArrowUpDown, Dices, ListOrdered, Moon, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useT } from "@/components/i18n";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
+import { useRanks } from "@/components/queue/player-row";
+import { type SortKey, useQueueSort } from "@/components/queue/sort";
 import {
   ContextMenu,
+  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuShortcut,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Kbd } from "@/components/ui/kbd";
@@ -68,6 +74,13 @@ function PageMenuContent() {
   const { resolvedTheme, setTheme } = useTheme();
   const { draw, pick, clearQueue } = useDrawActions();
   const picking = usePick();
+  const ranks = useRanks();
+  const sort = useQueueSort(ranks);
+  const sortKeys: [SortKey, string][] = [
+    ["name", t("col.player")],
+    ...(ranks ? ([["rank", t("col.rank")], ["winrate", t("col.winrate")]] as [SortKey, string][]) : []),
+    ["joined", t("col.joined")],
+  ];
 
   // Kept short on purpose (owner, 2026-09-23): the everyday actions only. Reroll, shuffle, clear
   // teams, reconnect, settings, language and sign-out live in the toolbar, the top bar and the
@@ -82,6 +95,29 @@ function PageMenuContent() {
         <UserPlus aria-hidden />
         {t("action.add")}
       </ContextMenuItem>
+      {/* Under 768px the table header hides, so sorting lives here (D35). */}
+      {ui.tab === "queue" && (
+        <div className="md:hidden">
+          <ContextMenuSeparator />
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <ArrowUpDown aria-hidden />
+              {t("sort.label")}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="min-w-48 p-1.5">
+              <ContextMenuCheckboxItem checked={!sort.key} onSelect={sort.reset}>
+                {t("sort.queue")}
+              </ContextMenuCheckboxItem>
+              {sortKeys.map(([k, label]) => (
+                <ContextMenuCheckboxItem key={k} checked={sort.key === k} onSelect={() => sort.toggle(k)}>
+                  {label}
+                  {sort.key === k && <span className="ml-auto text-muted-foreground">{sort.dir === "desc" ? "↓" : "↑"}</span>}
+                </ContextMenuCheckboxItem>
+              ))}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        </div>
+      )}
       {/* Adding, drawing and clearing each their own section (owner, 2026-09-28). */}
       <ContextMenuSeparator />
       <ContextMenuItem disabled={!canWrite} onSelect={() => void draw()}>

@@ -530,6 +530,12 @@ export const en = {
   "why.team_full": "{team} is full ({n} of {size})",
   "why.punished": "Sitting out a punishment",
   "queue.ranks_loading": "Loading ranks {n}",
+  "sort.by": "Sort by {col}",
+  "sort.by.asc": "Sorted by {col}, ascending. Click to reverse",
+  "sort.by.desc": "Sorted by {col}, descending. Click to reverse",
+  "sort.reset": "Back to queue order. Dragging is off while sorted",
+  "sort.label": "Sort",
+  "sort.queue": "Queue order",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

@@ -518,4 +518,10 @@ export const tr: Record<LabelKey, string> = {
   "why.team_full": "{team} dolu ({n}/{size})",
   "why.punished": "Ceza bitene kadar bekliyor",
   "queue.ranks_loading": "Rütbeler yükleniyor {n}",
+  "sort.by": "{col} sütununa göre sırala",
+  "sort.by.asc": "{col} sütununa göre artan. Tersine çevirmek için tıkla",
+  "sort.by.desc": "{col} sütununa göre azalan. Tersine çevirmek için tıkla",
+  "sort.reset": "Sıra düzenine dön. Sıralıyken sürükleme kapalı",
+  "sort.label": "Sırala",
+  "sort.queue": "Sıra düzeni",
 };

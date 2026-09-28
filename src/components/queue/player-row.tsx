@@ -11,7 +11,6 @@ import {
   Copy,
   Ellipsis,
   Gamepad2,
-  GripVertical,
   Heart,
   Hourglass,
   type LucideIcon,
@@ -549,6 +548,23 @@ function QuickActions({ player }: { player: Player }) {
 // is no drag; the menu and the row keys do the same.
 let dragging: Player | null = null;
 export const draggedPlayer = () => dragging;
+// While a drag is on, <html data-dragging> stretches every row's hit area over the gaps
+// (globals.css), so the pointer never falls between targets. Cleared on drop or dragend at the
+// window, since the source row may have moved out of the DOM by then.
+function startDrag(p: Player) {
+  dragging = p;
+  document.documentElement.dataset.dragging = "";
+  // After the drop's own handlers, which still read the dragged player.
+  const later = () => setTimeout(end);
+  const end = () => {
+    dragging = null;
+    delete document.documentElement.dataset.dragging;
+    window.removeEventListener("drop", later, true);
+    window.removeEventListener("dragend", end, true);
+  };
+  window.addEventListener("drop", later, true);
+  window.addEventListener("dragend", end, true);
+}
 
 // Set when a menu item opens a team's add list, so the menu does not take focus back on close.
 let keepFocus = false;
@@ -572,11 +588,15 @@ export function useMoveTo() {
     });
 }
 
-// Whether dropping d on that side of row puts it back in its own slot (the rows as drawn).
-function inPlace(row: HTMLElement, d: Player, at: "before" | "after") {
+// The edge of row the pointer is on, or null where dropping d would leave it in its own slot
+// (the rows as drawn).
+function edgeAt(e: React.DragEvent<HTMLElement>, d: Player): "before" | "after" | null {
+  const row = e.currentTarget;
+  const r = row.getBoundingClientRect();
+  const at = e.clientY < r.top + r.height / 2 ? "before" : "after";
   const rows = Array.from(row.closest("[data-rows]")?.querySelectorAll<HTMLElement>("[data-row]") ?? []);
   const i = rows.indexOf(row);
-  return rows[at === "before" ? i - 1 : i + 1]?.dataset.player === d.id;
+  return rows[at === "before" ? i - 1 : i + 1]?.dataset.player === d.id ? null : at;
 }
 
 // The new place is the midpoint between the target and its neighbour on that side.
@@ -720,7 +740,7 @@ export function PlayerRow({
           onBlur={() => setKbd(false)}
           draggable={draggable}
           onDragStart={(e) => {
-            dragging = player;
+            startDrag(player);
             setLifted(true);
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", player.kick_username);
@@ -746,10 +766,7 @@ export function PlayerRow({
             e.dataTransfer.setDragImage(chip, 16, chip.offsetHeight / 2);
             requestAnimationFrame(() => chip.remove());
           }}
-          onDragEnd={() => {
-            dragging = null;
-            setLifted(false);
-          }}
+          onDragEnd={() => setLifted(false)}
           onDragOver={(e) => {
             if (!accepts(dragging)) return;
             e.preventDefault();
@@ -757,20 +774,17 @@ export function PlayerRow({
             // Say "move" outright: left to guess, Chrome can treat the drop as refused and fly the
             // ghost back to where it started before the row moves.
             e.dataTransfer.dropEffect = "move";
-            const r = e.currentTarget.getBoundingClientRect();
-            const at = e.clientY < r.top + r.height / 2 ? "before" : "after";
             // Beside its own row the drop would leave it where it is: refused, with no line.
-            if (inPlace(e.currentTarget, dragging, at)) {
-              e.dataTransfer.dropEffect = "none";
-              return setDropAt(null);
-            }
+            const at = edgeAt(e, dragging);
+            if (!at) e.dataTransfer.dropEffect = "none";
             setDropAt(at);
           }}
-          onDragLeave={() => setDropAt(null)}
+          onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setDropAt(null)}
           onDrop={(e) => {
             const d = dragging;
-            const at = dropAt;
             setDropAt(null);
+            // Read from where it lands: the line drawn last may not have rendered yet.
+            const at = accepts(d) ? edgeAt(e, d) : null;
             if (!accepts(d) || !at) return;
             e.preventDefault();
             e.stopPropagation();
@@ -785,9 +799,6 @@ export function PlayerRow({
             edge,
             recent(arrivedAt) && "animate-arrive",
             recent(revertedAt) && "animate-highlight",
-            // The grab hand at rest, grabbing while pressed (owner, 2026-09-27, reverting cb06f3a).
-            // Once the drag starts the browser draws its own cursor; CSS cannot reach it.
-            draggable && "cursor-grab active:cursor-grabbing",
             // The row picked up dims at once, so the drag reads as started with no pause.
             lifted && "opacity-40",
             // The drop line: gold in the queue, the team's colour on a roster (D37).
@@ -796,10 +807,6 @@ export function PlayerRow({
             enterStyle?.className,
           )}
         >
-          {/* The grip (D25): in the row's left padding, so no column moves; only where it drags. */}
-          {draggable && (
-            <GripVertical aria-hidden className="absolute top-1/2 left-0.5 size-3.5 -translate-y-1/2 text-muted-foreground/60 group-hover/row:text-muted-foreground" />
-          )}
           <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{number}</span>
           <div className="flex min-w-0 items-center gap-3">
             <PlayerAvatar player={seen} />

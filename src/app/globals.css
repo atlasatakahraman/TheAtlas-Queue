@@ -396,6 +396,14 @@
    -6deg and x1.15 over 150ms). Stock shadcn's default button only hovers as a link, and its
    press skips menu triggers (aria-haspopup). Recorded in DESIGN.md § Divergences. */
 @layer components {
+  /* While a row is dragged, each row's hit area covers half the 6px gap on either side and its
+     own children, so the pointer is never between targets and the row sees no child dragleave
+     (DESIGN.md § Drag and drop). */
+  html[data-dragging] [data-row]::before {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+  }
   [data-slot="button"][data-variant="default"]:not(:disabled):hover {
     background-color: color-mix(in oklab, var(--primary) 85%, transparent);
   }

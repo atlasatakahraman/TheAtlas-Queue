@@ -628,4 +628,7 @@ export const tr: Record<LabelKey, string> = {
   "game.removed_player": "Kaldırılan oyuncu",
   "game.record": "{w} G {l} M",
   "game.winner": "Kazanan",
+  "card.channel": "Bu kanal: {w} G {l} M",
+  "card.channel.won": "üst üste {n} galibiyet",
+  "card.channel.lost": "üst üste {n} mağlubiyet",
 };

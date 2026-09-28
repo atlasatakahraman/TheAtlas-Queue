@@ -640,6 +640,9 @@ export const en = {
   "game.removed_player": "Removed player",
   "game.record": "{w} W {l} L",
   "game.winner": "Winner",
+  "card.channel": "This channel: {w} W {l} L",
+  "card.channel.won": "won {n} in a row",
+  "card.channel.lost": "lost {n} in a row",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

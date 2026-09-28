@@ -56,6 +56,9 @@ export function PlayerCard({ player, seen }: { player: Player; seen: Player }) {
   const refresh = useRefreshRank(player);
   const fairPlay = useQueue((v) => v.settings.fair_play);
   const respect = useQueue((v) => v.respect[player.kick_username.toLowerCase()]) ?? 100;
+  // The name's record over this channel's games (D27), from the store: get_state carries the
+  // queued names' records and every recorded game sends the ones it changed.
+  const record = useQueue((v) => v.records.find((x) => x.name === player.kick_username.toLowerCase()));
   const r = seen.rank;
   const icon = r?.icon;
   const w = r?.wins ?? 0;
@@ -138,6 +141,14 @@ export function PlayerCard({ player, seen }: { player: Player; seen: Player }) {
             </>
           )}
         </div>
+      )}
+
+      {record && record.wins + record.losses > 0 && (
+        <span className="text-foreground tabular-nums">
+          {t("card.channel", { w: record.wins, l: record.losses })}
+          {/* A streak of two or more is worth saying. */}
+          {Math.abs(record.streak) >= 2 && `, ${t(record.streak > 0 ? "card.channel.won" : "card.channel.lost", { n: Math.abs(record.streak) })}`}
+        </span>
       )}
 
       {/* No separator glyphs (owner rule): each fact is its own item. */}

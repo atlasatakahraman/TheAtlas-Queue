@@ -101,8 +101,8 @@ export function ConnectionPill() {
           className="flex h-9 items-center gap-2 rounded-full border border-input px-3 text-control outline-none select-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 max-md:h-11"
         >
           <SignalBars state={state} beat={beat} />
-          <span className="max-md:hidden">{long}</span>
-          <span className="md:hidden">{short}</span>
+          <span className="max-lg:hidden">{long}</span>
+          <span className="lg:hidden">{short}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 gap-3 rounded-xl p-4">

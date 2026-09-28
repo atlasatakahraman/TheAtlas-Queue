@@ -51,12 +51,12 @@ function AccountMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-9 gap-2 rounded-full px-1.5 md:pr-3 max-md:size-11" aria-label={t("account.menu")}>
+        <Button variant="ghost" className="h-9 gap-2 rounded-full px-1.5 xl:pr-3 max-md:size-11" aria-label={t("account.menu")}>
           <Avatar className="size-7">
             {image && <AvatarImage src={image} alt="" />}
             <AvatarFallback className="text-caption uppercase">{name.slice(0, 1)}</AvatarFallback>
           </Avatar>
-          <span className="max-w-32 truncate text-control max-md:hidden">{name}</span>
+          <span className="max-w-32 truncate text-control max-xl:hidden">{name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-52 p-1.5">
@@ -140,7 +140,7 @@ function LiveStatus({ after }: { after: number }) {
 }
 
 // The top bar (August's header): the TheAtlas tile and wordmark; right, the connection pill,
-// search, EN | TR, GitHub, theme, settings and the account. Under 768px the middle tools fold
+// search, EN | TR, GitHub, theme, settings and the account. Under 1024px the middle tools fold
 // into ⋯ and the pill, ⋯ and the account stay.
 export function TopBar() {
   const { t, lang } = useT();
@@ -160,16 +160,17 @@ export function TopBar() {
         <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
         {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
             then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
-        {/* On phones the tile alone: next to the pill the wordmark only truncates. */}
-        <span className="truncate cap-center font-serif text-title max-md:text-body max-sm:hidden">
+        {/* Under 1280px the tile alone: next to the tools the wordmark only truncated (owner,
+            2026-09-28). The wordmark never truncates; the channel after it does. */}
+        <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:hidden">
           <Typed text="TheAtlas" />{" "}
           <span className="text-brand italic selection:bg-foreground selection:text-background">
             <Typed text="Queue" startDelay={9 * 40} />
           </span>
         </span>
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
-            the way back to the selection page. On phones it stands in for the wordmark. */}
-        <span className="cap-center font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden" aria-hidden>
+            the way back to the selection page. Under 1280px it stands in for the wordmark. */}
+        <span className="cap-center font-serif text-title text-muted-foreground max-xl:hidden" aria-hidden>
           <Typed text="/" startDelay={15 * 40} />
         </span>
         <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">
@@ -181,7 +182,7 @@ export function TopBar() {
       </span>
       <div className="flex shrink-0 items-center gap-1">
         <ConnectionPill />
-        <div className="flex items-center gap-1 max-md:hidden">
+        <div className="flex items-center gap-1 max-lg:hidden">
           <Tip label={t("palette.open")}>
             <Button variant="ghost" size="icon-lg" aria-label={t("palette.open")} onClick={() => ui.setPalette(true)}>
               <Search aria-hidden />
@@ -206,7 +207,7 @@ export function TopBar() {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-lg" className="size-11 md:hidden" aria-label={t("masthead.more")}>
+            <Button variant="ghost" size="icon-lg" className="size-11 md:size-9 lg:hidden" aria-label={t("masthead.more")}>
               <Ellipsis aria-hidden />
             </Button>
           </DropdownMenuTrigger>

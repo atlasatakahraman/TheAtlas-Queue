@@ -367,7 +367,7 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
   return (
     <ContextMenuContent className="min-w-60 p-1.5">
       <ContextMenuLabel className={cn("font-normal", team === 1 ? "text-team-1" : "text-team-2")}>
-        {t(`team.${team}`)} · {t("teams.count", { n: count, size })}
+        {t(`team.${team}`)} <span className="ml-1.5 text-muted-foreground tabular-nums">{t("teams.count", { n: count, size })}</span>
       </ContextMenuLabel>
       <ContextMenuSub>
         <ContextMenuSubTrigger disabled={!canAdd}>

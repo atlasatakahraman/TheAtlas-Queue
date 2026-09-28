@@ -83,7 +83,7 @@ export function RankText({ player, className }: { player: Player; className?: st
     <span className={cn("inline-flex items-center gap-1.5 text-meta text-muted-foreground", className)}>
       {/* The tier's colour as a 3px bar, the row's own edge in small (no dots, owner 2026-09-27). */}
       <span className={cn("h-3 w-[3px] shrink-0 rounded-[1px]", TIER_MARK[r.tier] ?? "bg-muted-foreground")} aria-hidden />
-      {APEX.has(r.tier) ? `${tier} · ${r.lp ?? 0} LP` : `${tier} ${r.division ?? ""}`.trim()}
+      {APEX.has(r.tier) ? `${tier} ${r.lp ?? 0} LP` : `${tier} ${r.division ?? ""}`.trim()}
     </span>
   );
 }

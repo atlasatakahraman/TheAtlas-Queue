@@ -579,16 +579,17 @@ function useReorder() {
 
 // The queue table's columns (August): #, player, Kick, rank, win rate, joined, actions. Under
 // 768px the row keeps #, player and actions; under 1024px win rate and joined go too. The actions
-// column is a fixed 8rem (three quick actions and the menu), so the header row, whose last cell
+// column is a fixed width (three quick actions and the menu), so the header row, whose last cell
 // is empty, lines up with the rows.
-// The actions column is its four 24px buttons (6rem); the player column takes twice the Kick
+// The actions column holds its four 32px buttons with room to spare (8.5rem; at 6rem they ran
+// 32px into Joined, owner 2026-09-28); the player column takes twice the Kick
 // column, since its name shares the line with the respect score and tags (at 1280×720 the name
 // had 53px of 175, owner 2026-09-27).
 // With Riot off (owner, 2026-09-27) the Kick, Rank and Win rate columns go: the name is the Kick
 // name and there is no rank to show.
-export const TABLE_COLS_PLAIN = "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_6rem] lg:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6rem]";
+export const TABLE_COLS_PLAIN = "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_8.5rem] lg:grid-cols-[2rem_minmax(0,1fr)_5.5rem_8.5rem]";
 export const TABLE_COLS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_6rem] lg:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_4.5rem_5.5rem_6rem]";
+  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_8.5rem] lg:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_4.5rem_5.5rem_8.5rem]";
 
 // A player row (DESIGN.md § Recipes → Queue row). "table" is the Queue tab's row; "roster" is a
 // team card's row: number, avatar, name#tag, rank, menu, on the floor colour.

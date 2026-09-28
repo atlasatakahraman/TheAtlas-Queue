@@ -486,7 +486,8 @@ function PlayerName({ player, seen, stacked, typeAt, keyboard }: { player: Playe
 }
 
 // Row buttons (D34, DESIGN.md § Queue table): the common moves without the menu. Waiting or away:
-// 1, 2 (the team number in its colour) and remove; in a team: to the other team, back to waiting,
+// add to each team (UserPlus in its colour, the team's own name in the tooltip; owner 2026-09-28:
+// no numbers, the streamer names the teams) and remove; in a team: to the other team, back to waiting,
 // remove. Dim at rest, full on row hover or focus; on touch always full at 44px. A disabled button
 // says why in its tooltip.
 function QuickActions({ player }: { player: Player }) {
@@ -508,12 +509,12 @@ function QuickActions({ player }: { player: Player }) {
       ]
     : ([1, 2] as const).map((n) => ({
         label: t("teams.add", { team: t(`team.${n}`) }),
-        body: <span className="font-serif text-body leading-none tabular-nums">{n}</span>,
+        body: <UserPlus aria-hidden />,
         tone: tone(n),
         run: () => a.moveTo(n),
         why: punished ? t("why.punished") : full(n),
       }));
-  moves.push({ label: t("menu.remove"), body: <X aria-hidden />, tone: "text-muted-foreground", run: a.remove });
+  moves.push({ label: t("menu.remove"), body: <X aria-hidden />, tone: "text-muted-foreground hover:text-destructive", run: a.remove });
   return (
     <span className="flex items-center">
       {moves.map(({ label, body, tone, run, why }) => {
@@ -877,9 +878,9 @@ export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> })
   };
   return (
     <div className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4", MID, tableCols(ids, ranks))}>
-      {sort.key ? (
       {/* While sorted, the # itself is the way back (owner, 2026-09-28): muted like the other
           headers, foreground on hover. */}
+      {sort.key ? (
         <Tip label={t("sort.reset")}>
           <button
             type="button"

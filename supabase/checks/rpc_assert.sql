@@ -804,5 +804,94 @@ begin
   end if;
 end $$;
 
+-- 0031 (D29): overlays. Channel qa-overlay, team size 1, w1..w3. Only the owner creates, edits,
+-- rotates or deletes, and only the owner reads a key; the snapshot is the server's alone, shows
+-- only the widgets the overlay has on, and never an id beyond row keys; a rotated or deleted key
+-- shows nothing; Undo brings a deleted overlay back with its key; the channel pings while it has
+-- an overlay, with the watch page off.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000006';
+  owner constant text := '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+  modr  constant text := '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+  r     jsonb;
+  ov    uuid;
+  k1    text;
+  k2    text;
+  cfg   jsonb;
+  snap  jsonb;
+  act   bigint;
+begin
+  execute 'reset role';
+  insert into public.channels (id, kick_channel_id, slug, display_name) values (ch, -701, 'qa-overlay', 'qa overlay');
+  insert into public.channel_members (channel_id, kick_user_id, role, source) values (ch, -101, 'owner', 'owner'), (ch, -102, 'mod', 'manual');
+  insert into public.settings (channel_id, team_size) values (ch, 1);
+  insert into public.players (channel_id, kick_user_id, kick_username, source, joined_at)
+    select ch, -700 - i, 'w' || i, 'chat', now() - make_interval(secs => 10 - i) from generate_series(1, 3) i;
+  if has_function_privilege('authenticated', 'public.overlay_snapshot(text)', 'execute')
+     or has_function_privilege('anon', 'public.overlay_snapshot(text)', 'execute') then
+    raise exception 'overlay: the snapshot is callable by a browser role';
+  end if;
+
+  execute 'set local role authenticated';
+  perform set_config('request.jwt.claims', modr, true);
+  perform pg_temp.expect(format('select public.create_overlay(%L, %L, gen_random_uuid())', ch, 'mine'), 'auth.role');
+  perform set_config('request.jwt.claims', owner, true);
+  r := public.create_overlay(ch, '  Teams bar ', gen_random_uuid());
+  ov := (r ->> 'overlay')::uuid;
+  select key, config into k1, cfg from public.overlays where overlays.id = ov;
+  if k1 !~ '^[0-9a-f]{32}$' or cfg ->> 'anchor' <> 'top-left' or jsonb_array_length(cfg -> 'widgets') <> 7 then raise exception 'overlay: bad key or config: % %', k1, cfg; end if;
+  if (select name from public.overlays where overlays.id = ov) <> 'Teams bar' then raise exception 'overlay: the name is not trimmed'; end if;
+  perform set_config('request.jwt.claims', modr, true);
+  if exists (select 1 from public.overlays where channel_id = ch) then raise exception 'overlay: a moderator reads a key'; end if;
+  perform pg_temp.expect(format('select public.rotate_overlay_key(%L, %L, gen_random_uuid())', ch, ov), 'auth.role');
+  perform set_config('request.jwt.claims', owner, true);
+
+  if pg_temp.expect(format('select public.update_overlay(%L, %L, null, %L, gen_random_uuid())', ch, ov, '{"anchor":"middle"}'), 'settings.invalid')::jsonb ->> 'field' <> 'anchor'
+     or pg_temp.expect(format('select public.update_overlay(%L, %L, null, %L, gen_random_uuid())', ch, ov, '{"widgets":[{"type":"teams","on":true}]}'), 'settings.invalid')::jsonb ->> 'field' <> 'widgets'
+     or pg_temp.expect(format('select public.update_overlay(%L, %L, null, %L, gen_random_uuid())', ch, ov, '{"widgets":"teams"}'), 'settings.invalid')::jsonb ->> 'field' <> 'widgets'
+     or pg_temp.expect(format('select public.update_overlay(%L, %L, null, %L, gen_random_uuid())', ch, ov, '{"min_games":2}'), 'settings.invalid')::jsonb ->> 'field' <> 'min_games'
+     or pg_temp.expect(format('select public.update_overlay(%L, %L, %L, null, gen_random_uuid())', ch, ov, '  '), 'settings.invalid')::jsonb ->> 'field' <> 'name' then
+    raise exception 'overlay: a bad config names the wrong field';
+  end if;
+  -- Queue (5 rows), wins and respect on; teams off; everyone's game counts.
+  cfg := jsonb_set(jsonb_set(jsonb_set(cfg, '{widgets,0,on}', 'false'), '{widgets,3,on}', 'true'), '{widgets,5,on}', 'true');
+  cfg := jsonb_set(jsonb_set(cfg, '{widgets,6,on}', 'true'), '{min_games}', '1') || '{"junk":1}';
+  perform public.update_overlay(ch, ov, null, cfg, gen_random_uuid());
+  if (select config ? 'junk' from public.overlays where overlays.id = ov) then raise exception 'overlay: an unknown key was kept'; end if;
+  perform public.draw_teams(ch, null, false, gen_random_uuid());
+  perform public.record_game(ch, 1::smallint, null, gen_random_uuid());
+
+  execute 'reset role';
+  if not exists (select 1 from realtime.messages m where m.topic = 'watch:qa-overlay' and m.event = 'ping') then
+    raise exception 'overlay: no ping while the channel has an overlay';
+  end if;
+  snap := public.overlay_snapshot(k1);
+  if snap is null or snap -> 'teams' <> 'null'::jsonb or (snap #>> '{queue,total}')::int <> 1
+     or jsonb_array_length(snap #> '{wins}') <> 1 or snap #>> '{wins,0,name}' is null
+     or jsonb_array_length(snap #> '{respect}') <> 2 or (snap #>> '{respect,0,respect}')::int <> 100
+     or snap::text ~ 'kick_user_id|puuid|riot|reason|actor|recorded_by|"key"' then
+    raise exception 'overlay: bad snapshot %', snap;
+  end if;
+  if public.overlay_snapshot('nope') is not null or public.overlay_snapshot(repeat('0', 32)) is not null then
+    raise exception 'overlay: an unknown key shows something';
+  end if;
+
+  execute 'set local role authenticated';
+  perform set_config('request.jwt.claims', owner, true);
+  perform public.rotate_overlay_key(ch, ov, gen_random_uuid());
+  select key into k2 from public.overlays where overlays.id = ov;
+  r := public.delete_overlay(ch, ov, gen_random_uuid());
+  act := (select a.id from public.activity a where a.channel_id = ch and a.action = 'delete_overlay');
+  execute 'reset role';
+  if k2 = k1 or public.overlay_snapshot(k1) is not null then raise exception 'overlay: the old key still shows'; end if;
+  if public.overlay_snapshot(k2) is not null then raise exception 'overlay: a deleted overlay still shows'; end if;
+  execute 'set local role authenticated';
+  perform set_config('request.jwt.claims', owner, true);
+  perform public.undo(ch, act, gen_random_uuid());
+  execute 'reset role';
+  if public.overlay_snapshot(k2) is null then raise exception 'overlay: Undo did not bring the overlay back'; end if;
+end $$;
+
 select 'rpc ok' as result;
 rollback;

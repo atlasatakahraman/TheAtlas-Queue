@@ -526,6 +526,9 @@ export const en = {
   "live.title.none": "Live since {time}",
   "live.title.off": "The stream is offline",
   "live.on_air": "On air for {t}",
+  "why.offline": "Offline: actions are paused",
+  "why.team_full": "{team} is full ({n} of {size})",
+  "why.punished": "Sitting out a punishment",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

@@ -55,6 +55,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tip } from "@/components/tip";
 import { useIsTouch } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
 import type { LabelKey } from "@/lib/i18n";
@@ -504,43 +505,59 @@ function PlayerName({ player, stacked, typeAt }: { player: Player; stacked: bool
   );
 }
 
-// Hover quick actions (August): team 1, team 2, remove. Hidden until the row is hovered or has
-// focus inside, but always in the layout, so nothing shifts; absent where there is no hover.
+// Row buttons (D34, DESIGN.md § Queue table): the common moves without the menu. Waiting or away:
+// 1, 2 (the team number in its colour) and remove; in a team: to the other team, back to waiting,
+// remove. Dim at rest, full on row hover or focus; on touch always full at 44px. A disabled button
+// says why in its tooltip.
 function QuickActions({ player }: { player: Player }) {
   const { t } = useT();
   const a = usePlayerActions(player);
   const canWrite = useCanWrite();
   const touch = useIsTouch();
   const room = useTeamRoom();
+  const size = useQueue((v) => v.settings.team_size);
   const punished = player.status === "punished";
-  if (touch) return null;
-  const btn = "size-8 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 focus-visible:opacity-100";
   const tone = (n: 1 | 2) => (n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2");
-  // In a team (owner, 2026-09-27): swap to the other team and back to waiting, not "add to" a
-  // team they are already in; waiting or away: add to either team.
-  const moves: { label: string; icon: LucideIcon; tone: string; run: () => unknown; off?: boolean }[] = player.team
+  const full = (n: 1 | 2) => (room(n) < 1 ? t("why.team_full", { team: t(`team.${n}`), n: size - room(n), size }) : null);
+  type Move = { label: string; body: React.ReactNode; tone: string; run: () => unknown; why?: string | null };
+  const other = player.team === 1 ? 2 : 1;
+  const moves: Move[] = player.team
     ? [
-        { label: t("menu.move_to", { team: t(`team.${player.team === 1 ? 2 : 1}`) }), icon: ArrowLeftRight, tone: tone(player.team === 1 ? 2 : 1), run: () => a.moveTo(player.team === 1 ? 2 : 1), off: room(player.team === 1 ? 2 : 1) < 1 },
-        { label: t("menu.to_waiting"), icon: Undo2, tone: "text-muted-foreground", run: a.toWaiting },
+        { label: t("menu.move_to", { team: t(`team.${other}`) }), body: <ArrowLeftRight aria-hidden />, tone: tone(other), run: () => a.moveTo(other), why: full(other) },
+        { label: t("menu.to_waiting"), body: <Undo2 aria-hidden />, tone: "text-muted-foreground", run: a.toWaiting },
       ]
-    : ([1, 2] as const).map((n) => ({ label: t("menu.move_to", { team: t(`team.${n}`) }), icon: UserPlus, tone: tone(n), run: () => a.moveTo(n), off: punished || room(n) < 1 }));
-  moves.push({ label: t("menu.remove"), icon: X, tone: "text-muted-foreground", run: a.remove });
+    : ([1, 2] as const).map((n) => ({
+        label: t("teams.add", { team: t(`team.${n}`) }),
+        body: <span className="font-serif text-body leading-none tabular-nums">{n}</span>,
+        tone: tone(n),
+        run: () => a.moveTo(n),
+        why: punished ? t("why.punished") : full(n),
+      }));
+  moves.push({ label: t("menu.remove"), body: <X aria-hidden />, tone: "text-muted-foreground", run: a.remove });
   return (
-    <span className="flex items-center max-md:hidden">
-      {moves.map(({ label, icon: Icon, tone, run, off }) => (
-        <Button
-          key={label}
-          variant="ghost"
-          size="icon"
-          className={cn(btn, tone)}
-          disabled={!canWrite || off}
-          aria-label={label}
-          title={label}
-          onClick={() => void run()}
-        >
-          <Icon aria-hidden />
-        </Button>
-      ))}
+    <span className="flex items-center">
+      {moves.map(({ label, body, tone, run, why }) => {
+        const off = !canWrite || !!why;
+        return (
+          <Tip key={label} label={!canWrite ? t("why.offline") : (why ?? label)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                tone,
+                touch
+                  ? "size-11"
+                  : "opacity-40 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 focus-visible:opacity-100",
+              )}
+              disabled={off}
+              aria-label={label}
+              onClick={() => void run()}
+            >
+              {body}
+            </Button>
+          </Tip>
+        );
+      })}
     </span>
   );
 }
@@ -806,7 +823,7 @@ export function PlayerRow({
             </span>
           )}
           <span className="flex items-center justify-end">
-            {table && <QuickActions player={player} />}
+            <QuickActions player={player} />
             <RowMenu player={player} kit="dropdown" open={menuOpen} onOpenChange={setMenuOpen} />
           </span>
         </div>

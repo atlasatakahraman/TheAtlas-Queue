@@ -514,4 +514,7 @@ export const tr: Record<LabelKey, string> = {
   "live.title.none": "{time} itibarıyla yayında",
   "live.title.off": "Yayın kapalı",
   "live.on_air": "{t} süredir yayında",
+  "why.offline": "Çevrimdışı: işlemler duraklatıldı",
+  "why.team_full": "{team} dolu ({n}/{size})",
+  "why.punished": "Ceza bitene kadar bekliyor",
 };

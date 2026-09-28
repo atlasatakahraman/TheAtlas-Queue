@@ -705,8 +705,11 @@ skeleton draw the current chrome (top bar with its breadcrumb, masthead toolbar,
 tab is the table header, six rows on the table grid and the feed column; Teams is the headline
 and two cards with their team-size slots; Management is its sub-tabs and table rows; Games is
 the score strip and game rows; Settings is the section list and the first section's card.
-Bars are `bg-muted`, pulsing once a second. Built in Stage 9 with D25; today's `loading.tsx`
-draws the Queue tab only.
+Bars are `bg-muted`, pulsing once a second. Built in Stage 9 with D25. `/` and `/welcome` have
+their own (owner, 2026-09-28): home is the wordmark, the tagline's two lines, the three points,
+the Continue button and the footer; welcome is its heading and hint, then the three step cards
+with their numbered heads. The home skeleton lives in the `(home)` route group, so it never shows
+on the way into the dashboard or `/welcome`.
 
 **Tooltips (D25).** One `TooltipProvider`, 200ms delay, instant between neighbours. Every
 icon-only button has one, and every **disabled** control says why (*Teams are full*, *Only the
@@ -936,6 +939,41 @@ reloads the source often, and a page that animates on every reload looks broken 
 - Language: the overlay's own setting, defaulting to the *stream language* chat replies use.
 
 ---
+
+### Not found and errors (Stage 9, owner 2026-09-28)
+
+One motif: the page is a single **queue row**, the product's own unit, under a slim top bar.
+
+```
+[▣] TheAtlas Queue                                                        EN|TR  ◐
+┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+┆ 404   Nothing at this address                          [Back to the start] ┆
+┆       That page doesn't exist, or it moved.                                ┆
+└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+┌──────────────────────────────────────────────────────────────────────────┐
+▌ ⚠     Something went wrong                           [Reload page] [Retry] │
+▌       Your queue is safe: it is saved on the server, not in this tab.     │
+▌       Error code 3f9a…                                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Top bar**: the tile and the wordmark (a link to `/`), EN | TR and the theme on the right, on
+  the dashboard's grid (max 1440px, `px-8`, 60px tall). No account, no pill, no typing.
+- **The row** sits in the upper third (not dead centre), `max-w-3xl`, on the queue row's grid:
+  the number column, then the title (`text-name`) over one muted `text-meta` hint, the buttons on
+  the right; under 768px the buttons drop under the text at full width, 44px.
+- **Not found**: an **empty slot**: `border-dashed border-row-edge`, no fill, `404` in the number
+  column (Newsreader `text-numeral`, muted), **Back to the start** (outline).
+- **Error** (`error.tsx`): a solid `bg-row` row whose 3px left edge is `--warning` (a row that
+  needs attention, as a punished row's), `TriangleAlert` in the number column, the queue-is-safe
+  hint, the error code in mono when there is one, **Reload page** (outline) and **Retry**
+  (primary).
+- **Dashboard error** (`/c/<channel>/error.tsx`): the top bar carries the breadcrumb
+  (`/ channel`, from the URL). The tabs are the page's own client state, so they do not survive a
+  crash; the error row sits where the tab's content would be.
+- **Global error** (the root layout failed): the same row with the system font and theme, both
+  languages stacked, since no provider is there.
+- Motion: the row rises once (`animate-enter`); nothing else moves.
 
 ## States
 

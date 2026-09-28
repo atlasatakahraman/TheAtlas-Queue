@@ -335,9 +335,9 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
             </span>
           ) : (
             <span className="flex min-w-0 items-center gap-3">
-              {/* The team's colour mark (D25): a square, not a capsule and never a dot. */}
-              <span aria-hidden className={cn("size-2.5 shrink-0 rounded-[2px]", team === 1 ? "bg-team-1" : "bg-team-2")} />
-              <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
+              {/* Gold once the team is full, as the active tab's count (owner, 2026-09-28). No
+                  colour square: the card's top edge carries the team colour. */}
+              <span className={cn("tabular-nums", count >= size && "font-medium text-brand")}>{t("teams.count", { n: count, size })}</span>
               {avg}
             </span>
           )}
@@ -518,10 +518,9 @@ export function TeamsTab() {
   const players = useQueue((v) => v.players);
   const size = useQueue((v) => v.settings.team_size);
   const fairPlay = useQueue((v) => v.settings.fair_play);
-  const draw = useQueue((v) => v.draw);
   const reveal = useQueue((v) => v.reveal);
   const motion = useRevealMotion();
-  const { draw: drawTeams, reroll, shuffle, clearTeams, pick } = useDrawActions();
+  const { draw: drawTeams, shuffle, clearTeams, pick } = useDrawActions();
   const picking = usePick();
   const playing = useQueue((v) => v.players.filter((p) => p.status === "playing").length);
 
@@ -602,17 +601,6 @@ export function TeamsTab() {
           <Tip label={offline ?? (playing < 2 ? t("why.shuffle_two") : null)}>
             <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || playing < 2} onClick={() => void shuffle()}>
               {t("action.shuffle_teams")}
-            </Button>
-          </Tip>
-          <Tip label={offline ?? (draw?.kind !== "teams" ? t("why.reroll_none") : null)}>
-            <Button
-              variant="outline"
-              size="lg"
-              className="max-md:h-11"
-              disabled={!canWrite || draw?.kind !== "teams"}
-              onClick={() => void reroll()}
-            >
-              {t("action.reroll")}
             </Button>
           </Tip>
           <DropdownMenu>

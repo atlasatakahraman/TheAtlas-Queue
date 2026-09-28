@@ -569,7 +569,6 @@ export const en = {
   "why.already_waiting": "Already waiting",
   "why.teams_empty": "No one is on a team",
   "why.shuffle_two": "Needs at least two players on the teams",
-  "why.reroll_none": "No team draw to reroll",
   "why.draw_landing": "Wait for the draw to land",
   "done.copied": "Copied {text}",
   "card.manual": "Manual",

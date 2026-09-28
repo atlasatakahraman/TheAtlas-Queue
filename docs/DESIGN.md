@@ -278,7 +278,7 @@ clashes with both themes and disappears on a team-coloured name.
 1. **Content text is selectable and has a pair.** `<body>` carries the default pair, so anything
    that does not override it is already correct. Tailwind's `selection:` variant applies to the
    element *and its descendants*, so one class on a container covers everything inside it.
-2. **Chrome is not selectable.** Buttons, tabs, filters, tags, menu rows, the live pill and icons
+2. **Chrome is not selectable.** Buttons, tabs, filters, tags, menu rows, the Live icon and icons
    are `select-none`. Dragging across a row selects the player's name, not the row's buttons.
 
 | Text role | Classes | Pair (Mürekkep / Kâğıt) |
@@ -717,15 +717,15 @@ The fourth tab (`Trophy`, count of games this stream). Two views on the filter-p
 
 ```
 Kurtlar 3 – 2 Kartallar                                             [Games | Stats]  [🔍 name]
-┌───────────────────────────────────────────────────────────────────────────────────────┐
-│ 🏆 Kurtlar   21:40 → 22:12 · 32 min                                        [⋯]         │
-│  ■ brkdmr Plat IV · kaanxd Gold I · …        vs   ■ mirayy Gold II · …                 │
-└───────────────────────────────────────────────────────────────────────────────────────┘
+┃ #5  🏆 Kurtlar         5 v 5       22:12   32 min                               [⋯]
+┃ #4  🏆 Kartallar       5 v 5       21:36   28 min                               [⋯]
 ```
 
-- A game is a row card (`bg-row rounded-xl`, 3px left edge in the **winner's** colour): trophy
-  and the winner's current name, start → end and length, then both rosters as inline name +
-  rank lists, the winner's first. `⋯`: *Remove this game* (undoable), *Copy result*.
+- A game is **one line** (owner, 2026-09-28): a `bg-row` row on the queue table's grid, 3px left
+  edge in the **winner's** colour; the game's number this stream, trophy and the winner's
+  current name, the team size, the end time and length (tabular). No rosters on the row.
+  The whole row opens the game's page; `⋯`: *Open*, *Copy result*, *Remove this game*
+  (undoable). A name search keeps the rows the player was in.
 - **Stats**: a table (Player · Games · W · L · Win rate · Streak), sortable like the queue
   table, minimum-games filter; *most wins* and *longest streak* lead in a two-tile strip.
 - Loads the last 20, then 50 more on scroll (keyset), a skeleton row while fetching.
@@ -733,6 +733,28 @@ Kurtlar 3 – 2 Kartallar                                             [Games | S
   offline.
 - Elsewhere: channel W / L beside each name in the queue table's player card and hover, and this
   stream's score under the match headline on Teams.
+
+#### A game's page `/c/<channel>/games/<n>` (Stage 10, owner 2026-09-28)
+
+Each game gets its own page, so a row stays one line and a result can be linked.
+
+```
+← Games                                                      [Copy result] [⋯]
+Kurtlar won game 5
+22:12    32 min    5 v 5
+┃ Kurtlar  🏆                            ┃ Kartallar
+┃ 1  brkdmr      Plat IV   4 W  1 L      ┃ 1  mirayy     Gold II   2 W  3 L
+┃ 2  kaanxd      Gold I    3 W  2 L      ┃ 2  …
+```
+
+- The dashboard's top bar; the breadcrumb reads *… / HoustonHUB / Games / 5*. The headline is
+  the Teams tab's match headline (Newsreader, team colours), then the time, length and size, set apart by space (no dot separators).
+- Two team cards as on Teams (the winner's first, a trophy by its name), rows with the rank at
+  the time of the game and the player's W / L this stream; a row opens the player card.
+- ← and → step to the previous and next game; `⋯`: *Remove this game* (undoable, then back to
+  Games).
+- States: loading (the headline and two cards as skeletons), a removed or unknown game (a
+  404 in the page's own words with ← Games).
 
 #### Selection page `/` signed in (Stage 12, D19)
 
@@ -744,16 +766,22 @@ Continue ───────────────────────�
   (◉) HoustonHUB      Manage queue · 14 waiting · ((·)) Live      [Continue →]
       [ ] Open this automatically
 
-Your channels                           Watch a channel
-  (◉) HoustonHUB   [Manage] [Watch]       [ kick.com/… or channel name     ] [Watch →]
-  (◉) mirayy (moderator) [Manage]         Recently watched: kaanxd · brkdmr
+Your channels
+  (◉) HoustonHUB          Streamer    ((·)) Live   14 waiting          [Watch] [Manage]
+  (◉) mirayy              Moderator   Offline       3 waiting                  [Manage]
+
+Watch a channel
+  [ kick.com/… or channel name                                   ▾ ]           [Watch]
 ```
 
 - **Continue** is the place last left, first. *Open this automatically* is a `Switch`: on, `/`
   redirects there (a cookie, so no flash) and every dashboard's breadcrumb leads back here.
-- Your channels: owner and moderator rows (`bg-row`), each with its Live icon and waiting count.
-- Watch a channel: an input that takes a name or a Kick URL, and a short recent list (this
-  browser only, localStorage).
+- Your channels: **full-width** rows (owner, 2026-09-28) on the queue table's grid rules
+  (`bg-row`, 6px apart): avatar and channel, the role, the Live icon or *Offline*, the waiting
+  count (tabular), then the buttons at the right edge.
+- Watch a channel: one input below, as wide as the rows, that takes a name or a Kick URL. It
+  suggests the recently watched channels through a native `datalist` (this browser only,
+  localStorage, the last 8), so there is no separate recent list; Enter watches.
 - States: no channels yet (*Set up your channel* → `/welcome`), a channel that no longer
   exists (the row says so, *Remove*), loading (the rows as skeletons).
 
@@ -773,6 +801,14 @@ Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fa
 - Switches, selects and pickers save the moment they change; text and numbers wait for the
   section's Save, disabled until one of them changed (owner, 2026-09-27, ADR 0033); errors
   under their field.
+- **The section list** (owner, 2026-09-28): each section has its icon in its own colour
+  (Commands `Terminal` brand, Riot `Swords` team 2, Teams & draws `Users` team 1, Games `Trophy`
+  gold, Perks `Star` brand, Watch `Eye` badge-founder, Overlays `MonitorPlay` badge-og, Moderators
+  `Shield` success, Labels `Languages` badge-vip, Your data `Database` destructive). The icons
+  move as the dashboard tabs' icons do: a −6° tilt and ×1.15 on hover (200ms, off with
+  Animations off). The active section carries the **tabs' underline**: the 2px gold line under
+  its label, growing from its centre (300ms, the tabs' ease), and its label turns
+  `--foreground`; the rest stay muted.
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).
@@ -796,6 +832,23 @@ Overlays                                                    [+ New overlay]
   respect board lists only the most respected.
 - States: none yet (*Add an overlay for OBS*), preview loading (the canvas with skeleton panels).
 
+**Most wins** widget (owner, 2026-09-28): a leaderboard panel for the overlay.
+
+```
+┌ Most wins this stream ───────────┐
+│ 1  brkdmr        7 W   78%       │
+│ 2  kaanxd        6 W   60%       │
+│ 3  mirayy        5 W   71%       │
+└──────────────────────────────────┘
+```
+
+- Ranked by wins, then win rate, then fewer games; players under the builder's minimum games
+  are left out. Up to 3, 5 or 10 rows (builder setting); the period is this stream or the
+  channel's retention window.
+- The first row's rank number takes the gold, the rest are muted; names in `--ink-text`, wins
+  tabular. A rank change swaps rows without motion (no entrance on the overlay, see below).
+- Empty: the panel hides itself rather than show *No games yet* on stream.
+
 #### Help `/help` (Stage 15, D33)
 
 A public wiki, prerendered per language. Top bar with the wordmark; left, the topic list (sticky,
@@ -809,8 +862,8 @@ list is a `Select` above the article. States: an unknown topic is a 404; no load
 
 Read-only, public, and built **mobile-first**, because viewers open it from a phone.
 
-- The same masthead, minus the tools a viewer cannot use. The pill shows whether the **stream**
-  is live, not the connection.
+- The same masthead, minus the tools a viewer cannot use. The Live icon (`Radio`, as on the
+  dashboard, never a dot) shows whether the **stream** is live, not the connection.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
   this stream's score, rosters), **Queue** (rows without a menu; the player card only if the
   streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results and the wins

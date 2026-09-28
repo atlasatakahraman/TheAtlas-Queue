@@ -529,6 +529,7 @@ export const en = {
   "why.offline": "Offline: actions are paused",
   "why.team_full": "{team} is full ({n} of {size})",
   "why.punished": "Sitting out a punishment",
+  "queue.ranks_loading": "Loading ranks {n}",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

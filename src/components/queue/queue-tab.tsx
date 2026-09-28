@@ -3,7 +3,7 @@ import { MessageSquareText, Search } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useT } from "@/components/i18n";
 import { FilterPills } from "@/components/queue/filter-pills";
-import { PlayerRow, TableHeader, useRiotIds } from "@/components/queue/player-row";
+import { PlayerRow, rankPending, TableHeader, useRanks, useRiotIds } from "@/components/queue/player-row";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { enter, SearchRefContext, useUi } from "@/components/queue/ui";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,7 @@ export function QueueTab() {
       <section className="flex min-w-0 flex-col gap-4">
         <div style={e3.style} className={cn("flex flex-wrap items-end justify-between gap-4", e3.className)}>
           <h2 className="min-w-0 font-serif text-title">{t("queue.title")}</h2>
+          <RanksLoading players={players} />
         </div>
 
         <div style={e3.style} className={cn("flex flex-wrap items-center gap-3", e3.className)}>
@@ -143,6 +144,16 @@ export function QueueTab() {
       </Button>
     </div>
   );
+}
+
+// While Riot answers (D25): a muted, pulsing count of the ranks still on their way.
+function RanksLoading({ players }: { players: Player[] }) {
+  const { t } = useT();
+  const ranks = useRanks();
+  const now = useNow(5_000);
+  const n = ranks ? players.filter((p) => rankPending(p, now)).length : 0;
+  if (n === 0) return null;
+  return <span className="animate-pulse text-meta text-muted-foreground tabular-nums max-md:hidden">{t("queue.ranks_loading", { n })}</span>;
 }
 
 function Stats({ players }: { players: Player[] }) {

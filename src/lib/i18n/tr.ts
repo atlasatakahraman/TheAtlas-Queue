@@ -517,4 +517,5 @@ export const tr: Record<LabelKey, string> = {
   "why.offline": "Çevrimdışı: işlemler duraklatıldı",
   "why.team_full": "{team} dolu ({n}/{size})",
   "why.punished": "Ceza bitene kadar bekliyor",
+  "queue.ranks_loading": "Rütbeler yükleniyor {n}",
 };

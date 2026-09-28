@@ -57,6 +57,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tip } from "@/components/tip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useIsTouch } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
 import type { LabelKey } from "@/lib/i18n";
@@ -75,6 +76,16 @@ const APEX = new Set(["MASTER", "GRANDMASTER", "CHALLENGER"]);
 // ranks (Look up ranks) need it on as well.
 export const useRiotIds = () => useQueue((v) => v.settings.require_riot_id);
 export const useRanks = () => useQueue((v) => v.settings.require_riot_id && v.settings.riot_enabled);
+
+// A rank on its way (D25): a Riot ID not yet looked up, for its first minute (a lookup that
+// found nothing leaves no mark, so after that the cell shows what it has).
+const PENDING_MS = 60_000;
+export const rankPending = (p: Player, now: number) =>
+  !!p.riot_id && !p.puuid && now > 0 && now - Date.parse(p.joined_at) < PENDING_MS;
+export function useRankPending(p: Player) {
+  const ranks = useRanks();
+  return rankPending(p, useNow(5_000)) && ranks;
+}
 
 export function RankText({ player, className }: { player: Player; className?: string }) {
   const { t } = useT();
@@ -682,6 +693,7 @@ export function PlayerRow({
   const teamAdd = useContext(TeamAddContext);
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
   const [lifted, setLifted] = useState(false);
+  const pending = useRankPending(player);
   const draggable = canWrite && !touch && player.status !== "punished";
   // A roster row takes its own team's players (a reorder) and, while the team has room, anyone
   // else, who joins the team at that row (D37, owner 2026-09-27).
@@ -824,14 +836,14 @@ export function PlayerRow({
           {table && ids && <span className="truncate text-meta text-muted-foreground max-md:hidden">{player.kick_username}</span>}
           {/* Always a cell, so rows with and without a rank keep the next columns in place. */}
           {(ranks || !table) && (
-            <span className={table ? "max-md:hidden" : "max-sm:hidden"}>
-              <RankText player={seen} />
-            </span>
+            <div className={table ? "max-md:hidden" : "max-sm:hidden"}>
+              {pending ? <Skeleton className="h-4 w-20" /> : <RankText player={seen} />}
+            </div>
           )}
           {table && ranks && (
-            <span className="max-lg:hidden">
-              <WinRate player={seen} />
-            </span>
+            <div className="max-lg:hidden">
+              {pending ? <Skeleton className="h-4 w-9" /> : <WinRate player={seen} />}
+            </div>
           )}
           {table && (
             <span className="max-lg:hidden">

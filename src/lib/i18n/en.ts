@@ -543,6 +543,10 @@ export const en = {
   "card.respect": "respect",
   "card.joined_chat_at": "joined {time} from chat",
   "card.joined_manual_at": "added {time} by hand",
+  "sanction.quick": "Quick lengths",
+  "sanction.quick.g1": "1 game",
+  "sanction.quick.g2": "2 games",
+  "sanction.quick.w1": "1 week",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

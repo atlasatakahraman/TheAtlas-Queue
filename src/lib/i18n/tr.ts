@@ -531,4 +531,8 @@ export const tr: Record<LabelKey, string> = {
   "card.respect": "saygı",
   "card.joined_chat_at": "{time} sohbetten katıldı",
   "card.joined_manual_at": "{time} elle eklendi",
+  "sanction.quick": "Hızlı süreler",
+  "sanction.quick.g1": "1 maç",
+  "sanction.quick.g2": "2 maç",
+  "sanction.quick.w1": "1 hafta",
 };

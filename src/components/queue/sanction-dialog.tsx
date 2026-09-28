@@ -9,9 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { isError } from "@/lib/queue-store";
 
 const BAN_DAYS = ["1", "7", "30", "permanent"] as const;
+// August's quick punishment lengths, above the amount (Stage 8 walk-through, built in Stage 9).
+const QUICK = [
+  { id: "g1", unit: "games", amount: "1", label: "sanction.quick.g1" },
+  { id: "g2", unit: "games", amount: "2", label: "sanction.quick.g2" },
+  { id: "d1", unit: "minutes", amount: "1440", label: "sanction.day" },
+  { id: "w1", unit: "minutes", amount: "10080", label: "sanction.quick.w1" },
+] as const;
 
 // Warn, punish or ban from the row menu. The reason stays on the dashboard: /watch shows names
 // and kinds only (spec § Security → Public payload).
@@ -100,6 +108,28 @@ function SanctionForm({ draft, onDone }: { draft: SanctionDraft; onDone: () => v
       }}
     >
       {respect !== undefined && <p className="text-meta text-muted-foreground">{t("sanction.respect", { n: respect })}</p>}
+      {draft.kind === "punish" && (
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          aria-label={t("sanction.quick")}
+          value={QUICK.find((q) => q.unit === unit && q.amount === amount)?.id ?? ""}
+          onValueChange={(id) => {
+            const q = QUICK.find((x) => x.id === id);
+            if (!q) return;
+            setUnit(q.unit);
+            setAmount(q.amount);
+            setError(undefined);
+          }}
+          className="grid w-full grid-cols-4"
+        >
+          {QUICK.map((q) => (
+            <ToggleGroupItem key={q.id} value={q.id} className="h-9 max-md:h-11">
+              {t(q.label)}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
       {draft.kind === "punish" && (
         <div className="grid grid-cols-[1fr_1.4fr] gap-2">
           <div className="flex flex-col gap-1.5">

@@ -622,8 +622,11 @@ function useReorder() {
   };
 }
 
-// The queue table's columns (August): #, player, Kick, rank, win rate, joined, actions. Under
-// 768px the row keeps #, player and actions; under 1024px win rate and joined go too. The actions
+// The queue table's columns (August): #, player, Kick, rank, win rate, joined, actions. They follow
+// the table's own width, not the window's (owner, 2026-09-28: at 1024 to 1279px the side column
+// left the table 600px and the name column collapsed under the tags): [data-rows] is a size
+// container. Under 40rem the row keeps #, player and actions; under 54rem win rate and joined
+// go too. The actions
 // column is a fixed width (three quick actions and the menu), so the header row, whose last cell
 // is empty, lines up with the rows.
 // The actions column holds its four 32px buttons with room to spare (8.5rem; at 6rem they ran
@@ -632,11 +635,15 @@ function useReorder() {
 // had 53px of 175, owner 2026-09-27).
 // With Riot IDs off (owner, 2026-09-27) the Kick, Rank and Win rate columns go: the name is the
 // Kick name and there is no rank to show. Riot IDs without ranks keep Kick (2026-09-28).
-export const TABLE_COLS_PLAIN = "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_8.5rem] lg:grid-cols-[2rem_minmax(0,1fr)_5.5rem_8.5rem]";
-export const TABLE_COLS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_8.5rem] lg:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_4.5rem_5.5rem_8.5rem]";
+const TABLE_COLS_PLAIN =
+  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,1fr)_8.5rem] @min-[54rem]:grid-cols-[2rem_minmax(0,1fr)_5.5rem_8.5rem]";
+const TABLE_COLS =
+  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_8.5rem] @min-[54rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_5rem_5.5rem_8.5rem]";
 const TABLE_COLS_IDS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem] lg:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_5.5rem_8.5rem]";
+  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem] @min-[54rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_5.5rem_8.5rem]";
+// The cells that leave under each width (the same thresholds as the columns above).
+const MID = "@max-[40rem]:hidden";
+const WIDE = "@max-[54rem]:hidden";
 const tableCols = (ids: boolean, ranks: boolean) => (ranks ? TABLE_COLS : ids ? TABLE_COLS_IDS : TABLE_COLS_PLAIN);
 
 // A player row (DESIGN.md § Recipes → Queue row). "table" is the Queue tab's row; "roster" is a
@@ -817,20 +824,20 @@ export function PlayerRow({
               <PlayerTags player={player} showState={table} />
             </div>
           </div>
-          {table && ids && <span className="truncate text-meta text-muted-foreground max-md:hidden">{player.kick_username}</span>}
+          {table && ids && <span className={cn("truncate text-meta text-muted-foreground", MID)}>{player.kick_username}</span>}
           {/* Always a cell, so rows with and without a rank keep the next columns in place. */}
           {(ranks || !table) && (
-            <div className={table ? "max-md:hidden" : "max-sm:hidden"}>
+            <div className={table ? MID : "max-sm:hidden"}>
               {pending ? <Skeleton className="h-4 w-20" /> : <RankText player={seen} />}
             </div>
           )}
           {table && ranks && (
-            <div className="max-lg:hidden">
+            <div className={WIDE}>
               {pending ? <Skeleton className="h-4 w-9" /> : <WinRate player={seen} />}
             </div>
           )}
           {table && (
-            <span className="max-lg:hidden">
+            <span className={WIDE}>
               <Joined player={player} />
             </span>
           )}
@@ -861,7 +868,7 @@ export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> })
           type="button"
           onClick={() => sort.toggle(key)}
           aria-label={on ? t(sort.dir === "desc" ? "sort.by.desc" : "sort.by.asc", { col: label }) : t("sort.by", { col: label })}
-          className={cn(th, "-mx-1 inline-flex items-center gap-1 rounded-sm px-1 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40", on && "text-foreground")}
+          className={cn(th, "-mx-1 inline-flex items-center gap-1 rounded-sm px-1 whitespace-nowrap outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40", on && "text-foreground")}
         >
           {label}
           {on && <Arrow aria-hidden className="size-3.5" />}
@@ -870,7 +877,7 @@ export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> })
     );
   };
   return (
-    <div className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4 max-md:hidden", tableCols(ids, ranks))}>
+    <div className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4", MID, tableCols(ids, ranks))}>
       {sort.key ? (
         <Tip label={t("sort.reset")}>
           <Button variant="ghost" size="icon-xs" className="-ml-1 text-foreground" aria-label={t("sort.reset")} onClick={sort.reset}>
@@ -883,8 +890,8 @@ export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> })
       {col("name", t("col.player"))}
       {ids && <span className={th}>{t("col.kick")}</span>}
       {ranks && col("rank", t("col.rank"))}
-      {ranks && col("winrate", t("col.winrate"), "max-lg:hidden")}
-      {col("joined", t("col.joined"), "max-lg:hidden")}
+      {ranks && col("winrate", t("col.winrate"), WIDE)}
+      {col("joined", t("col.joined"), WIDE)}
       <span />
     </div>
   );

@@ -237,7 +237,7 @@ export function CardTrigger({ player, seen, keyboard, children }: {
   return (
     <Popover open={open} onOpenChange={(o) => !o && close()}>
       <PopoverAnchor asChild>
-        <span ref={anchor} className="min-w-0" {...pointer}>
+        <span ref={anchor} className="flex min-w-0" {...pointer}>
           {children}
         </span>
       </PopoverAnchor>

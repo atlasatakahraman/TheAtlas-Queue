@@ -115,7 +115,7 @@ export function QueueTab() {
         ) : shown.length === 0 ? (
           <p className="py-10 text-muted-foreground">{t("queue.none_match")}</p>
         ) : (
-          <div data-rows className="flex flex-col gap-1.5">
+          <div data-rows className="@container flex flex-col gap-1.5">
             <TableHeader sort={sort} />
             {shown.map(({ p, n }, i) => (
               <PlayerRow

@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Dashboard } from "@/components/queue/dashboard";
 import { NotMember } from "@/components/queue/not-member";
-import { TAB_COOKIE, TABS, type Tab } from "@/components/queue/tabs";
+import { SETTINGS, TAB_COOKIE, TABS, type Tab } from "@/components/queue/tabs";
 import { auth } from "@/lib/auth";
 import { findKickUser, lookupRank, reconnect, refreshRank } from "@/lib/server/dashboard";
 import { LANG_COOKIE, parseLang, translate } from "@/lib/i18n";
@@ -28,17 +28,22 @@ async function repairSubscriptions(c: Channel) {
 }
 
 // games/[n]/page.tsx re-exports this page: n set is a game's page (Stage 10, DESIGN.md § A game's page).
-type Props = { params: Promise<{ slug: string; n?: string }>; searchParams: Promise<{ tab?: string }> };
+// settings/[[...section]]/page.tsx calls it with settings set ("" for no section): the Settings
+// page (Stage 12, D20).
+type Props = { params: Promise<{ slug: string; n?: string; settings?: string }>; searchParams: Promise<{ tab?: string }> };
 
+// Settings left the tabs for its own page: a cookie from before opens the queue.
 async function tabOf(searchParams: Props["searchParams"]): Promise<Tab> {
   const q = (await searchParams).tab ?? (await cookies()).get(TAB_COOKIE)?.value;
-  return TABS.find((t) => t === q) ?? "queue";
+  return TABS.find((t) => t === q && t !== "settings") ?? "queue";
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const lang = parseLang((await cookies()).get(LANG_COOKIE)?.value) ?? "en";
-  const { n } = await params;
-  const title = n ? translate(lang, "game.tab_title", undefined, { n }) : translate(lang, `tab.${await tabOf(searchParams)}`);
+  const { n, settings } = await params;
+  const title = n
+    ? translate(lang, "game.tab_title", undefined, { n })
+    : translate(lang, settings !== undefined ? "tab.settings" : `tab.${await tabOf(searchParams)}`);
   return { title, robots: { index: false, follow: false } };
 }
 
@@ -60,12 +65,20 @@ async function gameView(db: ReturnType<typeof userDb>, channel: string, n: numbe
 // Server-rendered first paint with its version (spec § Realtime → Client store), read as the
 // signed-in user so RLS decides what exists.
 export default async function ChannelPage({ params, searchParams }: Props) {
-  const { slug, n } = await params;
-  if (!/^[a-z0-9_-]{1,40}$/.test(slug) || (n !== undefined && !/^[1-9][0-9]{0,8}$/.test(n))) notFound();
+  const { slug, n, settings } = await params;
+  if (
+    !/^[a-z0-9_-]{1,40}$/.test(slug) ||
+    (n !== undefined && !/^[1-9][0-9]{0,8}$/.test(n)) ||
+    (settings !== undefined && settings !== "" && !SETTINGS.some((x) => x === settings))
+  )
+    notFound();
+  // ?tab=settings from before D20, and the palette's old links.
+  if ((await searchParams).tab === "settings") redirect(`/c/${slug}/settings`);
+  const path = `/c/${slug}${n ? `/games/${n}` : settings !== undefined ? `/settings${settings && `/${settings}`}` : ""}`;
   const session = await auth();
   const user = kickUser(session);
   const profileId = user && (await ensureProfile(session));
-  if (!user || !profileId) redirect(`/?callbackUrl=${encodeURIComponent(`/c/${slug}${n ? `/games/${n}` : ""}`)}`);
+  if (!user || !profileId) redirect(`/?callbackUrl=${encodeURIComponent(path)}`);
 
   const db = userDb(profileId);
   const { data: channel } = await db.from("channels").select("id").eq("slug", slug).maybeSingle();
@@ -75,9 +88,10 @@ export default async function ChannelPage({ params, searchParams }: Props) {
   if (error || !data) throw new Error(`get_state ${error?.code ?? "empty"}`);
 
   const state = data as QueueState;
+  // Settings is the streamer's: a moderator lands on the queue.
+  if (settings !== undefined && state.role !== "owner") redirect(`/c/${slug}`);
   await repairSubscriptions(state.channel);
-  let tab: Tab = n ? "games" : await tabOf(searchParams);
-  if (tab === "settings" && state.role !== "owner") tab = "queue";
+  const tab: Tab = n ? "games" : settings !== undefined ? "settings" : await tabOf(searchParams);
   return (
     <Dashboard
       initial={state}
@@ -85,6 +99,7 @@ export default async function ChannelPage({ params, searchParams }: Props) {
       account={{ name: user.username, image: user.image ?? null }}
       tab={tab}
       game={n ? await gameView(db, channel.id, Number(n)) : undefined}
+      settings={settings !== undefined}
       actions={{ lookupRank, refreshRank, findKickUser, reconnect }}
     />
   );

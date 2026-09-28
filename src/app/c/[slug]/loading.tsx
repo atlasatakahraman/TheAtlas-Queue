@@ -24,8 +24,6 @@ import {
   ROW_BUTTONS,
   ROW_ROSTER,
   SEARCH,
-  SECTION,
-  SECTION_CARD,
   SHADE,
   TAB,
   TAB_TRACK,
@@ -57,7 +55,8 @@ type Ctx = { t: T; cols: Cols; today: string; picks: number };
 export default async function DashboardLoading() {
   const jar = await cookies();
   const q = jar.get(TAB_COOKIE)?.value;
-  const tab: Tab = TABS.find((t) => t === q) ?? "queue";
+  // Settings has its own page and skeleton (settings/[[...section]]/loading.tsx).
+  const tab = TABS.find((t): t is Exclude<Tab, "settings"> => t === q && t !== "settings") ?? "queue";
   const c = jar.get(COLS_COOKIE)?.value;
   const lang = parseLang(jar.get(LANG_COOKIE)?.value) ?? "en";
   const ctx: Ctx = {
@@ -401,39 +400,10 @@ function GamesBody({ t }: Ctx) {
   );
 }
 
-// Sections: title and hint on the left, the card of fields on the right.
-function SettingsBody({ t }: Ctx) {
-  const sections = [
-    ["settings.queue", 3],
-    ["settings.riot", 2],
-    ["settings.draws", 4],
-  ] as const;
-  return (
-    <div className="flex flex-col">
-      {sections.map(([title, n]) => (
-        <div key={title} className={SECTION}>
-          <div className="flex flex-col gap-1">
-            <Shade className="font-serif text-team">{t(title)}</Shade>
-          </div>
-          <div className={SECTION_CARD}>
-            {Array.from({ length: n }, (_, i) => (
-              <div key={i} className="flex flex-col gap-1.5">
-                <Shade className="text-sm">&nbsp;</Shade>
-                <Skeleton className="h-9 w-full max-md:h-11" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const BODIES: Record<Tab, (ctx: Ctx) => React.ReactNode> = {
+const BODIES: Record<Exclude<Tab, "settings">, (ctx: Ctx) => React.ReactNode> = {
   queue: QueueBody,
   teams: TeamsBody,
   moderation: ModerationBody,
   history: HistoryBody,
   games: GamesBody,
-  settings: SettingsBody,
 };

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useSetLang, useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { ConnectionPill } from "@/components/queue/connection-pill";
@@ -113,47 +113,67 @@ export function TopBar() {
   const channelAt = phone ? 0 : 17 * 40 + shift;
   // A game's crumbs type on one beat after the channel's last letter.
   const crumbAt = channelAt + ([...channel].length + 2) * 40;
+  const crumbs: { text: string; href?: string }[] =
+    ui.game !== null
+      ? [{ text: t("tab.games"), href: `/c/${slug}?tab=games` }, { text: String(ui.game) }]
+      : ui.settings
+        ? [{ text: t("tab.settings") }]
+        : [];
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex min-w-0 items-center gap-3 select-none">
-        {/* The black tile on paper, the white one on ink. */}
-        <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
-        <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
-        {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
-            then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
-        {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
-            steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
-        <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
-          {again ? "TheAtlas" : <Typed text="TheAtlas" />}{" "}
-          <span className="text-brand italic selection:bg-foreground selection:text-background">
-            {again ? "Queue" : <Typed text="Queue" startDelay={9 * 40} />}
-          </span>
-        </span>
-        {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
-            the way back to the selection page. On phones it stands in for the wordmark. */}
-        <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>
-          <Typed text="/" startDelay={15 * 40 + shift} />
-        </span>
-        <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
-          <Typed text={channel} startDelay={channelAt} />
-        </span>
-        {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab. */}
-        {ui.game !== null && (
+        {/* The way back to the selection page (D19): the tile, the wordmark and the channel are one
+            link to it, which never redirects from there (?pick). */}
+        <Tip label={t("select.back")}>
+          <Link href="/?pick" className="flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+            {/* The black tile on paper, the white one on ink. */}
+            <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
+            <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
+            {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
+                then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
+            {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
+                steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
+            <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
+              {again ? "TheAtlas" : <Typed text="TheAtlas" />}{" "}
+              <span className="text-brand italic selection:bg-foreground selection:text-background">
+                {again ? "Queue" : <Typed text="Queue" startDelay={9 * 40} />}
+              </span>
+            </span>
+            {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
+                the way back to the selection page. On phones it stands in for the wordmark. */}
+            <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>
+              <Typed text="/" startDelay={15 * 40 + shift} />
+            </span>
+            <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
+              <Typed text={channel} startDelay={channelAt} />
+            </span>
+          </Link>
+        </Tip>
+        {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab;
+            Settings: … / channel / Settings. */}
+        {crumbs.length > 0 && (
           <span className="flex shrink-0 items-baseline gap-3 cap-center font-serif text-title text-muted-foreground max-xl:text-body">
-            <span aria-hidden>
-              <Typed text="/" startDelay={crumbAt} />
-            </span>
-            <Link href={`/c/${slug}?tab=games`} className="rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40">
-              <Typed text={t("tab.games")} startDelay={crumbAt + 2 * 40} />
-            </Link>
-            <span aria-hidden>
-              <Typed text="/" startDelay={crumbAt + ([...t("tab.games")].length + 3) * 40} />
-            </span>
-            <span className="text-foreground tabular-nums">
-              <Typed text={String(ui.game)} startDelay={crumbAt + ([...t("tab.games")].length + 5) * 40} />
-            </span>
+            {crumbs.map((c, i) => {
+              const at = crumbAt + crumbs.slice(0, i).reduce((n, x) => n + [...x.text].length + 3, 0) * 40;
+              return (
+                <Fragment key={c.text}>
+                  <span aria-hidden>
+                    <Typed text="/" startDelay={at} />
+                  </span>
+                  {c.href ? (
+                    <Link href={c.href} className="rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40">
+                      <Typed text={c.text} startDelay={at + 2 * 40} />
+                    </Link>
+                  ) : (
+                    <span className="text-foreground tabular-nums">
+                      <Typed text={c.text} startDelay={at + 2 * 40} />
+                    </span>
+                  )}
+                </Fragment>
+              );
+            })}
           </span>
         )}
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}

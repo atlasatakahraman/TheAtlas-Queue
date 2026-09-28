@@ -106,13 +106,21 @@ export const GP_ROW = "grid min-h-[3.875rem] grid-cols-[1.25rem_minmax(0,1fr)_au
 export const HOME = "mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-8 max-md:px-4";
 export const HOME_MAIN = "flex flex-1 flex-col justify-center gap-8 py-16";
 export const HOME_FOOTER = "flex items-center justify-between gap-4 border-t border-border py-4 text-meta text-muted-foreground";
-export const WELCOME = "mx-auto flex w-full max-w-2xl flex-col gap-6 px-8 py-12 max-md:px-4 max-md:py-8";
+// The selection page (/ signed in, D19): wider than home, for full-width channel rows on the
+// queue table's rules (bg-row, 6px apart).
+export const SELECT = "mx-auto flex min-h-dvh w-full max-w-4xl flex-col px-8 max-md:px-4";
+export const SELECT_ROW = "flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-row-edge bg-row px-4 py-3";
+export const WELCOME ="mx-auto flex w-full max-w-2xl flex-col gap-6 px-8 py-12 max-md:px-4 max-md:py-8";
 export const STEP = "flex flex-col gap-4 rounded-xl bg-card p-6 max-md:p-4";
 export const STEP_HEAD = "flex items-center gap-3 font-serif text-team";
 
-// Settings: the section's title and hint beside its card of fields.
-export const SECTION =
-  "grid grid-cols-[16rem_minmax(0,1fr)] gap-6 border-t border-border py-8 first:border-t-0 first:pt-0 max-md:grid-cols-1 max-md:gap-4";
+// The Settings page (D20): a sticky section list (14rem) beside one section (max 44rem) from
+// 1024px; on phones the list is the page and a section its own screen. A section is its title
+// and hint over its card of fields.
+export const SETTINGS_GRID = "grid items-start gap-8 lg:grid-cols-[14rem_minmax(0,44rem)]";
+export const SETTINGS_LIST = "flex flex-col gap-1 lg:sticky lg:top-24";
+export const SETTINGS_ITEM = "flex h-11 items-center gap-3 rounded-lg px-3 text-body";
+export const SECTION = "flex min-w-0 flex-col gap-4";
 export const SECTION_CARD = "flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4";
 
 // A real control drawn as its own skeleton: the same component and text, so the same size, but

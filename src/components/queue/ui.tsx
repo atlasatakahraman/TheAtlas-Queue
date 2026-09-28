@@ -33,6 +33,8 @@ export type Ui = {
   entering: boolean;
   // The game whose page this is, or null on the dashboard.
   game: number | null;
+  // The Settings page (D20), in place of the tabs.
+  settings: boolean;
 };
 
 export const UiContext = createContext<Ui | null>(null);

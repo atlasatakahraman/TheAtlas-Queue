@@ -1,6 +1,7 @@
 "use client";
 import { Ban, Radio, ShieldCheck, Trophy, TriangleAlert, Gavel } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { rememberPlace, rememberWatched } from "@/components/queue/tabs";
 import { I18nProvider, useSetLang, useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Typed } from "@/components/prefs";
@@ -22,6 +23,11 @@ const SOURCE = "https://github.com/atlasatakahraman/TheAtlas-Queue";
 // (Teams, Queue, Games, Management); the reveal plays live; the entrance plays on load.
 export function WatchView({ slug, initial }: { slug: string; initial: Live }) {
   const snap = useWatch(slug, initial);
+  // The selection page's Continue and its recent channels (D19).
+  useEffect(() => {
+    rememberPlace(`/watch/${slug}`);
+    rememberWatched(slug);
+  }, [slug]);
   if (snap.disabled) return <WatchOff name={snap.channel.name} />;
   return (
     <I18nProvider labels={snap.labels ?? undefined}>

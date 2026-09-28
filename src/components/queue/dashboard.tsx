@@ -14,10 +14,10 @@ import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dia
 import { QueueTab } from "@/components/queue/queue-tab";
 import { RevealDriver } from "@/components/queue/reveal";
 import { SanctionDialog } from "@/components/queue/sanction-dialog";
-import { SettingsTab } from "@/components/queue/settings-tab";
+import { SettingsPage } from "@/components/queue/settings-page";
 import { QueueProvider, useAct, useQueue, useStore } from "@/components/queue/store";
 import { TeamsTab } from "@/components/queue/teams-tab";
-import { LAST_CHANNEL_COOKIE, TAB_COOKIE, type Tab } from "@/components/queue/tabs";
+import { rememberPlace, TAB_COOKIE, type Tab } from "@/components/queue/tabs";
 import { GamePage } from "@/components/queue/game-page";
 import { GamesTab } from "@/components/queue/games-tab";
 import { HistoryTab } from "@/components/queue/history-tab";
@@ -33,7 +33,7 @@ import { BAR, BAR_IN, COLS_COOKIE, MAIN, TAB, TAB_TRACK } from "@/components/que
 
 type Account = { name: string; image: string | null };
 
-export function Dashboard({ initial, me, account, tab, actions, game }: {
+export function Dashboard({ initial, me, account, tab, actions, game, settings = false }: {
   initial: QueueState;
   me: number;
   account: Account;
@@ -41,11 +41,13 @@ export function Dashboard({ initial, me, account, tab, actions, game }: {
   actions: DashboardActions;
   // A game's page (/c/<channel>/games/<n>): the page in place of the tabs.
   game?: GameView;
+  // The Settings page (/c/<channel>/settings/<section>): the page in place of the tabs.
+  settings?: boolean;
 }) {
   return (
     <QueueProvider initial={initial} me={me} actions={actions}>
       <ChannelLabels>
-        <Shell initialTab={tab} account={account} game={game} />
+        <Shell initialTab={tab} account={account} game={game} settings={settings} />
       </ChannelLabels>
     </QueueProvider>
   );
@@ -60,9 +62,8 @@ function ChannelLabels({ children }: { children: React.ReactNode }) {
 const ICONS = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, history: HistoryIcon, games: Trophy, settings: Settings2 } as const;
 const ORDER: Tab[] = ["queue", "teams", "moderation", "history", "games", "settings"];
 
-function Shell({ initialTab, account, game }: { initialTab: Tab; account: Account; game?: GameView }) {
+function Shell({ initialTab, account, game, settings }: { initialTab: Tab; account: Account; game?: GameView; settings: boolean }) {
   const { t } = useT();
-  const role = useQueue((v) => v.role);
   const slug = useQueue((v) => v.channel.slug);
   const lost = useQueue((v) => v.lost);
   const count = useQueue((v) => v.players.length);
@@ -105,7 +106,7 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
 
   useEffect(() => {
     const id = setTimeout(() => setEntering(false), 1500);
-    document.cookie = `${LAST_CHANNEL_COOKIE}=${slug}; path=/; max-age=31536000; samesite=lax`;
+    rememberPlace(`/c/${slug}`);
     return () => clearTimeout(id);
   }, [slug]);
 
@@ -116,14 +117,15 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
   }, [cols]);
 
   useEffect(() => {
-    document.title = `${game ? t("game.tab_title", { n: game.n }) : t(`tab.${tab}`)} · TheAtlas Queue`;
-  }, [tab, t, game]);
+    document.title = `${game ? t("game.tab_title", { n: game.n }) : t(settings ? "tab.settings" : `tab.${tab}`)} · TheAtlas Queue`;
+  }, [tab, t, game, settings]);
 
   // ?tab= in the URL, and a cookie so the server renders the same tab next time.
   const router = useRouter();
   const setTab = useCallback((next: Tab) => {
-    // From a game's page a tab is the dashboard again.
-    if (game) {
+    // Settings is its own page (D20); from a game's page or Settings a tab is the dashboard again.
+    if (next === "settings") return router.push(`/c/${slug}/settings`);
+    if (game || settings) {
       document.cookie = `${TAB_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
       return router.push(`/c/${slug}?tab=${next}`);
     }
@@ -134,12 +136,12 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
     const url = new URL(window.location.href);
     url.searchParams.set("tab", next);
     window.history.replaceState(null, "", url);
-  }, [game, router, slug]);
+  }, [game, settings, router, slug]);
 
   if (lost) return <NotMember />;
 
-  // Settings is not a tab (owner, 2026-09-23): the top bar's gear, the account menu, the page menu
-  // and the palette open it.
+  // Settings is not a tab (owner, 2026-09-23) but its own page (D20): the top bar's gear, the
+  // account menu, the page menu and the palette open it.
   const tabs: Tab[] = ["queue", "teams", "moderation", "history", "games"];
   const counts: Record<Tab, number> = { queue: count, teams: playing, moderation: sanctions, history: 0, games, settings: 0 };
   const e2 = enter(entering, 2);
@@ -150,7 +152,7 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
   const active = tabs.indexOf(tab);
 
   return (
-    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, addAt, setAddAt, editing, setEditing, sanction, setSanction, focusSearch, entering, account, game: game?.n ?? null }}>
+    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, addAt, setAddAt, editing, setEditing, sanction, setSanction, focusSearch, entering, account, game: game?.n ?? null, settings }}>
       <SearchRefContext.Provider value={search}>
       <PageMenu>
       {/* The top bar runs the full width on its own ground (August's header); its content keeps
@@ -161,7 +163,7 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
         </div>
       </div>
       <div className={MAIN}>
-        {!game && <Masthead />}
+        {!game && !settings && <Masthead />}
         {offline && (
           <div role="status" className="rounded-lg border border-warning/45 px-4 py-2.5 text-meta text-foreground">
             {t("offline.banner")}
@@ -169,6 +171,8 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
         )}
         {game ? (
           <GamePage view={game} />
+        ) : settings ? (
+          <SettingsPage />
         ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="gap-6">
           {/* Full width, equal tabs (August). A raised card slides under the active tab; each tab
@@ -228,11 +232,6 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
           <TabsContent value="games" {...panel("games")}>
             <GamesTab />
           </TabsContent>
-          {role === "owner" && (
-            <TabsContent value="settings" {...panel("settings")}>
-              <SettingsTab />
-            </TabsContent>
-          )}
         </Tabs>
         )}
         {/* The credit August carried, as a sentence with a heart (owner, 2026-09-28; its hover

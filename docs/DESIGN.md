@@ -646,8 +646,8 @@ wordmark. Under 1280px the whole title steps down to the body size (owner, 2026-
 1090px both were cut to *TheAtlas… / atlasataka…*; hiding the wordmark was refused, it is the
 page's title). The wordmark never truncates, only the channel does, and only on phones, and D19 makes it the way back to the selection page. Right: the [connection pill](#connection-health), the command palette button
 (a search icon, `aria-label`), the EN | TR switch, GitHub, the theme button, a settings gear
-(streamer only; **Settings is not a tab**, this gear, the account menu, `⋯` and the palette open
-it) and the **account menu** (avatar, and the name from 1280px; Settings, **Sign out**). Under
+(streamer only; **Settings is not a tab** but its own page, which this gear, the account menu, `⋯`
+and the palette open) and the **account menu** (avatar, and the name from 1280px; Settings, **Sign out**). Under
 1024px the middle tools fold into `⋯` and the pill takes its short form; the pill and the account
 stay. Checked 430 to 1440px: the wordmark and a 16-letter channel show whole.
 
@@ -846,6 +846,12 @@ Watch a channel
   localStorage, the last 8), so there is no separate recent list; Enter watches.
 - States: no channels yet (*Set up your channel* → `/welcome`), a channel that no longer
   exists (the row says so, *Remove*), loading (the rows as skeletons).
+- Built in Stage 12. Continue is the last dashboard or watch page (the `queue.continue` cookie,
+  written by both); a Continue to a place that is gone says *No longer available* with *Remove*.
+  The way back from a dashboard is the top bar's title (tile, wordmark and channel, one link to
+  `/?pick`, which never redirects). A first sign-in with no channel and no Continue still goes
+  to `/welcome`; *Set up your channel* shows whenever the account owns no channel. Your channels
+  put the streamer's own first; *Watch* shows only where the watch page is on.
 
 #### Settings page `/c/<channel>/settings` (Stage 12, D20, D30)
 
@@ -878,6 +884,10 @@ Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fa
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).
+- Built in Stage 12 with eight sections: Overlays arrive with Stage 13 and Your data with
+  Stage 16 (no empty sections), and the `?` help links with Stage 15's help pages. Moving
+  between sections is a history entry, not a reload. `?tab=settings` redirects here; a
+  moderator is sent back to the queue.
 
 #### Overlays in Settings (Stage 13, D29)
 

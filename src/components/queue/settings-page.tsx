@@ -1,5 +1,23 @@
 "use client";
-import { Ban, MessageSquare, RotateCcw, UserPlus, Video } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  Eye,
+  Languages,
+  type LucideIcon,
+  MessageSquare,
+  RotateCcw,
+  Shield,
+  Star,
+  Swords,
+  Terminal,
+  Trophy,
+  UserPlus,
+  Users,
+  Video,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/i18n";
 import { BadgePicker } from "@/components/queue/badge-picker";
@@ -19,7 +37,8 @@ import { tr } from "@/lib/i18n/tr";
 import { isError, type RpcError } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
 import { AFTER_GAME, type AfterGame, DRAW_REVEALS, type Settings, type WatchSection } from "@/types/queue";
-import { SECTION, SECTION_CARD } from "@/components/queue/geometry";
+import { SECTION, SECTION_CARD, SETTINGS_GRID, SETTINGS_ITEM, SETTINGS_LIST } from "@/components/queue/geometry";
+import { SETTINGS, SETTINGS_TITLES, type SettingsSection } from "@/components/queue/tabs";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 const SECTIONS: WatchSection[] = ["teams", "queue", "games", "moderation", "riot_ids"];
@@ -77,23 +96,22 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
   return { draft, set, put, dirty: changed.length > 0, save, state, errors };
 }
 
-function Section({ title, hint, children, step, onEnter }: {
+function Section({ title, hint, children, onEnter }: {
   title: string;
   hint?: string;
   children: React.ReactNode;
-  step: number;
   // Enter in one of the section's text fields saves it (owner, 2026-09-27; never written as a hint).
   onEnter?: () => void;
 }) {
   const ui = useUi();
-  const e = enter(ui.entering, step);
+  const e = enter(ui.entering, 3);
   return (
     <section
       style={e.style}
       className={cn(SECTION, e.className)}
     >
       <div className="flex flex-col gap-1">
-        <h3 className="font-serif text-team">{title}</h3>
+        <h2 className="font-serif text-team">{title}</h2>
         {/* Only where the section has a rule its controls do not show (D21: subtitles went). */}
         {hint && <p className="text-meta text-muted-foreground">{hint}</p>}
       </div>
@@ -163,11 +181,11 @@ function SaveRow({ s, manual = true }: { s: { dirty: boolean; save: () => Promis
 const inputCls = "h-9 max-md:h-11";
 const triggerCls = "h-9! w-full max-md:h-11!";
 
-function QueueSection() {
+function CommandsSection() {
   const { t } = useT();
-  const s = useSection([...COMMANDS, "team_size"] as const);
+  const s = useSection(COMMANDS);
   return (
-    <Section title={t("settings.queue")} step={3} onEnter={() => void s.save()}>
+    <Section title={t("settings.commands")} onEnter={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         {COMMANDS.map((k) => (
           <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]}>
@@ -181,20 +199,6 @@ function QueueSection() {
             />
           </Field>
         ))}
-        <Field label={t("settings.team_size")} error={s.errors.team_size}>
-          <Select value={String(s.draft.team_size)} onValueChange={(v) => void s.put("team_size", Number(v))}>
-            <SelectTrigger className={triggerCls}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
       </div>
       {s.errors.commands && <p className="text-meta text-destructive">{t("settings.commands.clash")}</p>}
       <SaveRow s={s} />
@@ -215,7 +219,7 @@ function RiotSection() {
     await s.put("require_riot_id", on);
   }
   return (
-    <Section title={t("settings.riot")} step={4}>
+    <Section title={t("settings.riot")}>
       {/* Riot IDs first, ranks under them: a lookup needs a Riot ID (owner, 2026-09-28). Look up
           ranks keeps its own value while Riot IDs are off, and shows off and disabled. */}
       <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => void requireRiot(v)} />
@@ -250,21 +254,44 @@ function RiotSection() {
   );
 }
 
-function DrawsSection() {
-  const { t } = useT();
-  const s = useSection(["draw_reveal", "after_game", "games_retention_days", "clear_on_offline", "perk_enabled", "perk_uses", "perk_window_days", "perk_badges"] as const);
-  const num = (k: "perk_uses" | "perk_window_days" | "games_retention_days") => (
+// A whole number typed into a section's draft (Save keeps it).
+function NumberInput({ id, value, invalid, onChange }: { id: string; value: number; invalid: boolean; onChange: (v: number) => void }) {
+  return (
     <Input
-      id={k}
+      id={id}
       inputMode="numeric"
       className={cn(inputCls, "tabular-nums")}
-      value={String(s.draft[k])}
-      aria-invalid={!!s.errors[k]}
-      onChange={(e) => s.set(k, Number(e.target.value.replace(/\D/g, "")) || 0)}
+      value={String(value)}
+      aria-invalid={invalid}
+      onChange={(e) => onChange(Number(e.target.value.replace(/\D/g, "")) || 0)}
     />
   );
+}
+
+function TeamsSection() {
+  const { t } = useT();
+  const act = useAct();
+  const canWrite = useCanWrite();
+  const fairPlay = useQueue((v) => v.settings.fair_play);
+  const s = useSection(["team_size", "draw_reveal", "clear_on_offline"] as const);
   return (
-    <Section title={t("settings.draws")} step={5} onEnter={() => void s.save()}>
+    <Section title={t("settings.teams")}>
+      <Field label={t("settings.team_size")} error={s.errors.team_size}>
+        <Select value={String(s.draft.team_size)} onValueChange={(v) => void s.put("team_size", Number(v))}>
+          <SelectTrigger className={cn(triggerCls, "max-w-60")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <SelectItem key={n} value={String(n)}>
+                {n}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      {/* The Teams tab's switch, the same write (set_fair_play keeps no inverse, so no toast). */}
+      <SwitchField id="fair_play" label={t("teams.fair_play")} checked={fairPlay} disabled={!canWrite} onChange={(on) => void act("set_fair_play", { p_on: on })} />
       <Field label={t("settings.draw_reveal")} hint={t("settings.draw_reveal.hint")}>
         <Select value={s.draft.draw_reveal} onValueChange={(v) => void s.put("draw_reveal", v as Settings["draw_reveal"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
@@ -279,7 +306,23 @@ function DrawsSection() {
           </SelectContent>
         </Select>
       </Field>
-      {/* Games (D27) live here until Stage 12 gives Settings its Games section. */}
+      <SwitchField
+        id="clear_on_offline"
+        label={t("settings.clear_on_offline")}
+        hint={t("settings.clear_on_offline.hint")}
+        checked={s.draft.clear_on_offline}
+        onChange={(v) => void s.put("clear_on_offline", v)}
+      />
+      <SaveRow s={s} manual={false} />
+    </Section>
+  );
+}
+
+function GamesSection() {
+  const { t } = useT();
+  const s = useSection(["after_game", "games_retention_days"] as const);
+  return (
+    <Section title={t("settings.games")} onEnter={() => void s.save()}>
       <Field label={t("settings.after_game")} hint={t("settings.after_game.hint")}>
         <Select value={s.draft.after_game} onValueChange={(v) => void s.put("after_game", v as AfterGame)}>
           <SelectTrigger className={cn(triggerCls, "max-w-80")}>
@@ -295,24 +338,27 @@ function DrawsSection() {
         </Select>
       </Field>
       <Field id="games_retention_days" label={t("settings.games_retention_days")} hint={t("settings.games_retention_days.hint")} error={s.errors.games_retention_days}>
-        {num("games_retention_days")}
+        <div className="max-w-60"><NumberInput id="games_retention_days" value={s.draft.games_retention_days} invalid={!!s.errors.games_retention_days} onChange={(v) => s.set("games_retention_days", v)} /></div>
       </Field>
-      <SwitchField
-        id="clear_on_offline"
-        label={t("settings.clear_on_offline")}
-        hint={t("settings.clear_on_offline.hint")}
-        checked={s.draft.clear_on_offline}
-        onChange={(v) => void s.put("clear_on_offline", v)}
-      />
+      <SaveRow s={s} />
+    </Section>
+  );
+}
+
+function PerksSection() {
+  const { t } = useT();
+  const s = useSection(["perk_enabled", "perk_uses", "perk_window_days", "perk_badges"] as const);
+  return (
+    <Section title={t("settings.perks")} onEnter={() => void s.save()}>
       <SwitchField id="perk_enabled" label={t("settings.perk_enabled")} hint={t("settings.perk_enabled.hint")} checked={s.draft.perk_enabled} onChange={(v) => void s.put("perk_enabled", v)} />
       {s.draft.perk_enabled && (
         <>
           <div className="grid grid-cols-2 gap-4">
             <Field id="perk_uses" label={t("settings.perk_uses")} error={s.errors.perk_uses}>
-              {num("perk_uses")}
+              <NumberInput id="perk_uses" value={s.draft.perk_uses} invalid={!!s.errors.perk_uses} onChange={(v) => s.set("perk_uses", v)} />
             </Field>
             <Field id="perk_window_days" label={t("settings.perk_window_days")} error={s.errors.perk_window_days}>
-              {num("perk_window_days")}
+              <NumberInput id="perk_window_days" value={s.draft.perk_window_days} invalid={!!s.errors.perk_window_days} onChange={(v) => s.set("perk_window_days", v)} />
             </Field>
           </div>
           <BadgePicker
@@ -357,7 +403,7 @@ function ModeratorsSection() {
 
   const sorted = [...members].sort((a, b) => (a.role === "owner" ? -1 : b.role === "owner" ? 1 : a.created_at.localeCompare(b.created_at)));
   return (
-    <Section title={t("settings.mods")} hint={t("settings.mods.hint")} step={6}>
+    <Section title={t("settings.mods")} hint={t("settings.mods.hint")}>
       <div className="flex flex-col gap-1.5">
         {sorted.map((m) => (
           <div
@@ -432,7 +478,7 @@ function WatchSectionSettings() {
   const toggle = (x: WatchSection, on: boolean) =>
     void s.put("watch_sections", on ? [...s.draft.watch_sections, x] : s.draft.watch_sections.filter((y) => y !== x));
   return (
-    <Section title={t("settings.watch")} step={7}>
+    <Section title={t("settings.watch")}>
       <SwitchField id="watch_enabled" label={t("settings.watch_enabled")} hint={t("settings.watch_enabled.hint")} checked={s.draft.watch_enabled} onChange={(v) => void s.put("watch_enabled", v)} />
       {SECTIONS.filter((x) => riot || x !== "riot_ids").map((x) => (
         <SwitchField
@@ -473,7 +519,7 @@ function LabelsSection() {
     s.set("labels", { ...s.draft.labels, [lang]: next });
   };
   return (
-    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} step={8} onEnter={() => void s.save()}>
+    <Section title={t("settings.labels")} hint={t("settings.labels.hint", { lang: t(`lang.name.${lang}`) })} onEnter={() => void s.save()}>
       <Field label={t("settings.stream_locale")} hint={t("settings.stream_locale.hint")}>
         <Select value={s.draft.stream_locale} onValueChange={(v) => void s.put("stream_locale", v as Settings["stream_locale"])}>
           <SelectTrigger className={cn(triggerCls, "max-w-60")}>
@@ -520,21 +566,91 @@ function LabelsSection() {
   );
 }
 
-export function SettingsTab() {
+
+// Each section's icon in its own colour (owner, 2026-09-28).
+const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; body: () => React.ReactNode }> = {
+  commands: { icon: Terminal, tone: "text-brand", body: CommandsSection },
+  riot: { icon: Swords, tone: "text-team-2", body: RiotSection },
+  teams: { icon: Users, tone: "text-team-1", body: TeamsSection },
+  games: { icon: Trophy, tone: "text-brand", body: GamesSection },
+  perks: { icon: Star, tone: "text-brand", body: PerksSection },
+  watch: { icon: Eye, tone: "text-badge-founder", body: WatchSectionSettings },
+  moderators: { icon: Shield, tone: "text-success", body: ModeratorsSection },
+  labels: { icon: Languages, tone: "text-badge-vip", body: LabelsSection },
+};
+
+// The Settings page (D20, D30; DESIGN.md § Settings page): the section list beside one section,
+// the section in the URL. Moving between sections is a history entry, not a server round trip
+// (pushState keeps usePathname in step). On phones the list is the page and a section its own
+// screen; with no section in the URL a wide screen opens the first.
+export function SettingsPage() {
   const { t } = useT();
   const ui = useUi();
-  const e = enter(ui.entering, 2);
+  const slug = useQueue((v) => v.channel.slug);
+  const at = usePathname().split("/")[4];
+  const open = SETTINGS.find((s) => s === at) ?? null;
+  const shown = open ?? "commands";
+  const base = `/c/${slug}/settings`;
+  const go = (e: React.MouseEvent, s: SettingsSection) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    if (s !== open) window.history.pushState(null, "", `${base}/${s}`);
+  };
+  const e2 = enter(ui.entering, 2);
+  const Body = SECTION_META[shown].body;
   return (
-    <div className="flex flex-col">
-      <h2 style={e.style} className={cn("mb-6 font-serif text-title", e.className)}>
-        {t("tab.settings")}
-      </h2>
-      <QueueSection />
-      <RiotSection />
-      <DrawsSection />
-      <ModeratorsSection />
-      <WatchSectionSettings />
-      <LabelsSection />
+    <div className="flex flex-col gap-6">
+      <h1 className="sr-only">{t("tab.settings")}</h1>
+      <Button variant="ghost" size="lg" className={cn("-ml-3 w-fit max-md:h-11", open && "max-lg:hidden")} asChild>
+        <Link href={`/c/${slug}?tab=queue`}>
+          <ArrowLeft aria-hidden />
+          {t("tab.queue")}
+        </Link>
+      </Button>
+      {open && (
+        <Button variant="ghost" size="lg" className="-ml-3 w-fit max-md:h-11 lg:hidden" asChild>
+          <Link href={base}>
+            <ArrowLeft aria-hidden />
+            {t("tab.settings")}
+          </Link>
+        </Button>
+      )}
+      <div className={SETTINGS_GRID}>
+        <nav aria-label={t("settings.nav")} style={e2.style} className={cn(SETTINGS_LIST, e2.className, open && "max-lg:hidden")}>
+          {SETTINGS.map((s) => {
+            const { icon: Icon, tone } = SECTION_META[s];
+            return (
+              <a
+                key={s}
+                href={`${base}/${s}`}
+                onClick={(e) => go(e, s)}
+                aria-current={s === shown ? "page" : undefined}
+                className={cn(
+                  SETTINGS_ITEM,
+                  "group/sec text-muted-foreground outline-none select-none hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
+                  // On phones nothing is open while the list is the page.
+                  s === shown && (open ? "text-foreground" : "lg:text-foreground"),
+                )}
+              >
+                {/* The tabs' motion: a tilt and a lift on hover; the tabs' gold line under the
+                    active label, growing from its centre. */}
+                <Icon aria-hidden className={cn("size-4.5 shrink-0 transition-[rotate,scale] duration-200 ease-out group-hover/sec:-rotate-6 group-hover/sec:scale-115 motion-reduce:transition-none", tone)} />
+                <span
+                  className={cn(
+                    "relative after:absolute after:inset-x-0 after:-bottom-1.5 after:h-0.5 after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:after:transition-none",
+                    s === shown && (open ? "after:scale-x-100" : "lg:after:scale-x-100"),
+                  )}
+                >
+                  {t(SETTINGS_TITLES[s])}
+                </span>
+              </a>
+            );
+          })}
+        </nav>
+        <div className={cn(!open && "max-lg:hidden")}>
+          <Body key={shown} />
+        </div>
+      </div>
     </div>
   );
 }

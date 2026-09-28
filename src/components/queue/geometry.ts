@@ -70,7 +70,7 @@ export const PICKS_COOKIE = "queue.picks";
 
 // Teams: the cards side by side from 1024px; a card's header line; a slot; the actions bar.
 export const TEAMS_GRID = "grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1";
-export const CARD_HEAD = "flex min-h-9 items-center justify-between gap-3 text-meta text-muted-foreground max-md:min-h-11";
+export const CARD_HEAD = "flex min-h-9 flex-wrap items-center justify-between gap-x-3 gap-y-2 text-meta text-muted-foreground max-md:min-h-11";
 export const SLOT = "min-h-[3.875rem]";
 export const TEAMS_BAR = "flex flex-wrap items-center justify-between gap-4 rounded-xl bg-card p-4 max-md:flex-col max-md:items-stretch";
 export const TEAMS_BAR_BUTTONS = "flex flex-wrap items-center gap-2 max-md:grid max-md:grid-cols-2";

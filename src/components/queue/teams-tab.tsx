@@ -346,6 +346,9 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
               {avg}
             </span>
           )}
+          {/* Victory beside Add, left of it (owner, 2026-09-28). */}
+          <span className="flex shrink-0 items-center gap-2">
+          {victory}
           <Tip
             label={
               !canWrite
@@ -369,12 +372,12 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
               {t("teams.add", { team: t(`team.${team}`) })}
             </Button>
           </Tip>
+          </span>
         </header>
         <div data-rows className="@container flex flex-col gap-1.5">
           <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
           <EmptySlots from={count} size={size} onAdd={canAdd ? openAt : undefined} />
         </div>
-        {victory}
       </div>
     </section>
   );
@@ -572,12 +575,12 @@ export function TeamsTab() {
           <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
           <span className="truncate text-right text-team-2 selection:bg-team-2 selection:text-background">{t("team.2")}</span>
         </h2>
-        {/* The score once a game is recorded, with no "this stream" wording (owner, DESIGN.md §
-            Team card); counts are Newsreader in the team colours. */}
+        {/* The score once a game is recorded: the numbers alone, in the team colours, no names and
+            no "this stream" (owner, 2026-09-28). */}
         {score.t1 + score.t2 > 0 && (
           <p className="text-center text-meta text-muted-foreground">
-            {t("team.1")} <span className="font-serif text-body font-medium text-team-1 tabular-nums">{score.t1}</span> –{" "}
-            <span className="font-serif text-body font-medium text-team-2 tabular-nums">{score.t2}</span> {t("team.2")}
+            <span className="font-serif text-body font-medium text-team-1 tabular-nums">{score.t1}</span> –{" "}
+            <span className="font-serif text-body font-medium text-team-2 tabular-nums">{score.t2}</span>
           </p>
         )}
       </div>
@@ -599,13 +602,13 @@ export function TeamsTab() {
               avg={!landing && riot && <Avg players={roster} />}
               landing={!!landing}
               victory={
-                // Under the roster, one press marks the winner; the after-game action is Settings'
-                // default and Undo in the toast takes it back (D27, owner 2026-09-27: no menu).
+                // In the card's header, one press marks the winner; the after-game action is
+                // Settings' default and Undo in the toast takes it back (D27, owner 2026-09-27: no menu).
                 <Tip label={victoryWhy}>
                   <Button
                     variant="outline"
                     size="lg"
-                    className={cn("self-start max-md:h-11", i === 0 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
+                    className={cn("max-md:h-11", i === 0 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
                     disabled={!!victoryWhy}
                     onClick={() => victory((i + 1) as 1 | 2)}
                   >

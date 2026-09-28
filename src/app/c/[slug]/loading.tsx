@@ -222,7 +222,7 @@ function QueueBody({ t, cols }: Ctx) {
   );
 }
 
-// The match headline, two team cards of five, Victory under each, the actions bar.
+// The match headline, two team cards of five (Victory and Add in each header), the actions bar.
 function TeamsBody({ t, cols }: Ctx) {
   const card = (team: 1 | 2) => (
     <section className="flex min-w-0 flex-col overflow-hidden rounded-xl bg-card">
@@ -230,20 +230,22 @@ function TeamsBody({ t, cols }: Ctx) {
       <div className="flex flex-col gap-3 p-4">
         <header className={CARD_HEAD}>
           <Shade>{t("teams.count", { n: 0, size: 5 })}</Shade>
-          <Button variant="ghost" size="lg" tabIndex={-1} className={cn("max-md:h-11", SHADE)}>
-            <UserPlus />
-            {t("teams.add", { team: t(`team.${team}`) })}
-          </Button>
+          <span className="flex shrink-0 items-center gap-2">
+            <Button variant="outline" size="lg" tabIndex={-1} className={cn("max-md:h-11", SHADE)}>
+              <Trophy />
+              {t("action.victory")}
+            </Button>
+            <Button variant="ghost" size="lg" tabIndex={-1} className={cn("max-md:h-11", SHADE)}>
+              <UserPlus />
+              {t("teams.add", { team: t(`team.${team}`) })}
+            </Button>
+          </span>
         </header>
         <div className="@container flex flex-col gap-1.5">
           {Array.from({ length: 5 }, (_, i) => (
             <Row key={i} cols={cols} roster />
           ))}
         </div>
-        <Button variant="outline" size="lg" tabIndex={-1} className={cn("self-start max-md:h-11", SHADE)}>
-          <Trophy />
-          {t("action.victory")}
-        </Button>
       </div>
     </section>
   );

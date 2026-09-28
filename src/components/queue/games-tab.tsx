@@ -53,8 +53,9 @@ export function GamesTab() {
         <h2 className="font-serif text-title">
           {score.t1 + score.t2 > 0 ? (
             <>
-              <span className="text-team-1">{t("team.1")}</span> <span className="tabular-nums">{score.t1} – {score.t2}</span>{" "}
-              <span className="text-team-2">{t("team.2")}</span>
+              {/* The numbers alone, in the team colours (owner, 2026-09-28). */}
+              <span className="text-team-1 tabular-nums">{score.t1}</span> <span className="text-muted-foreground">–</span>{" "}
+              <span className="text-team-2 tabular-nums">{score.t2}</span>
             </>
           ) : (
             t("tab.games")

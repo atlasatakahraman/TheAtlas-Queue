@@ -766,10 +766,13 @@ rows on the grid), offline (actions disabled with the reason).
 
 The fifth tab, after History as the tab table orders them (`Trophy`, count of games this stream; key
 `5`). Two views on the filter-pill control:
-**Games** and **Stats**, plus a search by name.
+**Games** and **Stats**, a second control for **This stream** or **All time** (owner, 2026-09-28:
+each its own history and stats; this stream's stats are counted from its games' players, all
+time's are `player_records`), plus a search by name. Later (parked, D39): stats read from the
+League client over a background IPC channel.
 
 ```
-Kurtlar 3 – 2 Kartallar                                             [Games | Stats]  [🔍 name]
+3 – 2                                                               [Games | Stats]  [🔍 name]
 ┃ #5  🏆 Kurtlar         5 v 5       22:12   32 min                               [⋯]
 ┃ #4  🏆 Kartallar       5 v 5       21:36   28 min                               [⋯]
 ```
@@ -1266,12 +1269,11 @@ sits between them (D25).
 
 ```
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  5px team bar
-■ 4 of 5 · avg Gold II                            [+ Add to Kurtlar]
+■ 4 of 5 · avg Gold II               [🏆 Victory] [+ Add to Kurtlar]
 ┌ 1 (◉) brkdmr #TR1  ★ Protected       ▍ Plat IV   [⇄] [↩] [×] [⋯] ┐
 ┆   a 3px team-coloured line between two rows while one is dragged here (D37)
 └ 2 (◉) kaanxd #0001                   ▍ Gold I    [⇄] [↩] [×] [⋯] ┘
 ┌╌ Empty slot ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
-[🏆 Victory]                                                     Stage 10 (D27)
 ```
 
 - **Header line**, muted: **{n} of {size}** (the **{n}** in Newsreader as the tab counts, and gold,
@@ -1291,11 +1293,13 @@ sits between them (D25).
   player is already there or the team is full, and so are the hover buttons (7.47).
 - **Right-click on the card** (not a player): the team's menu: *Team N · n of size*, Add from
   waiting ▸, Add a new player…, Shuffle current teams, Clear teams.
-- **Victory (Stage 10, D27):** under the roster, a plain outline button in the team colour,
+- **Victory (Stage 10, D27):** in the card's header, left of *Add to {team}* (owner,
+  2026-09-28; it first sat under the roster), a plain outline button in the team colour,
   `Trophy` and *Victory*: one press marks the team as winner (owner, 2026-09-27: no ▾, no
   menu). The after-game action is Settings' default; Undo in the toast takes the result back.
-  Disabled while either team is empty, and the tooltip says so. The score (*Kurtlar 3 – 2
-  Kartallar*) sits under the match headline with no *this stream* wording (owner).
+  Disabled while either team is empty, and the tooltip says so. The score (*3 – 2*, the numbers alone in
+  the team colours, no team names; owner, 2026-09-28) sits under the match headline with no *this
+  stream* wording.
 
 ### Tags
 

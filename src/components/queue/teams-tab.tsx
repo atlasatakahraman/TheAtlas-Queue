@@ -335,13 +335,13 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
             </span>
           ) : (
             <span className="flex min-w-0 items-center gap-3">
-              {/* The count alone turns gold once the team is full, as the active tab's count
+              {/* The count in Newsreader, as the tab counts, and gold alone once the team is full
                   (owner, 2026-09-28); {n} is left in the label to place it. No colour square: the
                   card's top edge carries the team colour. */}
               <span className="tabular-nums">
                 {t("teams.count", { size })
                   .split("{n}")
-                  .flatMap((part, i) => (i === 0 ? [part] : [<span key={i} className={cn(count >= size && "font-medium text-brand")}>{count}</span>, part]))}
+                  .flatMap((part, i) => (i === 0 ? [part] : [<span key={i} className={cn("font-serif font-medium", count >= size && "text-brand")}>{count}</span>, part]))}
               </span>
               {avg}
             </span>

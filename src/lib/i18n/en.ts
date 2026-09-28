@@ -257,6 +257,7 @@ export const en = {
   "done.move_all": "{n} moved to {team}.",
   "pick.all_to": "All to {team}",
   "pick.removed": "Removed from the queue",
+  "pick.title": "Picked",
   "pick.again": "Pick again",
   "pick.skip": "Skip",
   "act.settle": "Punishments began or ended for {n}",

@@ -250,6 +250,7 @@ export const tr: Record<LabelKey, string> = {
   "done.move_all": "{n} kişi {team} takımına taşındı.",
   "pick.all_to": "Hepsi {team} takımına",
   "pick.removed": "Sıradan çıkarıldı",
+  "pick.title": "Seçilenler",
   "pick.again": "Tekrar çek",
   "pick.skip": "Atla",
   "act.settle": "{n} kişinin cezası başladı veya bitti",

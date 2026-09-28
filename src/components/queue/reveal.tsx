@@ -38,7 +38,7 @@ function PickDialog() {
   const reveal = useQueue((v) => v.reveal);
   const pick = reveal?.kind === "pick" ? reveal : null;
   return (
-    <ResponsiveDialog open={!!pick} onOpenChange={(o) => !o && store.clearReveal()} title={t("action.pick")}>
+    <ResponsiveDialog open={!!pick} onOpenChange={(o) => !o && store.clearReveal()} title={t("pick.title")}>
       {pick && <PickBody key={pick.id} picked={pick.result.picked ?? []} />}
     </ResponsiveDialog>
   );

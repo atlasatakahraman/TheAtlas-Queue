@@ -297,11 +297,13 @@ function RootCommands({ search, run, onPlayer }: { search: string; run: Run; onP
             {shown.map((p) => (
               <CommandItem key={p.id} value={`${p.kick_username} ${p.riot_id ?? ""}`} onSelect={() => onPlayer(p.id)} className="gap-3">
                 <span className={cn("h-7 w-[3px] shrink-0 rounded-[1px]", edge(p))} aria-hidden />
-                <span className="flex min-w-0 flex-col">
+                {/* The name grows, not an ml-auto: the item's hidden check icon takes ml-auto too,
+                    and the two would split the space. */}
+                <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-name">{p.kick_username}</span>
                   {riot && p.riot_id && <span className="truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
                 </span>
-                <span className="ml-auto flex shrink-0 items-center gap-2.5">
+                <span className="flex shrink-0 items-center gap-2.5">
                   <PlayerTags player={p} />
                 </span>
               </CommandItem>
@@ -343,12 +345,12 @@ function RootCommands({ search, run, onPlayer }: { search: string; run: Run; onP
         <CommandItem disabled={prefs.motionLocked} onSelect={() => prefs.setMotion(!prefs.motion)}>
           <Sparkles aria-hidden />
           {t("prefs.motion")}
-          <span className="ml-auto text-meta text-muted-foreground">{t(prefs.motion ? "prefs.on" : "prefs.off")}</span>
+          <CommandShortcut className="tracking-normal">{t(prefs.motion ? "prefs.on" : "prefs.off")}</CommandShortcut>
         </CommandItem>
         <CommandItem onSelect={() => prefs.setToasts(!prefs.toasts)}>
           <Bell aria-hidden />
           {t("prefs.toasts")}
-          <span className="ml-auto text-meta text-muted-foreground">{t(prefs.toasts ? "prefs.on" : "prefs.off")}</span>
+          <CommandShortcut className="tracking-normal">{t(prefs.toasts ? "prefs.on" : "prefs.off")}</CommandShortcut>
         </CommandItem>
         <CommandItem onSelect={run(signOutNow)}>
           <LogOut aria-hidden />

@@ -144,9 +144,10 @@ export function revealDuration(order: Landing[]): number {
 // fixed team boxes), so the cards keep their height while names land and leave.
 const SLOT = "min-h-[3.875rem]";
 
-// Slots keep their icon while they cannot add (connecting, offline, a draw landing), disabled
-// rather than bare, so nothing shifts when adding comes back (owner, 2026-09-27). Everyone on the
-// dashboard is a member who can write once connected.
+// Slots keep their icon and their look while they cannot add (connecting, offline, a draw
+// landing), so nothing shifts when adding comes back (owner, 2026-09-27); dimming them read as
+// broken (owner, 2026-09-28), so only the header's Add shows the wait. Everyone on the dashboard
+// is a member who can write once connected.
 function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?: (at: HTMLElement) => void }) {
   const { t } = useT();
   const cls = cn(
@@ -171,7 +172,7 @@ function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?:
         data-add-target
         disabled={!onAdd}
         onClick={(e) => onAdd?.(e.currentTarget)}
-        className={cn(cls, "outline-none enabled:hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 transition-opacity disabled:opacity-60")}
+        className={cn(cls, "outline-none enabled:hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40")}
       >
         {body}
       </button>
@@ -261,12 +262,14 @@ export function LandingName({ entry, at, children }: { entry: DrawEntry; at: num
   );
 }
 
-function TeamCard({ team, count, size, avg, addable = false, children }: {
+function TeamCard({ team, count, size, avg, landing = false, children }: {
   team: 1 | 2;
   count: number;
   size: number;
   avg?: React.ReactNode;
-  addable?: boolean;
+  // A draw is landing in the rosters: adding waits, its controls disabled rather than gone
+  // (owner, 2026-09-28).
+  landing?: boolean;
   children: React.ReactNode;
 }) {
   const { t } = useT();
@@ -280,7 +283,7 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
     (at: HTMLElement, place?: number) => setAdd((a) => (a?.at === at ? null : { at, place, n: (a?.n ?? 0) + 1 })),
     [],
   );
-  const canAdd = addable && canWrite && count < size;
+  const canAdd = !landing && canWrite && count < size;
   const rowAdd = useMemo(() => ({ open: openAt, full: count >= size }), [openAt, count, size]);
   // Drop target for a player of the other team, or anyone dragged here (August's team boxes).
   const takes = (d: ReturnType<typeof draggedPlayer>) => !!d && !(d.status === "playing" && d.team === team);
@@ -317,19 +320,17 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
             <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
             {avg}
           </span>
-          {addable && (
-            <Button
-              variant="ghost"
-              size="lg"
-              className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
-              disabled={!canAdd}
-              data-add-target
-              onClick={(e) => openAt(e.currentTarget)}
-            >
-              <UserPlus aria-hidden />
-              {t("teams.add", { team: t(`team.${team}`) })}
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="lg"
+            className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
+            disabled={!canAdd}
+            data-add-target
+            onClick={(e) => openAt(e.currentTarget)}
+          >
+            <UserPlus aria-hidden />
+            {t("teams.add", { team: t(`team.${team}`) })}
+          </Button>
         </header>
         <div data-rows className="flex flex-col gap-1.5">
           <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
@@ -338,7 +339,6 @@ function TeamCard({ team, count, size, avg, addable = false, children }: {
       </div>
     </section>
   );
-  if (!addable) return card;
   // Right-click on the card (not on a player, whose row has its own menu): this team's menu.
   return (
     <ContextMenu>
@@ -516,7 +516,7 @@ export function TeamsTab() {
       <div style={e4.style} className={cn("grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1", e4.className)}>
         {landing && <RevealEnd key={revealing!.id} duration={landing.duration} />}
         {rosters.map((roster, i) => (
-          <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && riot && <Avg players={roster} />} addable={!landing}>
+          <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && riot && <Avg players={roster} />} landing={!!landing}>
             {roster.map((p, n) => {
               const at = landing?.at.get(p.id);
               return (

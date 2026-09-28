@@ -1076,7 +1076,9 @@ sits between them (D25).
 - **Roster** as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name
   `#TAG` with its tags, rank, the in-team row buttons, menu. **Always team-size slots**; free
   ones are dashed rows reading *Empty slot*, so the card keeps its height. While a draw lands
-  they keep their icon, disabled, so nothing shifts when adding comes back (7.46).
+  they keep their icon and their full look, so nothing shifts when adding comes back (7.46; not
+  dimmed, owner 2026-09-28). The header's *Add to {team}* and the card's right-click menu stay
+  too, disabled until the names have landed.
 - **Drop on blank space**: a team player dragged onto the page outside the cards leaves the team
   for waiting, with Undo (owner, 2026-09-27).
 - **A row's menu lists both teams** always: *Add to Team N* is disabled, never hidden, when the

@@ -250,8 +250,13 @@ function TeamCard({ team, snap, reveal }: { team: 1 | 2; snap: Live; reveal: Liv
         <span className="tabular-nums">{t("teams.count", { n: count, size: snap.team_size })}</span>
       </div>
       <ol className="flex flex-col gap-2">
+        {/* While a draw lands, its names fill from the top and the rest of the team size stays as
+            empty slots, so the card keeps its height (owner, 2026-09-28). */}
         {landing
-          ? reveal!.result.teams![team - 1].map((e) => <Landing key={e.id} entry={e} at={landing.get(e.id) ?? 0} team={team} />)
+          ? [
+              ...reveal!.result.teams![team - 1].map((e) => <Landing key={e.id} entry={e} at={landing.get(e.id) ?? 0} team={team} />),
+              ...Array.from({ length: Math.max(0, snap.team_size - reveal!.result.teams![team - 1].length) }, (_, i) => <EmptySlot key={`slot-${i}`} />),
+            ]
           : slots.map((p, i) =>
               p ? (
                 <li key={p.id} className={cn(ROW, SLOT, "grid-cols-[1.25rem_minmax(0,1fr)_auto] bg-background", team === 1 ? "border-l-team-1" : "border-l-team-2")}>
@@ -260,13 +265,15 @@ function TeamCard({ team, snap, reveal }: { team: 1 | 2; snap: Live; reveal: Liv
                   <RankText rank={p.rank} />
                 </li>
               ) : (
-                <li key={`slot-${i}`} className={cn(SLOT, "rounded-xl border border-dashed border-row-edge")} aria-hidden />
+                <EmptySlot key={`slot-${i}`} />
               ),
             )}
       </ol>
     </div>
   );
 }
+
+const EmptySlot = () => <li className={cn(SLOT, "rounded-xl border border-dashed border-row-edge")} aria-hidden />;
 
 function Landing({ entry, at, team }: { entry: DrawEntry; at: number; team: 1 | 2 }) {
   const { t } = useT();

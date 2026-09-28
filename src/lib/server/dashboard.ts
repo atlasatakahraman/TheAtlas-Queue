@@ -47,6 +47,26 @@ export async function lookupRank(channelId: string, riotId: string): Promise<boo
   return !error;
 }
 
+// Refresh rank (D22, D31): a player's rank again, on demand. The Riot ID comes from the row,
+// never the browser, and a player's rank is fetched at most once a minute (riot_cache.fetched_at).
+export async function refreshRank(channelId: string, playerId: string): Promise<"ok" | "recent" | "failed"> {
+  if (typeof playerId !== "string" || !UUID.test(playerId) || !(await membership(channelId))) return "failed";
+  const db = adminDb();
+  const { data: p } = await db
+    .from("players")
+    .select("riot_id, puuid")
+    .eq("id", playerId)
+    .eq("channel_id", channelId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!p?.riot_id) return "failed";
+  if (p.puuid) {
+    const { data: c } = await db.from("riot_cache").select("fetched_at").eq("puuid", p.puuid).maybeSingle();
+    if (c && Date.now() - Date.parse(c.fetched_at) < 60_000) return "recent";
+  }
+  return (await lookupRank(channelId, p.riot_id)) ? "ok" : "failed";
+}
+
 // Settings → Moderators: the owner adds a moderator by Kick username before they chat.
 export async function findKickUser(channelId: string, username: string): Promise<FoundKickUser> {
   if (!(await membership(channelId, true))) return { ok: false, error: "auth" };

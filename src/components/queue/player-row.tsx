@@ -13,6 +13,7 @@ import {
   Hourglass,
   type LucideIcon,
   Pencil,
+  RefreshCw,
   ShieldCheck,
   ShieldOff,
   Sparkles,
@@ -26,7 +27,7 @@ import {
 import { createContext, useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
-import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
+import { useAct, useCanWrite, useQueue, useServerActions, useStore } from "@/components/queue/store";
 import { useUi } from "@/components/queue/ui";
 import { REVEAL } from "@/components/queue/teams-tab";
 import { Typed } from "@/components/prefs";
@@ -245,8 +246,10 @@ export function usePlayerMenu(p: Player): Item[][] {
   const { t } = useT();
   const a = usePlayerActions(p);
   const riot = useRiotIds();
+  const ranks = useRanks();
   const ui = useUi();
   const store = useStore();
+  const { refreshRank } = useServerActions();
   const teamAdd = useContext(TeamAddContext);
   const room = useTeamRoom();
   const punished = p.status === "punished";
@@ -271,7 +274,22 @@ export function usePlayerMenu(p: Player): Item[][] {
       ...(riot && p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, onSelect: a.copyRiot }] : []),
       { label: t("menu.copy_name"), icon: Gamepad2, onSelect: a.copyName },
     ],
-    [{ label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true }],
+    [
+      { label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true },
+      // D22: the rank again, on demand; at most once a minute a player (server-checked).
+      {
+        label: t("menu.refresh_rank"),
+        icon: RefreshCw,
+        write: true,
+        disabled: !ranks || !p.riot_id,
+        onSelect: () =>
+          void refreshRank(store.get().channel.id, p.id).then((r) =>
+            r === "ok"
+              ? toast(t("done.refresh_rank", { name: p.kick_username }))
+              : toast.error(t(r === "recent" ? "refresh.recent" : "refresh.failed")),
+          ),
+      },
+    ],
     [
       { label: t("menu.add_above"), icon: ArrowUpToLine, onSelect: addBeside("before"), write: true, disabled: teamAdd?.full },
       { label: t("menu.add_below"), icon: ArrowDownToLine, onSelect: addBeside("after"), write: true, disabled: teamAdd?.full },

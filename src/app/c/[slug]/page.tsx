@@ -6,7 +6,7 @@ import { Dashboard } from "@/components/queue/dashboard";
 import { NotMember } from "@/components/queue/not-member";
 import { TAB_COOKIE, TABS, type Tab } from "@/components/queue/tabs";
 import { auth } from "@/lib/auth";
-import { findKickUser, lookupRank, reconnect } from "@/lib/server/dashboard";
+import { findKickUser, lookupRank, reconnect, refreshRank } from "@/lib/server/dashboard";
 import { LANG_COOKIE, parseLang, translate } from "@/lib/i18n";
 import { adminDb } from "@/lib/server/admin-db";
 import { ensureSubscriptions } from "@/lib/server/kick";
@@ -66,7 +66,7 @@ export default async function ChannelPage({ params, searchParams }: Props) {
       me={user.kickUserId}
       account={{ name: user.username, image: user.image ?? null }}
       tab={tab}
-      actions={{ lookupRank, findKickUser, reconnect }}
+      actions={{ lookupRank, refreshRank, findKickUser, reconnect }}
     />
   );
 }

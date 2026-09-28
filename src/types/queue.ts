@@ -152,6 +152,7 @@ export type QueueState = {
 export type FoundKickUser = { ok: true; id: number; username: string } | { ok: false; error: "auth" | "not_found" | "kick" };
 export type DashboardActions = {
   lookupRank: (channelId: string, riotId: string) => Promise<boolean>;
+  refreshRank: (channelId: string, playerId: string) => Promise<"ok" | "recent" | "failed">;
   findKickUser: (channelId: string, username: string) => Promise<FoundKickUser>;
   reconnect: (channelId: string) => Promise<string | null>;
 };

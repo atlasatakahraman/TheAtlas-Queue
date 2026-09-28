@@ -1096,10 +1096,10 @@ bg-popover p-4 shadow-md`.
 │ [icon 48]  brkdmr#TR1  ⧉            Lv 312    │  Riot ID in mono; click copies, ⧉ turns ✓ for 1.5 s
 │            ★ ◆ ♛                              │  Kick badges: glyph + colour each, tooltip names it
 ├──────────────────────────────────────────────┤
-│ ⛨ Platinum IV · 42 LP                         │  shield in the tier colour (an emblem), text foreground
-│ 128 W · 110 L   ▲ 53.8 %   ▓▓▓▓▓▓░░░░░         │  win rate success ≥ 50 %, a 4px bar under it
-│ This channel: 7 W · 3 L · won 3 in a row      │  Stage 10 (D27)
-│ 96 ♥ respect · joined 21:40 from chat · 2 games│
+│ ⛨ Platinum IV 42 LP                           │  shield in the tier colour (an emblem), text foreground
+│ 128 W 110 L   ▲ 53.8 %   ▓▓▓▓▓▓░░░░░           │  win rate success ≥ 50 %, a 4px bar under it
+│ This channel: 7 W 3 L, won 3 in a row         │  Stage 10 (D27)
+│ 96 ♥ respect   joined 21:40 from chat   2 games│
 ├──────────────────────────────────────────────┤
 │ brkdmr_tv ⧉                   [↻ Refresh rank] │  Kick name copies; Refresh via the server action
 └──────────────────────────────────────────────┘
@@ -1111,13 +1111,15 @@ bg-popover p-4 shadow-md`.
 - **It never gets in the way:** opens only from the name, after **500ms** of stillness,
   instantly between neighbours; sits beside the name, never over the row below or the actions;
   closes at once on any press, right-click, menu, drag, scroll or key, and stays shut while a
-  menu is open. Keyboard focus on the name opens it; touch taps the name (a `Popover`).
+  menu is open. A row resting under keyboard focus for 500ms opens it (the name itself is not a
+  tab stop); touch taps the name. One `Popover`, placed right of the name.
 - **States:** Riot loading → skeleton lines at their final height; no Riot ID and *Require Riot
   ID* off → no card at all; Riot failed → the rank line says *Rank unavailable* beside Refresh.
 - **Secure:** names render as text; the icon URL is built from the numeric icon id; Refresh is
   membership-checked and rate-limited per player.
 
-Today: a text list in a `HoverCard` (350ms). Stage 9 replaces it.
+Built in Stage 9 (`player-card.tsx`). The facts under the rank line are separate items with a
+gap, never joined by a glyph (no dots, owner rule).
 
 ### Row menu
 

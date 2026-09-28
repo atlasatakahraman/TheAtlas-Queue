@@ -56,16 +56,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tip } from "@/components/tip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CardTrigger } from "@/components/queue/player-card";
 import { type SortKey, useQueueSort } from "@/components/queue/sort";
 import { useIsTouch } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
 import type { LabelKey } from "@/lib/i18n";
-import { ago } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Player, Sanction } from "@/types/queue";
 
@@ -258,6 +256,19 @@ export type Item = {
   disabled?: boolean;
 };
 
+// Refresh rank (D22, D31): at most once a minute a player, checked on the server.
+export function useRefreshRank(p: Player) {
+  const { t } = useT();
+  const store = useStore();
+  const { refreshRank } = useServerActions();
+  return () =>
+    void refreshRank(store.get().channel.id, p.id).then((r) =>
+      r === "ok"
+        ? toast(t("done.refresh_rank", { name: p.kick_username }))
+        : toast.error(t(r === "recent" ? "refresh.recent" : "refresh.failed")),
+    );
+}
+
 // The row menu's sections, also the palette's page for one player.
 export function usePlayerMenu(p: Player): Item[][] {
   const { t } = useT();
@@ -266,7 +277,7 @@ export function usePlayerMenu(p: Player): Item[][] {
   const ranks = useRanks();
   const ui = useUi();
   const store = useStore();
-  const { refreshRank } = useServerActions();
+  const refresh = useRefreshRank(p);
   const teamAdd = useContext(TeamAddContext);
   const room = useTeamRoom();
   const punished = p.status === "punished";
@@ -299,12 +310,7 @@ export function usePlayerMenu(p: Player): Item[][] {
         icon: RefreshCw,
         write: true,
         disabled: !ranks || !p.riot_id,
-        onSelect: () =>
-          void refreshRank(store.get().channel.id, p.id).then((r) =>
-            r === "ok"
-              ? toast(t("done.refresh_rank", { name: p.kick_username }))
-              : toast.error(t(r === "recent" ? "refresh.recent" : "refresh.failed")),
-          ),
+        onSelect: refresh,
       },
     ],
     [
@@ -394,7 +400,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
 
 // Riot profile icon, as the August queue showed it. ponytail: Data Dragon is versioned; icons
 // newer than this version fall back to the initial. Bump the version when that shows.
-const PROFILE_ICON = (id: number) => `https://ddragon.leagueoflegends.com/cdn/15.7.1/img/profileicon/${id}.png`;
+export const PROFILE_ICON = (id: number) => `https://ddragon.leagueoflegends.com/cdn/15.7.1/img/profileicon/${id}.png`;
 
 export function PlayerAvatar({ player }: { player: Player }) {
   const name = player.riot_id?.split("#")[0] || player.kick_username;
@@ -449,14 +455,11 @@ function Joined({ player }: { player: Player }) {
 }
 
 // The name: the Riot game name with its #TAG under it (August's queue), the Kick name when
-// there is no Riot ID. Hovering it opens the Riot ID card; a tap opens it where there is no hover.
-function PlayerName({ player, stacked, typeAt }: { player: Player; stacked: boolean; typeAt?: number }) {
-  const { t } = useT();
-  const touch = useIsTouch();
+// there is no Riot ID. It opens the player card (D31); with no Riot ID and Riot IDs off there is
+// no card.
+function PlayerName({ player, seen, stacked, typeAt, keyboard }: { player: Player; seen: Player; stacked: boolean; typeAt?: number; keyboard: boolean }) {
   const required = useRiotIds();
-  const fairPlay = useQueue((v) => v.settings.fair_play);
-  const now = useNow();
-  const [game, tag] = player.riot_id ? player.riot_id.split("#") : [player.kick_username, null];
+  const [game, tag] = seen.riot_id ? seen.riot_id.split("#") : [seen.kick_username, null];
   const name = (
     <span className={cn("flex min-w-0", stacked ? "flex-col" : "items-baseline gap-1")}>
       <span className="truncate text-name">
@@ -472,52 +475,13 @@ function PlayerName({ player, stacked, typeAt }: { player: Player; stacked: bool
       )}
     </span>
   );
-  if (!player.riot_id && !required) return name;
-
-  const card = (
-    <div className="flex flex-col gap-2">
-      {player.riot_id ? (
-        <span className="font-mono text-code select-all">{player.riot_id}</span>
-      ) : (
-        <span className="text-meta text-muted-foreground">{t("card.no_riot")}</span>
-      )}
-      <span className="text-meta text-muted-foreground">{player.kick_username}</span>
-      <RankText player={player} />
-      {player.rank?.level != null && <span className="text-meta text-muted-foreground">{t("row.level", { n: player.rank.level })}</span>}
-      <span className="text-meta text-muted-foreground">
-        {t(player.source === "chat" ? "card.joined_chat" : "card.joined_manual", { t: now ? ago(player.joined_at, now, t) : "" })}
-      </span>
-      {fairPlay && <span className="text-meta text-muted-foreground">{t("card.games", { n: player.games_played })}</span>}
-      {player.riot_id && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="self-start"
-          onClick={() => navigator.clipboard.writeText(player.riot_id!).then(() => toast(t("common.copied")))}
-        >
-          {t("common.copy")}
-        </Button>
-      )}
-    </div>
-  );
-  const trigger = (
-    <button type="button" tabIndex={-1} className="min-w-0 text-left outline-none">
-      {name}
-    </button>
-  );
-  if (touch) {
-    return (
-      <Popover>
-        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-        <PopoverContent align="start" className="w-64 rounded-xl p-4">{card}</PopoverContent>
-      </Popover>
-    );
-  }
+  if (!seen.riot_id && !required) return name;
   return (
-    <HoverCard openDelay={350} closeDelay={100}>
-      <HoverCardTrigger asChild>{trigger}</HoverCardTrigger>
-      <HoverCardContent align="start" className="w-64 rounded-xl p-4">{card}</HoverCardContent>
-    </HoverCard>
+    <CardTrigger player={player} seen={seen} keyboard={keyboard}>
+      <button type="button" tabIndex={-1} className="flex min-w-0 text-left outline-none">
+        {name}
+      </button>
+    </CardTrigger>
   );
 }
 
@@ -701,6 +665,8 @@ export function PlayerRow({
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
   const [lifted, setLifted] = useState(false);
   const pending = useRankPending(player);
+  // The row resting under keyboard focus opens its card (D31), as the pointer's stillness does.
+  const [kbd, setKbd] = useState(false);
   const draggable = canWrite && !touch && !sorted && player.status !== "punished";
   // A roster row takes its own team's players (a reorder) and, while the team has room, anyone
   // else, who joins the team at that row (D37, owner 2026-09-27).
@@ -748,6 +714,8 @@ export function PlayerRow({
           data-player={player.id}
           tabIndex={0}
           onKeyDown={onKeyDown}
+          onFocus={(e) => setKbd(e.target === e.currentTarget && e.currentTarget.matches(":focus-visible"))}
+          onBlur={() => setKbd(false)}
           draggable={draggable}
           onDragStart={(e) => {
             dragging = player;
@@ -835,7 +803,7 @@ export function PlayerRow({
             <PlayerAvatar player={seen} />
             {/* One line (D36): the name truncates first, then the tags fold to icons. */}
             <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
-              <PlayerName player={seen} stacked={table} typeAt={landAt} />
+              <PlayerName player={player} seen={seen} stacked={table} typeAt={landAt} keyboard={kbd} />
               {table && <RespectBadge player={player} />}
               <PlayerTags player={player} showState={table} />
             </div>

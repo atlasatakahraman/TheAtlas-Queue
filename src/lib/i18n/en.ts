@@ -536,6 +536,13 @@ export const en = {
   "sort.reset": "Back to queue order. Dragging is off while sorted",
   "sort.label": "Sort",
   "sort.queue": "Queue order",
+  "card.level": "Lv {n}",
+  "card.unranked": "Unranked",
+  "card.rank_unavailable": "Rank unavailable",
+  "card.wl": "{w} W {l} L",
+  "card.respect": "respect",
+  "card.joined_chat_at": "joined {time} from chat",
+  "card.joined_manual_at": "added {time} by hand",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

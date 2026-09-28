@@ -524,4 +524,11 @@ export const tr: Record<LabelKey, string> = {
   "sort.reset": "Sıra düzenine dön. Sıralıyken sürükleme kapalı",
   "sort.label": "Sırala",
   "sort.queue": "Sıra düzeni",
+  "card.level": "Sv {n}",
+  "card.unranked": "Derecesiz",
+  "card.rank_unavailable": "Derece alınamadı",
+  "card.wl": "{w} G {l} M",
+  "card.respect": "saygı",
+  "card.joined_chat_at": "{time} sohbetten katıldı",
+  "card.joined_manual_at": "{time} elle eklendi",
 };

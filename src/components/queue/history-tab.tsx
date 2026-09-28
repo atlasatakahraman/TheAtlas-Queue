@@ -228,7 +228,7 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
           text={text}
           parts={{
             actor: <span className={name}>{a.actor ?? t("common.chat")}</span>,
-            target: <span className={cn(name, "break-all")}>{a.target}</span>,
+            target: <span className={name}>{a.target}</span>,
             where: <span className={cn("font-medium", toTeam ? team : "text-foreground")}>{where}</span>,
           }}
         />

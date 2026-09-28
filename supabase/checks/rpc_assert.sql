@@ -547,6 +547,27 @@ begin
     raise exception 'set_live offline: title kept';
   end if;
   execute 'set local role authenticated';
+
+  -- 0026: the Riot ID switch changes the players. Off clears every Riot ID and rank link; on
+  -- removes whoever has none; saving it unchanged touches nobody.
+  perform public.update_settings(ch, '{"require_riot_id": false}', gen_random_uuid());
+  perform public.add_player(ch, 'kay', null, gen_random_uuid());
+  perform public.add_player(ch, 'ray', 'Ray#TR1', gen_random_uuid());
+  r := public.update_settings(ch, '{"require_riot_id": true}', gen_random_uuid());
+  if exists (select 1 from public.players where channel_id = ch and deleted_at is null and riot_id is null)
+     or not exists (select 1 from public.players where channel_id = ch and deleted_at is null and kick_username = 'ray')
+     or (select (payload ->> 'riot_removed')::int < 1 from public.activity where channel_id = ch order by id desc limit 1) then
+    raise exception 'riot on: a player without a Riot ID stayed, ray went, or no count: %', r;
+  end if;
+  perform public.update_settings(ch, '{"require_riot_id": true}', gen_random_uuid());
+  if not exists (select 1 from public.players where channel_id = ch and deleted_at is null and kick_username = 'ray') then
+    raise exception 'riot unchanged: players touched';
+  end if;
+  perform public.update_settings(ch, '{"require_riot_id": false}', gen_random_uuid());
+  if exists (select 1 from public.players where channel_id = ch and deleted_at is null and (riot_id is not null or puuid is not null))
+     or not exists (select 1 from public.players where channel_id = ch and deleted_at is null and kick_username = 'ray') then
+    raise exception 'riot off: an id kept, or ray removed';
+  end if;
 end $$;
 
 select 'rpc ok' as result;

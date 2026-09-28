@@ -1,7 +1,8 @@
 "use client";
-import { ArrowUpDown, Dices, ListOrdered, Moon, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
+import { ArrowUpDown, Dices, ListOrdered, Moon, PlugZap, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useT } from "@/components/i18n";
+import { useReconnect } from "@/components/queue/connection-pill";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
@@ -76,6 +77,7 @@ function PageMenuContent() {
   const picking = usePick();
   const ranks = useRanks();
   const sort = useQueueSort(ranks);
+  const { busy, reconnect } = useReconnect();
   const sortKeys: [SortKey, string][] = [
     ["name", t("col.player")],
     ...(ranks ? ([["rank", t("col.rank")], ["winrate", t("col.winrate")]] as [SortKey, string][]) : []),
@@ -83,8 +85,8 @@ function PageMenuContent() {
   ];
 
   // Kept short on purpose (owner, 2026-09-23): the everyday actions only. Reroll, shuffle, clear
-  // teams, reconnect, settings, language and sign-out live in the toolbar, the top bar and the
-  // account menu.
+  // teams, settings, language and sign-out live in the toolbar, the top bar and the account menu;
+  // Reconnect joined Reload at the end (owner, 2026-09-28).
   return (
     <ContextMenuContent className="min-w-60 p-1.5">
       <ContextMenuLabel className="flex items-center gap-2 font-normal text-muted-foreground">
@@ -145,6 +147,10 @@ function PageMenuContent() {
         {resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
       </ContextMenuItem>
       <ContextMenuSeparator />
+      <ContextMenuItem disabled={busy} onSelect={() => void reconnect()}>
+        <PlugZap aria-hidden />
+        {t("menu.reconnect")}
+      </ContextMenuItem>
       <ContextMenuItem onSelect={() => window.location.reload()}>
         <RotateCw aria-hidden />
         {t("menu.reload")}

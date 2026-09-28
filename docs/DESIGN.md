@@ -67,7 +67,7 @@ contradicts is migration work, not an alternative.
 | Radius | `--radius: 0.625rem` with shadcn's multipliers | **Unchanged** |
 | Type sizes | arbitrary `text-[…]` values in components | Named sizes in `@theme` (`text-display`, `text-meta` …), see [Type](#type) |
 | Animation | `tw-animate-css`, `--animate-slide-up/fade-in/scale-in` | `tw-animate-css` stays. The three custom animations give way to `--animate-enter` and TheAtlas's `Typewriter` |
-| Draw animation | `pickAnimationStyle`: `classic` / `list` / `spin` / `none`, `single-pick-dialog.tsx` | **One signature reveal** or none: setting `drawReveal: "typewriter" \| "none"` ([The draw reveal](#the-draw-reveal)) |
+| Draw animation | `pickAnimationStyle`: `classic` / `list` / `spin` / `none`, `single-pick-dialog.tsx` | Setting `draw_reveal`: `typewriter` \| `cards` \| `list` \| `wheel` \| `none` (D22, D13 amended). The team draw always lands by Typewriter; a pick plays the chosen one ([The draw reveal](#the-draw-reveal)) |
 | Easter eggs | `use-easter-eggs.ts` (Konami → `confetti-overlay`, "badapple" → `bad-apple-overlay`) | **Deleted**, all three files |
 | Tabs | `sliding-tabs.tsx` (custom, in `ui/`) + shadcn `tabs` | shadcn `tabs` only. `sliding-tabs` is deleted |
 | Selection styling | none | Every text role declares its pair ([Text selection](#text-selection)) |
@@ -467,8 +467,9 @@ Rules:
 
 ## The draw reveal
 
-The draw is the moment the stream is waiting for, so it gets one signature treatment instead of
-a menu of effects. The old `classic` / `list` / `spin` styles are gone.
+The draw is the moment the stream is waiting for. A **team draw** always lands by Typewriter
+(below). A **pick** plays the streamer's choice (D22, owner 2026-09-27, D13 amended): August's
+three reveals are back beside Typewriter, rebuilt in this system's tokens.
 
 **The result exists before the animation starts.** The draw is computed and saved on the server
 first; the reveal only *shows* a finished result. A reload mid-reveal shows the final teams, and
@@ -487,8 +488,37 @@ the reveal can never disagree with what `/watch` and `/overlay` show.
 160ms and 30ms sit off the motion ladder on purpose: the ladder's rungs describe a single
 transition, and this is a sequence of ten. Faster reads as a flash, slower drags on stream.
 
-**Pick** (the toolbar, the Teams tab, the page menu or the palette): the same cadence in a `Dialog` titled with the
-`action.pick` label, listing the N picked names. The dialog closes on Escape or a click outside.
+**Pick** (the toolbar, the Teams tab, the page menu or the palette): a `Dialog` titled with the
+`action.pick` label. With *Names type in* the N picked names land at the team draw's cadence.
+With **Cards**, **List** or **Wheel** the reveal plays once per picked name, in order, above the
+names picked so far; each name joins the list when its reveal stops:
+
+```
+Cards                       List                         Wheel
+┌──────────────────┐        ┌──────────────────────┐     ╱ mert │ efe ╲
+│ [icon]  kaanxd   │        │ [icon] selin  Plat I │    ada ─── ┼ ── deniz ◀
+│         #TR2     │        ├══════════════════════┤     ╲ can  │ atlas╱
+│      Gold I      │        │ [icon] efe    Gold I │  ← stops here
+└──────────────────┘        ├══════════════════════┤
+ names flick past,          │ [icon] mert   Iron II│
+ slowing, then stop         └──────────────────────┘
+```
+
+- **Cards** (*Kartlar*, August's classic): one card (avatar, name, rank) flicks through the pick
+  pool, slowing: 14 steps, the gap growing from 50 to 232ms (about 2.1 s), then stops on the
+  picked name and its edge turns gold.
+- **List** (*Listeleme*): a strip of rows, one row high window with a gold frame, scrolls by and
+  eases out (cubic, 2.8 s) onto the picked name.
+- **Wheel** (*Çarkıfelek*): the pool as wedges, alternating `--row` and `--muted`, names in
+  `--foreground` along the radius, the pointer a gold triangle on the right edge. It turns 8 to
+  11 times and eases out (a 7th-power curve, 6 s) with the picked wedge under the pointer, which
+  then fills gold. A picked name leaves the wheel before the next spin. No hub: the wedges meet
+  in the middle (no dots, owner rule).
+- The pool is the pick's source as it was (`pick_players`' pool: the source's statuses, less
+  anyone banned or punished); the server's result decides where every reveal stops.
+- **Enter** or **Space** while a reveal plays skips to the result (August). When it has
+  finished, focus sits on **Pick again** (`RotateCcw`, outline), so Enter or Space picks again
+  with the same size and source. The dialog closes on Escape or a click outside.
 Each name carries its moves (owner, 2026-09-27): *Move to Team 1 / 2*, *Back to waiting*, *Remove
 from queue*, disabled (never hidden) when they cannot happen, and the name shows its new state; two
 or more names add **All to Team 1 / 2**, one write (`move_players`) and one Undo, disabled when
@@ -499,8 +529,8 @@ used a protection, which Undo gives back.
 Each device plays a given draw **once**; a viewer who opens `/watch` afterwards sees the result
 already set.
 
-**`drawReveal: "none"`** and reduced motion show the result instantly. No confetti, no sound, no
-wheel.
+**`draw_reveal: "none"`**, Animations off and reduced motion show the result instantly. No
+confetti, no sound.
 
 ---
 
@@ -703,7 +733,14 @@ Each is a table on the queue table's grid rules (header row, `bg-row` rows, 6px 
 |---|---|
 | Warnings | Player (name + tags) · Reason · Respect · Given (time, by whom) · `⋯` (turn into a punishment, lift) |
 | Punishments | Player · Length (*3 games left* / *until 22:10*) · Reason · Respect · Ends · `⋯` (edit length, lift) |
-| Bans | Player · Reason · Respect · Since · `⋯` (lift) |
+| Bans | Player · Reason · Respect · Since · `⋯` (edit length, lift) |
+
+**Turn into a punishment** (D22, August's *Türü Değiştir*) opens the punish form for that
+player with the warning's reason filled in; saving replaces the warning with the punishment, one
+write and one Undo. **Edit length** (August's *Süreyi Düzenle*) opens the same form with the
+current length (games left, minutes left, or the ban's length) and no reason field; the new
+length counts from now. Both are built in Stage 8 into today's sanction cards' `⋯`, and move
+into these tables with them.
 
 **New action** (primary on this tab) and **Clear sanctions** (streamer only, undoable) sit right
 of the sub-tabs. Lifted and served sanctions stay in their table, dimmed, with *Lifted* /
@@ -791,7 +828,7 @@ Its own page with the dashboard's top bar; the breadcrumb reads *… / HoustonHU
 **← Queue** leads back. Two columns from 1024px: a sticky **section list** (left, 14rem) and one
 section at a time (right, max 44rem); the section is in the URL (`/settings/riot`).
 
-Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fair play, reveal)
+Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fair play, reveal, *clear the queue when the stream ends*)
 · **Games** (after-game action, retention) · **Perks** (the badge picker) · **Watch** ·
 **Overlays** · **Moderators** · **Labels** · **Your data**.
 
@@ -809,6 +846,10 @@ Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fa
   Animations off). The active section carries the **tabs' underline**: the 2px gold line under
   its label, growing from its centre (300ms, the tabs' ease), and its label turns
   `--foreground`; the rest stay muted.
+- **Clear the queue when the stream ends** (D22, August's *Sıra oturumu temizlendi*): a switch,
+  on by default. When Kick reports the stream offline the queue and teams empty in one write;
+  History says *Stream ended, queue cleared (12)* with Undo, and an open dashboard shows the
+  same as a toast. Moderation stays.
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).
@@ -1082,7 +1123,9 @@ has its lucide icon. Groups:
 
 Each kind of action is its own section, divided by a separator (owner, 2026-09-28):
 
-1. copy (Riot ID, Kick name) · then edit on its own
+1. copy (Riot ID, Kick name) · then edit and **Refresh rank** (`RefreshCw`, D22) on their own;
+   Refresh is disabled without a Riot ID or with ranks off, and a second press within a minute
+   says *Just refreshed*
 2. **Add player above** (`ArrowUpToLine`) · **Add player below** (`ArrowDownToLine`) (D37). On a
    roster row they open the team add list (waiting players, then *Add a new player…*) anchored
    on that row; on a queue row they open Add player, and the new player lands at that place.

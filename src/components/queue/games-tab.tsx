@@ -257,8 +257,9 @@ export function gameSize(game: Game, t: ReturnType<typeof useT>["t"]) {
 }
 
 // A win and a loss count (owner, 2026-09-28: "too colourless"): the figures in Newsreader as the
-// counts, wins in green and losses in red, a zero muted; the letters stay muted.
-export const WIN = (n: number) => cn("font-serif text-body font-medium tabular-nums", n > 0 ? "text-success" : "text-muted-foreground");
+// counts, wins in gold (the trophy's) and losses in red, a zero muted; the letters stay muted. Not
+// the team colours: teal and orange always mean a team (DESIGN.md § Colour means something).
+export const WIN = (n: number) => cn("font-serif text-body font-medium tabular-nums", n > 0 ? "text-brand" : "text-muted-foreground");
 export const LOSS = (n: number) => cn("font-serif text-body font-medium tabular-nums", n > 0 ? "text-destructive" : "text-muted-foreground");
 
 // A label such as "{w} W {l} L" with its figures coloured.

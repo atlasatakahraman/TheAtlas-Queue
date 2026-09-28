@@ -792,6 +792,9 @@ League client over a background IPC channel.
   offline.
 - Elsewhere: channel W / L beside each name in the queue table's player card and hover, and this
   stream's score under the match headline on Teams.
+- W / L figures are Newsreader, wins in gold (the trophy's colour, as a won streak) and losses in
+  `--destructive`, a zero muted. Not the team colours (owner asked, 2026-09-28): a teal win on
+  Team 2's card or under a teal–orange score would read as Team 1's.
 
 #### A game's page `/c/<channel>/games/<n>` (Stage 10, owner 2026-09-28)
 

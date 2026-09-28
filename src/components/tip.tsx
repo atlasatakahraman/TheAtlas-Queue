@@ -3,11 +3,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 // A tooltip on a control, which also works while the control is disabled (D25: a disabled control
 // says why). A disabled button takes no pointer events, so the tooltip sits on a wrapper span.
-export function Tip({ label, children, side, align }: {
+export function Tip({ label, children, side }: {
   label: React.ReactNode;
   children: React.ReactElement;
   side?: "top" | "right" | "bottom" | "left";
-  align?: "start" | "center" | "end";
 }) {
   // No label, no tooltip: the control renders as it is.
   if (!label) return children;
@@ -16,7 +15,7 @@ export function Tip({ label, children, side, align }: {
       <TooltipTrigger asChild>
         <span className="inline-flex">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side={side} align={align}>{label}</TooltipContent>
+      <TooltipContent side={side}>{label}</TooltipContent>
     </Tooltip>
   );
 }

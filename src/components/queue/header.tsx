@@ -16,6 +16,7 @@ import { ThemeButton } from "@/components/theme-button";
 import { Typed, usePrefs } from "@/components/prefs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -106,6 +107,7 @@ export function TopBar() {
   // The wordmark types once per page load: coming back without a reload (a game's page to the
   // tabs, Back) it stands and only the slash onwards types, from the start (owner, 2026-09-28).
   const [again] = useState(() => wordmarkTyped);
+  const [tip, setTip] = useState(false);
   useEffect(() => {
     wordmarkTyped = true;
   }, []);
@@ -125,11 +127,18 @@ export function TopBar() {
     <div className="flex items-center justify-between gap-3">
       <span className="flex min-w-0 items-center gap-3 select-none">
         {/* The way back to the selection page (D19): the tile, the wordmark and the channel are one
-            link to it, which never redirects from there (?pick). Its tooltip hangs from the tile:
-            centred on the whole title it sat under the slash, pointing at nothing (owner,
-            2026-09-28); Radix drops the arrow when it cannot point at the middle. */}
-        <Tip label={t("select.back")} align="start">
-          <Link href="/?pick" className="flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+            link to it, which never redirects from there (?pick). The whole title opens its tooltip,
+            which stands centred under the channel name (owner, 2026-09-28: centred on the whole
+            title it sat under the slash), so the channel name is its trigger and anchor. */}
+        <Tooltip open={tip} onOpenChange={setTip}>
+          <Link
+            href="/?pick"
+            className="flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            onPointerEnter={() => setTip(true)}
+            onPointerLeave={() => setTip(false)}
+            onFocus={() => setTip(true)}
+            onBlur={() => setTip(false)}
+          >
             {/* The black tile on paper, the white one on ink. */}
             <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
             <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
@@ -148,11 +157,15 @@ export function TopBar() {
             <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>
               <Typed text="/" startDelay={15 * 40 + shift} />
             </span>
-            <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
-              <Typed text={channel} startDelay={channelAt} />
-            </span>
+            {/* The link decides open and shut; the name's own hover would shut it on the way to the tile. */}
+            <TooltipTrigger asChild onPointerMove={(e) => e.preventDefault()} onPointerLeave={(e) => e.preventDefault()}>
+              <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
+                <Typed text={channel} startDelay={channelAt} />
+              </span>
+            </TooltipTrigger>
           </Link>
-        </Tip>
+          <TooltipContent>{t("select.back")}</TooltipContent>
+        </Tooltip>
         {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab;
             Settings: … / channel / Settings. */}
         {crumbs.length > 0 && (

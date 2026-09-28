@@ -1,6 +1,6 @@
 "use client";
 import { ChevronDown, ShieldCheck, Shuffle, UserPlus, UsersRound } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
@@ -282,6 +282,8 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
   const moveTo = useMoveTo();
   const canWrite = useCanWrite();
   const [over, setOver] = useState(false);
+  // A player dragged over a full team is refused, and the header says so (DESIGN.md § Drag).
+  const [refused, setRefused] = useState(false);
   // Each opening is its own list (a new key), so a second target opens a fresh list there
   // instead of sliding the open one across; the same target again closes it.
   const [add, setAdd] = useState<{ at: HTMLElement; n: number; place?: number } | null>(null);
@@ -298,12 +300,16 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
       data-team-card
       onDragOver={(e) => {
         if (!takes(draggedPlayer())) return;
+        if (count >= size) return setRefused(true);
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
         setOver(true);
       }}
       onDragLeave={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false);
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setOver(false);
+          setRefused(false);
+        }
       }}
       onDrop={(e) => {
         const d = draggedPlayer();
@@ -322,10 +328,18 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
         {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
         <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} place={add?.place} onClose={() => setAdd(null)} />
         <header aria-label={t(`team.${team}`)} className="flex min-h-9 items-center justify-between gap-3 text-meta text-muted-foreground">
-          <span className="flex min-w-0 items-baseline gap-3">
-            <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
-            {avg}
-          </span>
+          {refused ? (
+            <span role="status" className="text-destructive">
+              {t("why.team_full", { team: t(`team.${team}`), n: count, size })}
+            </span>
+          ) : (
+            <span className="flex min-w-0 items-center gap-3">
+              {/* The team's colour mark (D25): a square, not a capsule and never a dot. */}
+              <span aria-hidden className={cn("size-2.5 shrink-0 rounded-[2px]", team === 1 ? "bg-team-1" : "bg-team-2")} />
+              <span className="tabular-nums">{t("teams.count", { n: count, size })}</span>
+              {avg}
+            </span>
+          )}
           <Button
             variant="ghost"
             size="lg"
@@ -523,21 +537,29 @@ export function TeamsTab() {
       <div style={e4.style} className={cn("grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1", e4.className)}>
         {landing && <RevealEnd key={revealing!.id} duration={landing.duration} />}
         {rosters.map((roster, i) => (
-          <TeamCard key={i} team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && riot && <Avg players={roster} />} landing={!!landing}>
-            {roster.map((p, n) => {
-              const at = landing?.at.get(p.id);
-              return (
-                <PlayerRow
-                  key={p.id}
-                  player={p}
-                  number={n + 1}
-                  variant="roster"
-                  landAt={at}
-                  enterStyle={at === undefined ? undefined : { className: "animate-enter", style: { animationDelay: `${at}ms` } }}
-                />
-              );
-            })}
-          </TeamCard>
+          <Fragment key={i}>
+            {/* Stacked cards (under 1024px) get the vs between them (D25). */}
+            {i === 1 && (
+              <p aria-hidden className="-my-2 text-center font-serif text-title text-muted-foreground italic lg:hidden">
+                {t("match.vs")}
+              </p>
+            )}
+            <TeamCard team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && riot && <Avg players={roster} />} landing={!!landing}>
+              {roster.map((p, n) => {
+                const at = landing?.at.get(p.id);
+                return (
+                  <PlayerRow
+                    key={p.id}
+                    player={p}
+                    number={n + 1}
+                    variant="roster"
+                    landAt={at}
+                    enterStyle={at === undefined ? undefined : { className: "animate-enter", style: { animationDelay: `${at}ms` } }}
+                  />
+                );
+              })}
+            </TeamCard>
+          </Fragment>
         ))}
       </div>
 

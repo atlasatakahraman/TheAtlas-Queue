@@ -3,6 +3,7 @@ import { Ban, MessageSquare, RotateCcw, UserPlus, Video } from "lucide-react";
 import { useState } from "react";
 import { useT } from "@/components/i18n";
 import { BadgePicker } from "@/components/queue/badge-picker";
+import { confirm } from "@/components/queue/confirm";
 import { Tag } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
@@ -204,11 +205,20 @@ function QueueSection() {
 function RiotSection() {
   const { t } = useT();
   const s = useSection(["riot_enabled", "require_riot_id", "riot_region"] as const);
+  const players = useQueue((v) => v.players);
+  // The switch changes the players (0026, owner 2026-09-28): on removes whoever has no Riot ID,
+  // off clears every Riot ID. Asked first, with the count, whenever someone is affected.
+  async function requireRiot(on: boolean) {
+    const n = players.filter((p) => (on ? !p.riot_id : p.riot_id || p.puuid)).length;
+    const k = on ? "riot_on" : "riot_off";
+    if (n > 0 && !(await confirm({ title: t(`confirm.${k}.title`), body: t(`confirm.${k}.body`, { n }), action: t(`confirm.${k}.action`) }))) return;
+    await s.put("require_riot_id", on);
+  }
   return (
     <Section title={t("settings.riot")} step={4}>
       {/* Riot IDs first, ranks under them: a lookup needs a Riot ID (owner, 2026-09-28). Look up
           ranks keeps its own value while Riot IDs are off, and shows off and disabled. */}
-      <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => void s.put("require_riot_id", v)} />
+      <SwitchField id="require_riot_id" label={t("settings.require_riot_id")} hint={t("settings.require_riot_id.hint")} checked={s.draft.require_riot_id} onChange={(v) => void requireRiot(v)} />
       <SwitchField
         id="riot_enabled"
         label={t("settings.riot_enabled")}

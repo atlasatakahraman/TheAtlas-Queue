@@ -574,6 +574,12 @@ export const en = {
   "card.manual": "Manual",
   "credit.before": "Made with",
   "credit.after": "by Atlas Ata KAHRAMAN",
+  "confirm.riot_on.title": "Remove players without a Riot ID?",
+  "confirm.riot_on.body": "{n} players joined with a Kick name only. Requiring Riot IDs removes them from the queue and the teams. This cannot be undone.",
+  "confirm.riot_on.action": "Remove and require",
+  "confirm.riot_off.title": "Clear every Riot ID?",
+  "confirm.riot_off.body": "{n} players have a Riot ID. Turning Riot IDs off clears them and their ranks, and their Kick name becomes their name. This cannot be undone.",
+  "confirm.riot_off.action": "Clear Riot IDs",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

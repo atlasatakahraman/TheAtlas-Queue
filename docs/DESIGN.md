@@ -1093,7 +1093,11 @@ No grip (owner, 2026-09-28: it did not fit the rows); the whole row is the handl
   - **Riot IDs on, ranks off**: the Riot name and *Kick* column show (`TABLE_COLS_IDS`), but no
     *Rank*, *Win rate*, profile icon or average rank, and nothing is looked up (chat joins get no
     region from `webhook_context`, 0023; manual adds skip `lookupRank`).
-  - Players keep their stored Riot IDs and ranks either way; turning a switch back on shows them.
+  - **The switch changes the players** (owner, 2026-09-28, 0026). Turning *Require Riot ID* on
+    removes everyone without one (queue, teams, away, punished); turning it off clears every
+    player's Riot ID and rank link, so the Kick name is their name. Both ask first, naming the
+    count (*Remove players without a Riot ID?* / *Clear every Riot ID?*), and cannot be undone;
+    nothing is asked when nobody is affected. *Look up ranks* off only hides ranks.
 - **Loading Riot (D25).** Rank and win-rate cells hold a `Skeleton` of their own width until the
   data lands; the Queue heading gets a muted *Loading ranks 3* counter that pulses. Nothing shifts.
 - **Row buttons (D34).** Visible, labelled, in this order before `⋯`, each with a tooltip:

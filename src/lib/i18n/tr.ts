@@ -562,4 +562,10 @@ export const tr: Record<LabelKey, string> = {
   "card.manual": "Manuel",
   "credit.before": "Atlas Ata KAHRAMAN tarafından",
   "credit.after": "ile yapıldı",
+  "confirm.riot_on.title": "Riot ID'si olmayan oyuncular çıkarılsın mı?",
+  "confirm.riot_on.body": "{n} oyuncu yalnızca Kick adıyla katıldı. Riot ID zorunlu olunca sıradan ve takımlardan çıkarılırlar. Bu geri alınamaz.",
+  "confirm.riot_on.action": "Çıkar ve zorunlu yap",
+  "confirm.riot_off.title": "Tüm Riot ID'ler silinsin mi?",
+  "confirm.riot_off.body": "{n} oyuncunun Riot ID'si var. Riot ID kapanınca bunlar ve rütbeleri silinir, Kick adları isimleri olur. Bu geri alınamaz.",
+  "confirm.riot_off.action": "Riot ID'leri sil",
 };

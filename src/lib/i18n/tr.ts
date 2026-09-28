@@ -561,4 +561,6 @@ export const tr: Record<LabelKey, string> = {
   "why.draw_landing": "Kuranın oturmasını bekle",
   "done.copied": "{text} kopyalandı",
   "card.manual": "Manuel",
+  "credit.before": "Atlas Ata KAHRAMAN tarafından",
+  "credit.after": "ile yapıldı",
 };

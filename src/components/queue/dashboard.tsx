@@ -1,5 +1,5 @@
 "use client";
-import { HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords } from "lucide-react";
+import { Heart, HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
 import { TopBar } from "@/components/queue/header";
@@ -209,9 +209,13 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
             </TabsContent>
           )}
         </Tabs>
-        {/* The credit August carried (its hover easter egg stays removed, spec D14). */}
-        <footer className="mt-auto pt-6 text-center text-caption tracking-wider text-muted-foreground/60 uppercase select-none">
-          Atlas Ata KAHRAMAN
+        {/* The credit August carried, as a sentence with a heart (owner, 2026-09-28; its hover
+            easter egg stays removed, spec D14). */}
+        <footer className="mt-auto flex items-center justify-center gap-1 pt-6 text-caption text-muted-foreground/70 select-none">
+          {t("credit.before")}
+          <Heart aria-hidden className="size-3 fill-destructive text-destructive" />
+          <span className="sr-only">♥</span>
+          {t("credit.after")}
         </footer>
       </div>
       </PageMenu>

@@ -573,6 +573,8 @@ export const en = {
   "why.draw_landing": "Wait for the draw to land",
   "done.copied": "Copied {text}",
   "card.manual": "Manual",
+  "credit.before": "Made with",
+  "credit.after": "by Atlas Ata KAHRAMAN",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

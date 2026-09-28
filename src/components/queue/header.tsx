@@ -147,8 +147,8 @@ export function TopBar() {
   const ui = useUi();
   const role = useQueue((v) => v.role);
   const channel = useQueue((v) => v.channel.display_name);
-  // Under 1280px the channel types first: the wordmark before it is hidden there.
-  const phone = useMedia("(max-width: 1279px)");
+  // On phones the channel types first: the wordmark before it is hidden there.
+  const phone = useMedia("(max-width: 639px)");
   const motion = useMotion();
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
@@ -160,20 +160,20 @@ export function TopBar() {
         <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
         {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
             then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
-        {/* Under 1280px the tile alone: next to the tools the wordmark only truncated (owner,
-            2026-09-28). The wordmark never truncates; the channel after it does. */}
-        <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:hidden">
+        {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
+            steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
+        <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
           <Typed text="TheAtlas" />{" "}
           <span className="text-brand italic selection:bg-foreground selection:text-background">
             <Typed text="Queue" startDelay={9 * 40} />
           </span>
         </span>
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
-            the way back to the selection page. Under 1280px it stands in for the wordmark. */}
-        <span className="cap-center font-serif text-title text-muted-foreground max-xl:hidden" aria-hidden>
+            the way back to the selection page. On phones it stands in for the wordmark. */}
+        <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>
           <Typed text="/" startDelay={15 * 40} />
         </span>
-        <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">
+        <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
           <Typed text={channel} startDelay={phone ? 0 : 17 * 40} />
         </span>
         {/* After the channel's last letter and its 200ms sharpening. */}

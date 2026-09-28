@@ -641,14 +641,15 @@ scrolls; its content keeps the page's 1440px (August's header). The TheAtlas til
 Kâğıt, white on Mürekkep) and the wordmark "TheAtlas *Queue*", **typed in by `Typewriter`**
 (*Queue* one 40ms beat after *TheAtlas*): it is the page's title. After it, a breadcrumb: a
 muted `/` and the **channel name** in Newsreader, typed on after the wordmark (owner, 2026-09-27: the dateline went, D21),
-then *Moderating* as muted text for a moderator; under 1280px the channel stands in for the
-wordmark (the tile stays; owner, 2026-09-28: at 1090px both were cut to *TheAtlas… /
-atlasataka…*). The wordmark never truncates, only the channel does, and only on phones, and D19 makes it the way back to the selection page. Right: the [connection pill](#connection-health), the command palette button
+then *Moderating* as muted text for a moderator; on phones the channel stands in for the
+wordmark. Under 1280px the whole title steps down to the body size (owner, 2026-09-28: at
+1090px both were cut to *TheAtlas… / atlasataka…*; hiding the wordmark was refused, it is the
+page's title). The wordmark never truncates, only the channel does, and only on phones, and D19 makes it the way back to the selection page. Right: the [connection pill](#connection-health), the command palette button
 (a search icon, `aria-label`), the EN | TR switch, GitHub, the theme button, a settings gear
 (streamer only; **Settings is not a tab**, this gear, the account menu, `⋯` and the palette open
 it) and the **account menu** (avatar, and the name from 1280px; Settings, **Sign out**). Under
 1024px the middle tools fold into `⋯` and the pill takes its short form; the pill and the account
-stay. Checked 430 to 1440px: a 16-letter channel shows whole.
+stay. Checked 430 to 1440px: the wordmark and a 16-letter channel show whole.
 
 **Masthead.** No big channel title and no dateline (owner, 2026-09-23 and 2026-09-27): the top
 bar names the channel, the tab count says who waits, and Live / Offline joins the top bar with

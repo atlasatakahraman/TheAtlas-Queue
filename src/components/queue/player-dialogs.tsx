@@ -124,16 +124,17 @@ function AddPlayerForm({ team, at, onDone }: { team: 1 | 2 | null; at: number | 
     setBusy(true);
     const res = await act(
       "add_player",
-      { p_kick_username: n, p_riot_id: r || null, p_key: at },
+      { p_kick_username: n, p_riot_id: r || null, p_key: team ? null : at },
       { done: "done.add", vars: { name: n }, silent: true },
     );
     setBusy(false);
     if (isError(res)) return setErrors(fieldErrors(res));
     if (r && riotEnabled) void lookupRank(channelId, r);
     onDone();
-    // From a team card: straight into that team, as a second (undoable) step.
+    // From a team card: straight into that team, as a second (undoable) step; there `at` is the
+    // slot it was opened on, if any (0028).
     const added = (res as ChangeEvent).rows.find((row) => row._t === "players") as unknown as Player | undefined;
-    if (team && added) void moveTo(added, team);
+    if (team && added) void moveTo(added, team, at ?? undefined);
   }
 
   return (

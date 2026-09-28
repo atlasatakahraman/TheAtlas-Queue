@@ -291,15 +291,14 @@ export function usePlayerMenu(p: Player): Item[][] {
   // Add player above / below (D37): a team row opens its card's add list on the row; a queue row
   // opens Add player. Either lands at the key beside this row.
   const addBeside = (at: "before" | "after") => () => {
-    const key = placeKey(store.get().players, p.id, at);
     if (teamAdd) {
       const row = document.querySelector<HTMLElement>(`[data-player="${p.id}"]`);
       // The closing menu would hand focus back to its trigger and dismiss the list it opened.
       keepFocus = true;
-      if (row) teamAdd.open(row, key);
+      if (row) teamAdd.open(row, slotBeside(p, at, teamAdd.size));
       return;
     }
-    ui.setAddAt(key);
+    ui.setAddAt(placeKey(store.get().players, p.id, at));
     ui.setAdding(true);
   };
   // Each kind of action its own section (owner, 2026-09-28): copy, edit, place, team, state,
@@ -583,26 +582,37 @@ const releaseFocus = (e: Event) => {
 };
 
 // A team card's add list, for its rows' Add player above / below (D37). Null outside a card.
-export const TeamAddContext = createContext<{ open: (row: HTMLElement, key: number) => void; full: boolean } | null>(null);
+export const TeamAddContext = createContext<{
+  team: 1 | 2;
+  size: number;
+  open: (row: HTMLElement, slot?: number) => void;
+  full: boolean;
+  // Adding is possible now (not full, not offline, no draw landing).
+  can: boolean;
+} | null>(null);
 
-// Into a team, at place in the order when given (D37: one write, one Undo). Without one (an
-// empty slot, Add to Team N, a drop on the card, a menu's Move to) the player takes the team's
-// next slot, after its last row, not wherever their queue order would sort them (owner, 2026-09-28).
+// Into a team, at slot when given (owner, 2026-09-28: the empty slot clicked, the row dropped on;
+// a taken slot is inserted into, the others pushed on by the server, 0028). Without one (Add to
+// Team N, a drop on the card, a menu's Move to) the player takes the first empty slot. One write,
+// one Undo.
 export function useMoveTo() {
   const { t } = useT();
   const act = useAct();
-  const store = useStore();
-  return (p: Player, team: 1 | 2, place?: number) => {
-    const players = store.get().players;
-    const last = players.findLast((x) => x.status === "playing" && x.team === team && x.id !== p.id);
-    const key = place ?? (last ? placeKey(players, last.id, "after", p.id) : undefined);
-    return act("move_player", { p_player: p.id, p_status: "playing", p_team: team, p_key: key ?? null }, {
-      optimistic: { ids: [p.id], patch: (x) => ({ ...x, status: "playing", team, sort_key: key ?? x.sort_key }) },
+  return (p: Player, team: 1 | 2, slot?: number) =>
+    act("move_player", { p_player: p.id, p_status: "playing", p_team: team, p_slot: slot ?? null }, {
+      optimistic: {
+        ids: [p.id],
+        patch: (x) => ({ ...x, status: "playing", team, team_slot: slot ?? (x.team === team ? x.team_slot : null) }),
+      },
       done: "done.move_team",
       vars: { name: p.kick_username, team: t(`team.${team}`) },
     });
-  };
 }
+
+// The slot beside a roster row: its own (above, pushing it on) or the next (below), at most the
+// team's size.
+export const slotBeside = (p: Player, at: "before" | "after", size: number) =>
+  Math.min((p.team_slot ?? 1) + (at === "after" ? 1 : 0), size);
 
 // The edge of row the pointer is on, or null where dropping d would leave it in its own slot
 // (the rows as drawn).
@@ -681,7 +691,6 @@ export function PlayerRow({
   const touch = useIsTouch();
   const reorder = useReorder();
   const moveTo = useMoveTo();
-  const store = useStore();
   const teamAdd = useContext(TeamAddContext);
   const [dropAt, setDropAt] = useState<"before" | "after" | null>(null);
   const [lifted, setLifted] = useState(false);
@@ -787,8 +796,8 @@ export function PlayerRow({
             if (!accepts(d) || !at) return;
             e.preventDefault();
             e.stopPropagation();
-            if (table || sameTeam(d)) void reorder(d, player, at);
-            else void moveTo(d, player.team === 2 ? 2 : 1, placeKey(store.get().players, player.id, at, d.id));
+            if (table) void reorder(d, player, at);
+            else void moveTo(d, player.team === 2 ? 2 : 1, slotBeside(player, at, teamAdd?.size ?? 5));
           }}
           style={enterStyle?.style}
           className={cn(

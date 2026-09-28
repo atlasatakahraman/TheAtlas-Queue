@@ -1,6 +1,6 @@
 "use client";
 import { ChevronDown, ShieldCheck, Shuffle, Trophy, UserPlus, UsersRound } from "lucide-react";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
@@ -149,43 +149,75 @@ export function revealDuration(order: Landing[]): number {
 // landing), so nothing shifts when adding comes back (owner, 2026-09-27); dimming them read as
 // broken (owner, 2026-09-28), so only the header's Add shows the wait. Everyone on the dashboard
 // is a member who can write once connected.
-function EmptySlots({ from, size, onAdd }: { from: number; size: number; onAdd?: (at: HTMLElement) => void }) {
+// Each is its own place (owner, 2026-09-28): adding here, or dropping a player here, puts them
+// in this slot, not after the team's last row.
+function EmptySlot({ n }: { n: number }) {
   const { t } = useT();
-  const cls = cn(
-    "grid grid-cols-[1.25rem_minmax(0,1fr)] items-center gap-x-3 rounded-xl border border-dashed border-row-edge px-4 py-3 text-left",
-    SLOT,
+  const add = useContext(TeamAddContext);
+  const moveTo = useMoveTo();
+  const [over, setOver] = useState(false);
+  return (
+    <button
+      type="button"
+      data-slot-add
+      data-add-target
+      disabled={!add?.can}
+      onClick={(e) => add?.open(e.currentTarget, n)}
+      onDragOver={(e) => {
+        if (!add?.can || !draggedPlayer()) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = "move";
+        setOver(true);
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => {
+        const d = draggedPlayer();
+        setOver(false);
+        if (!add?.can || !d) return;
+        e.preventDefault();
+        e.stopPropagation();
+        void moveTo(d, add.team, n);
+      }}
+      className={cn(
+        "grid grid-cols-[1.25rem_minmax(0,1fr)] items-center gap-x-3 rounded-xl border border-dashed border-row-edge px-4 py-3 text-left",
+        SLOT,
+        "outline-none enabled:hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40",
+        over && "bg-accent",
+      )}
+    >
+      <span className="font-serif text-numeral text-muted-foreground/50 tabular-nums select-none">{n}</span>
+      <span className="inline-flex items-center gap-2 text-meta text-muted-foreground">
+        <UserPlus className="size-4" aria-hidden />
+        {t("teams.slot.empty")}
+      </span>
+    </button>
   );
-  return Array.from({ length: Math.max(size - from, 0) }, (_, i) => {
-    const body = (
-      <>
-        <span className="font-serif text-numeral text-muted-foreground/50 tabular-nums select-none">{from + i + 1}</span>
-        <span className="inline-flex items-center gap-2 text-meta text-muted-foreground">
-          <UserPlus className="size-4" aria-hidden />
-          {t("teams.slot.empty")}
-        </span>
-      </>
-    );
-    return (
-      <button
-        key={i}
-        type="button"
-        data-slot-add
-        data-add-target
-        disabled={!onAdd}
-        onClick={(e) => onAdd?.(e.currentTarget)}
-        className={cn(cls, "outline-none enabled:hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40")}
-      >
-        {body}
-      </button>
-    );
-  });
+}
+
+// A team's slots in order, a player or null: each player in their own slot, one without a free
+// one of their own (a write still landing) in the first empty slot.
+function slotLayout(roster: Player[], size: number): (Player | null)[] {
+  const out: (Player | null)[] = Array.from({ length: Math.max(size, roster.length) }, () => null);
+  const rest: Player[] = [];
+  for (const p of roster) {
+    const i = (p.team_slot ?? 0) - 1;
+    if (i >= 0 && i < out.length && !out[i]) out[i] = p;
+    else rest.push(p);
+  }
+  for (const p of rest) {
+    const i = out.indexOf(null);
+    if (i < 0) out.push(p);
+    else out[i] = p;
+  }
+  return out;
 }
 
 // A team card's Add (owner, 2026-09-23): a waiting player straight into this team, or a new one
 // through Add player, which then moves them here. It opens on what was clicked: the header's
 // button, the empty slot itself (owner, 2026-09-27), or a row's Add player above / below, which
-// lands the player at that row's key (D37).
-function AddToTeam({ team, at, place, onClose }: { team: 1 | 2; at: HTMLElement | null; place?: number; onClose: () => void }) {
+// lands the player in that row's slot or the next (D37, slots since 0028).
+function AddToTeam({ team, at, slot, onClose }: { team: 1 | 2; at: HTMLElement | null; slot?: number; onClose: () => void }) {
   const { t } = useT();
   const ui = useUi();
   const moveTo = useMoveTo();
@@ -218,7 +250,7 @@ function AddToTeam({ team, at, place, onClose }: { team: 1 | 2; at: HTMLElement 
             {waiting.length > 0 && (
               <CommandGroup heading={t("teams.add.waiting")}>
                 {waiting.map((p) => (
-                  <CommandItem key={p.id} value={`${p.kick_username} ${p.riot_id ?? ""}`} onSelect={pick(() => void moveTo(p, team, place))}>
+                  <CommandItem key={p.id} value={`${p.kick_username} ${p.riot_id ?? ""}`} onSelect={pick(() => void moveTo(p, team, slot))}>
                     {/* Kick names run to 25 characters: both halves truncate rather than overflow. */}
                     <span className="truncate text-name">{p.kick_username}</span>
                     {riot && p.riot_id && <span className="min-w-0 truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
@@ -232,7 +264,7 @@ function AddToTeam({ team, at, place, onClose }: { team: 1 | 2; at: HTMLElement 
                 value="__new"
                 onSelect={pick(() => {
                   ui.setAddTo(team);
-                  ui.setAddAt(place ?? null);
+                  ui.setAddAt(slot ?? null);
                   ui.setAdding(true);
                 })}
               >
@@ -287,13 +319,13 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
   const [refused, setRefused] = useState(false);
   // Each opening is its own list (a new key), so a second target opens a fresh list there
   // instead of sliding the open one across; the same target again closes it.
-  const [add, setAdd] = useState<{ at: HTMLElement; n: number; place?: number } | null>(null);
+  const [add, setAdd] = useState<{ at: HTMLElement; n: number; slot?: number } | null>(null);
   const openAt = useCallback(
-    (at: HTMLElement, place?: number) => setAdd((a) => (a?.at === at ? null : { at, place, n: (a?.n ?? 0) + 1 })),
+    (at: HTMLElement, slot?: number) => setAdd((a) => (a?.at === at ? null : { at, slot, n: (a?.n ?? 0) + 1 })),
     [],
   );
   const canAdd = !landing && canWrite && count < size;
-  const rowAdd = useMemo(() => ({ open: openAt, full: count >= size }), [openAt, count, size]);
+  const rowAdd = useMemo(() => ({ team, size, open: openAt, full: count >= size, can: canAdd }), [team, size, openAt, count, canAdd]);
   // Drop target for a player of the other team, or anyone dragged here (August's team boxes).
   const takes = (d: ReturnType<typeof draggedPlayer>) => !!d && !(d.status === "playing" && d.team === team);
   const card = (
@@ -327,7 +359,7 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
       <div className={cn("h-[5px]", team === 1 ? "bg-team-1" : "bg-team-2")} aria-hidden />
       <div className="flex flex-col gap-3 p-4">
         {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
-        <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} place={add?.place} onClose={() => setAdd(null)} />
+        <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} slot={add?.slot} onClose={() => setAdd(null)} />
         <header aria-label={t(`team.${team}`)} className={cn(CARD_HEAD, team === 2 && MIRROR)}>
           {refused ? (
             <span role="status" className="text-destructive">
@@ -376,7 +408,6 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
         </header>
         <div data-rows className="@container flex flex-col gap-1.5">
           <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
-          <EmptySlots from={count} size={size} onAdd={canAdd ? openAt : undefined} />
         </div>
       </div>
     </section>
@@ -616,7 +647,8 @@ export function TeamsTab() {
                 </Tip>
               }
             >
-              {roster.map((p, n) => {
+              {slotLayout(roster, size).map((p, n) => {
+                if (!p) return <EmptySlot key={`slot-${n}`} n={n + 1} />;
                 const at = landing?.at.get(p.id);
                 return (
                   <PlayerRow

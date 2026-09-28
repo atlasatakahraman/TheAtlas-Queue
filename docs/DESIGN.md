@@ -1283,9 +1283,12 @@ sits between them (D25).
   `--brand`, alone once the team is full; owner, 2026-09-28) and the average rank; no colour square (the card's top
   edge already carries the team colour); right, **Add to {team}** in the team colour, which
   opens a searchable list of waiting players ending in *Add a new player…*. Every empty slot
-  opens the same list on itself (6.12). A player added that way, dropped on the card or moved
-  in by a menu takes the next slot, after the team's last row, never their queue-order place
-  (owner, 2026-09-28); a drop on a row, or *Add player above / below*, places them there (D37).
+  opens the same list on itself (6.12). **Slots are fixed** (owner, 2026-09-28, 0028): a player
+  added on, or dropped on, empty slot 4 lands in slot 4, slot 3 staying empty; one who leaves
+  leaves their slot empty. A drop on a taken row, or *Add player above / below*, inserts at that
+  slot (above) or the next (below) and pushes the others to the nearest empty slot, down first.
+  *Add to {team}*, a drop on the card and a menu's *Move to* take the first empty slot. Draw,
+  Reroll and Shuffle fill each team from the top, with no gaps.
 - **Roster** as inset rows (`bg-background border-row-edge`, `gap-1.5`): number, avatar, name
   `#TAG` with its tags, rank, the in-team row buttons, menu. **Always team-size slots**; free
   ones are dashed rows reading *Empty slot*, so the card keeps its height. While a draw lands

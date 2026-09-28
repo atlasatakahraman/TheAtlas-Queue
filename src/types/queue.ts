@@ -32,6 +32,8 @@ export type Player = {
   joined_at: string;
   // The place in the order (0017): a drag moves it; the joined time stays.
   sort_key: number;
+  // The slot on a team (0028, owner 2026-09-28): fixed, so a team can have gaps; null off a team.
+  team_slot: number | null;
   source: "chat" | "manual";
   deleted_at: string | null;
   changed_v: number;

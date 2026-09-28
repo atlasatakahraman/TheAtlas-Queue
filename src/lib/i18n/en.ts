@@ -580,6 +580,17 @@ export const en = {
   "confirm.riot_off.title": "Clear every Riot ID?",
   "confirm.riot_off.body": "{n} players have a Riot ID. Turning Riot IDs off clears them and their ranks, and their Kick name becomes their name. This cannot be undone.",
   "confirm.riot_off.action": "Clear Riot IDs",
+  "action.victory": "Victory",
+  "done.victory": "{team} won.",
+  "why.victory_empty": "Both teams need players",
+  "why.victory_pending": "Recording the game",
+  "game.stale": "Someone else recorded that game first.",
+  "error.game.team_empty": "Both teams need players to record a game.",
+  "error.game.not_found": "That game is gone.",
+  "act.record_game": "{actor} recorded game {n}",
+  "act.remove_game": "{actor} removed game {n}",
+  "act.clear_games": "{actor} cleared the games",
+  "act.forget_player": "{actor} removed a player from all games",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

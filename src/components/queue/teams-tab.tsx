@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown, ShieldCheck, Shuffle, UserPlus, UsersRound } from "lucide-react";
+import { ChevronDown, ShieldCheck, Shuffle, Trophy, UserPlus, UsersRound } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
@@ -269,7 +269,7 @@ export function LandingName({ entry, at, typed = true, children }: { entry: Draw
   );
 }
 
-function TeamCard({ team, count, size, avg, landing = false, children }: {
+function TeamCard({ team, count, size, avg, landing = false, victory, children }: {
   team: 1 | 2;
   count: number;
   size: number;
@@ -277,6 +277,7 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
   // A draw is landing in the rosters: adding waits, its controls disabled rather than gone
   // (owner, 2026-09-28).
   landing?: boolean;
+  victory?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const { t } = useT();
@@ -374,6 +375,7 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
           <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
           <EmptySlots from={count} size={size} onAdd={canAdd ? openAt : undefined} />
         </div>
+        {victory}
       </div>
     </section>
   );
@@ -545,18 +547,41 @@ export function TeamsTab() {
   const e4 = enter(ui.entering, 4);
   const offline = !canWrite ? t("why.offline") : null;
   const riot = useRanks();
+  const score = useQueue((v) => v.score);
+  const store = useStore();
+  // One press, one game: a second press before the first returns would send the same base and
+  // come back as someone else's game.
+  const [recording, setRecording] = useState(false);
+  const victory = (team: 1 | 2) => {
+    setRecording(true);
+    void act("record_game", { p_winner: team, p_base: store.get().games[0]?.id ?? null }, { done: "done.victory", vars: { team: t(`team.${team}`) } })
+      .then((r) => {
+        if (!isError(r) && r.kind === "game_stale") toast(t("game.stale"));
+      })
+      .finally(() => setRecording(false));
+  };
+  const victoryWhy =
+    offline ??
+    (landing ? t("why.draw_landing") : rosters.some((r) => r.length === 0) ? t("why.victory_empty") : recording ? t("why.victory_pending") : null);
 
   return (
     <div className="flex flex-col gap-6">
       {/* Team 1 over its card on the left, vs in the middle, team 2 on the right (owner, 2026-09-23). */}
-      <h2
-        style={e3.style}
-        className={cn("grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-x-4 font-serif text-headline max-md:text-title", e3.className)}
-      >
-        <span className="truncate text-team-1 selection:bg-team-1 selection:text-background">{t("team.1")}</span>
-        <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
-        <span className="truncate text-right text-team-2 selection:bg-team-2 selection:text-background">{t("team.2")}</span>
-      </h2>
+      <div style={e3.style} className={cn("flex flex-col gap-1", e3.className)}>
+        <h2 className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-x-4 font-serif text-headline max-md:text-title">
+          <span className="truncate text-team-1 selection:bg-team-1 selection:text-background">{t("team.1")}</span>
+          <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
+          <span className="truncate text-right text-team-2 selection:bg-team-2 selection:text-background">{t("team.2")}</span>
+        </h2>
+        {/* The score once a game is recorded, with no "this stream" wording (owner, DESIGN.md §
+            Team card); counts are Newsreader in the team colours. */}
+        {score.t1 + score.t2 > 0 && (
+          <p className="text-center text-meta text-muted-foreground">
+            {t("team.1")} <span className="font-serif text-body font-medium text-team-1 tabular-nums">{score.t1}</span> –{" "}
+            <span className="font-serif text-body font-medium text-team-2 tabular-nums">{score.t2}</span> {t("team.2")}
+          </p>
+        )}
+      </div>
 
       <div style={e4.style} className={cn("grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1", e4.className)}>
         {landing && <RevealEnd key={revealing!.id} duration={landing.duration} />}
@@ -568,7 +593,29 @@ export function TeamsTab() {
                 {t("match.vs")}
               </p>
             )}
-            <TeamCard team={(i + 1) as 1 | 2} count={roster.length} size={size} avg={!landing && riot && <Avg players={roster} />} landing={!!landing}>
+            <TeamCard
+              team={(i + 1) as 1 | 2}
+              count={roster.length}
+              size={size}
+              avg={!landing && riot && <Avg players={roster} />}
+              landing={!!landing}
+              victory={
+                // Under the roster, one press marks the winner; the after-game action is Settings'
+                // default and Undo in the toast takes it back (D27, owner 2026-09-27: no menu).
+                <Tip label={victoryWhy}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className={cn("self-start max-md:h-11", i === 0 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
+                    disabled={!!victoryWhy}
+                    onClick={() => victory((i + 1) as 1 | 2)}
+                  >
+                    <Trophy aria-hidden />
+                    {t("action.victory")}
+                  </Button>
+                </Tip>
+              }
+            >
               {roster.map((p, n) => {
                 const at = landing?.at.get(p.id);
                 return (

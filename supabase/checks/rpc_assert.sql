@@ -893,5 +893,45 @@ begin
   if public.overlay_snapshot(k2) is null then raise exception 'overlay: Undo did not bring the overlay back'; end if;
 end $$;
 
+-- 0032 (D23): the join settings. A moderator opens and closes joining (in History, no Undo) but
+-- cannot touch the rest; bad values name their field; the streamer adds by hand past every rule.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000007';
+  owner constant text := '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+  modr  constant text := '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+  r     jsonb;
+begin
+  execute 'reset role';
+  insert into public.channels (id, kick_channel_id, slug, display_name) values (ch, -801, 'qa-join-rules', 'qa join rules');
+  insert into public.channel_members (channel_id, kick_user_id, role, source) values (ch, -101, 'owner', 'owner'), (ch, -102, 'mod', 'manual');
+  insert into public.settings (channel_id) values (ch);
+  insert into public.players (channel_id, kick_username, source) values (ch, 'j1', 'chat');
+
+  execute 'set local role authenticated';
+  perform set_config('request.jwt.claims', modr, true);
+  r := public.set_join_open(ch, false, gen_random_uuid());
+  if r ->> 'kind' <> 'set_join_open' or (select join_open from public.settings where channel_id = ch)
+     or (select undo from public.activity where channel_id = ch and action = 'set_join_open') is not null then
+    raise exception 'join: a moderator could not close joining, or it has an Undo: %', r;
+  end if;
+  perform pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"queue_max":5}'), 'auth.role');
+  perform set_config('request.jwt.claims', owner, true);
+  if pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"queue_max":501}'), 'settings.invalid')::jsonb ->> 'field' <> 'queue_max'
+     or pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"join_cooldown":21}'), 'settings.invalid')::jsonb ->> 'field' <> 'join_cooldown'
+     or pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"join_badges":[]}'), 'settings.invalid')::jsonb ->> 'field' <> 'join_badges'
+     or pg_temp.expect(format('select public.update_settings(%L, %L, gen_random_uuid())', ch, '{"join_badges":["moderator"]}'), 'settings.invalid')::jsonb ->> 'field' <> 'join_badges' then
+    raise exception 'join: a bad join setting names the wrong field';
+  end if;
+  perform public.update_settings(ch, '{"queue_max":1,"join_cooldown":3,"join_subs_only":true,"join_badges":["vip"]}', gen_random_uuid());
+  if (select (queue_max, join_cooldown, join_subs_only, join_badges) <> (1::smallint, 3::smallint, true, array['vip']) from public.settings where channel_id = ch) then
+    raise exception 'join: the settings did not save';
+  end if;
+  perform public.add_player(ch, 'byhand', null, gen_random_uuid(), null);
+  if not exists (select 1 from public.players where channel_id = ch and kick_username = 'byhand' and deleted_at is null) then
+    raise exception 'join: the rules refused an add by hand';
+  end if;
+end $$;
+
 select 'rpc ok' as result;
 rollback;

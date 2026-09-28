@@ -204,6 +204,48 @@ begin
   if n <> 7 then raise exception 'server RPC grants: % of 7 correct', n; end if;
 end $$;
 
+-- 0032 (D23): the join rules bind chat. Channel qa-join (broadcaster -1201), queue limit 2, one
+-- game to sit out, subscribers or VIPs only. Each rule turns !join away with its reason as a feed
+-- line; a moderator and the streamer pass subscribers-only; a game taken back does not count;
+-- closed turns everyone away. (Adding by hand skips them: rpc_assert.sql.)
+do $$
+declare
+  ch constant uuid := 'c0000000-0000-4000-8000-00000000000b';
+  r  jsonb;
+  g1 uuid := gen_random_uuid();
+begin
+  insert into public.channels (id, kick_channel_id, slug, display_name) values (ch, -1201, 'qa-join', 'qa join');
+  insert into public.settings (channel_id, queue_max, join_cooldown, join_subs_only, join_badges)
+    values (ch, 2, 1, true, array['subscriber', 'vip']);
+  insert into public.games (id, channel_id, n, winner, teams, team_size, request_id)
+    values (g1, ch, 1, 1, '[[],[]]', 1, gen_random_uuid());
+  insert into public.game_players (game_id, channel_id, name, kick_username, team, won)
+    values (g1, ch, 'played1', 'Played1', 1, true);
+
+  r := public.ingest_chat(-1201, 'qa-j1', 'join', null, -3001, 'plain1', '{}');
+  if r ->> 'reason' <> 'queue.badge' then raise exception 'join rules: no badge let in: %', r; end if;
+  r := public.ingest_chat(-1201, 'qa-j2', 'join', null, -3002, 'mod1', array['moderator']);
+  if r ->> 'result' <> 'joined' then raise exception 'join rules: a moderator was turned away: %', r; end if;
+  r := public.ingest_chat(-1201, 'qa-j3', 'join', null, -3003, 'Played1', array['subscriber']);
+  if r ->> 'reason' <> 'queue.cooldown_games' then raise exception 'join rules: sitting out let in: %', r; end if;
+  if (select payload ->> 'reason' from public.activity where channel_id = ch and action = 'chat_rejected' and target = 'Played1') <> 'queue.cooldown_games' then
+    raise exception 'join rules: no feed line with the reason';
+  end if;
+  update public.games set removed_at = now() where id = g1;
+  r := public.ingest_chat(-1201, 'qa-j4', 'join', null, -3004, 'Played1', array['subscriber']);
+  if r ->> 'result' <> 'joined' then raise exception 'join rules: a game taken back still counts: %', r; end if;
+  r := public.ingest_chat(-1201, 'qa-j5', 'join', null, -3005, 'sub5', array['subscriber']);
+  if r ->> 'reason' <> 'queue.full' then raise exception 'join rules: the limit let in: %', r; end if;
+  update public.settings set queue_max = 0, join_open = false where channel_id = ch;
+  r := public.ingest_chat(-1201, 'qa-j6', 'join', null, -3006, 'vip1', array['vip']);
+  if r ->> 'reason' <> 'queue.closed' then raise exception 'join rules: closed let in: %', r; end if;
+  update public.settings set join_open = true where channel_id = ch;
+  r := public.ingest_chat(-1201, 'qa-j7', 'join', null, -3007, 'vip2', array['vip']);
+  if r ->> 'result' <> 'joined' then raise exception 'join rules: a VIP was turned away: %', r; end if;
+  r := public.ingest_chat(-1201, 'qa-j8', 'join', null, -1201, 'streamer', '{}');
+  if r ->> 'result' <> 'joined' then raise exception 'join rules: the streamer was turned away: %', r; end if;
+end $$;
+
 -- service_role (the secret key) can call them through the API role.
 set local role service_role;
 select case when public.webhook_context(-1001) is not null then 'server ok' end as result;

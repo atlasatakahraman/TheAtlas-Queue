@@ -731,8 +731,8 @@ Each is a table on the queue table's grid rules (header row, `bg-row` rows, 6px 
 
 | Sub-tab | Columns |
 |---|---|
-| Warnings | Player (name + tags) · Reason · Respect · Given (time, by whom) · `⋯` (turn into a punishment, lift) |
-| Punishments | Player · Length (*3 games left* / *until 22:10*) · Reason · Respect · Ends · `⋯` (edit length, lift) |
+| Warnings | Player (name + tags) · Reason · Respect · Given (time, by whom) · `⋯` (warn again, turn into a punishment, ban, lift) |
+| Punishments | Player · Length (*3 games left* / *until 22:10*) · Reason · Respect · Ends · `⋯` (edit length, ban, lift) |
 | Bans | Player · Reason · Respect · Since · `⋯` (edit length, lift) |
 
 **Turn into a punishment** (D22, August's *Türü Değiştir*) opens the punish form for that
@@ -740,7 +740,10 @@ player with the warning's reason filled in; saving replaces the warning with the
 write and one Undo. **Edit length** (August's *Süreyi Düzenle*) opens the same form with the
 current length (games left, minutes left, or the ban's length) and no reason field; the new
 length counts from now. Both are built in Stage 8 into today's sanction cards' `⋯`, and move
-into these tables with them.
+into these tables with them. *Warn again* and *Ban* on a sanction's row are August's *Uyarı Ekle*
+and *Yasakla* (walk-through, Stage 8), for a player who has left the queue. The punish form gains
+August's quick lengths as a toggle group above the amount: *1 game*, *2 games*, *1 day*, *1 week*
+(Stage 9).
 
 **New action** (primary on this tab) and **Clear sanctions** (streamer only, undoable) sit right
 of the sub-tabs. Lifted and served sanctions stay in their table, dimmed, with *Lifted* /

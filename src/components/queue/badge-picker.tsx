@@ -16,12 +16,14 @@ export const BADGE_LOOK: Record<Badge, { icon: LucideIcon; tone: string }> = {
   sub_gifter: { icon: Gift, tone: "text-success" },
 };
 
-// A tile per badge, a checkbox group (Tab between tiles, Space toggles). The last selected tile
-// refuses to clear, with the reason; the sentence under it says the result live.
-export function BadgePicker({ label, value, onChange, result }: {
+// A tile per badge, a checkbox group (Tab between tiles, Space toggles). Each tile says what its
+// holders get as it stands (owner, 2026-09-28); the last selected tile refuses to clear, with the
+// reason; the sentence under the tiles says the result live.
+export function BadgePicker({ label, value, onChange, effect, result }: {
   label: string;
   value: readonly string[];
   onChange: (next: string[]) => void;
+  effect: (who: string, on: boolean) => string;
   result: (who: string) => string;
 }) {
   const { t, lang } = useT();
@@ -60,7 +62,7 @@ export function BadgePicker({ label, value, onChange, result }: {
               <Icon className={cn("size-5", tone)} aria-hidden />
               <span className="flex min-w-0 flex-col">
                 <span className="text-control font-semibold">{t(`badge.${b}`)}</span>
-                <span className="text-meta text-muted-foreground">{t(`badge.${b}.holds`)}</span>
+                <span className="text-meta text-muted-foreground">{effect(t(`badge.${b}.plural`), on)}</span>
               </span>
               <span
                 className={cn(

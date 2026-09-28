@@ -1157,7 +1157,9 @@ Subscribers and VIPs get 3 protected picks every 30 days, and check what is left
 ```
 
 - A tile: `rounded-xl bg-background border px-3.5 py-3`, the glyph (20px, the badge's colour),
-  the name (`text-control` semibold), who holds it (`text-meta` muted), a 20px check box on the
+  the name (`text-control` semibold), what its holders get as it stands (`text-meta` muted:
+  *Subscribers stay in their team on a reroll* / *…are rerolled like anyone*; owner,
+  2026-09-28), a 20px check box on the
   right. Checked: gold edge, the box filled gold with a check. Tiles fill the row at 13rem each.
 - The sentence under it is live and joins the chosen badges with `Intl.ListFormat` in the page
   language. **The last checked tile refuses to clear**; the sentence turns destructive and says

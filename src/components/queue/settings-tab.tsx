@@ -280,6 +280,7 @@ function DrawsSection() {
             label={t("settings.perk_badges")}
             value={s.draft.perk_badges}
             onChange={(v) => void s.put("perk_badges", v)}
+            effect={(who, on) => t(on ? "settings.perk_badges.on" : "settings.perk_badges.off", { who })}
             result={(who) => t("settings.perk.viewer", { who, uses: s.draft.perk_uses, days: s.draft.perk_window_days })}
           />
         </>

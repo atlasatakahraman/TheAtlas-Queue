@@ -287,6 +287,14 @@
   html {
     @apply font-sans;
     scroll-padding-top: calc(3.8125rem + 20px);
+    /* The scrollbar's room is kept whether the page scrolls or not, so a short skeleton and the
+       long page after it are the same width (10.10: the page moved 15px sideways as it arrived). */
+    scrollbar-gutter: stable;
+  }
+  /* The gutter already holds the scrollbar's room, so a menu or dialog locking the scroll must not
+     add it again (react-remove-scroll's margin shrank the page 15px while one was open). */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
   @media (prefers-reduced-motion: no-preference) {
     html {

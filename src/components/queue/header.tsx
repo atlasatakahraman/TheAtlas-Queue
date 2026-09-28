@@ -125,8 +125,10 @@ export function TopBar() {
     <div className="flex items-center justify-between gap-3">
       <span className="flex min-w-0 items-center gap-3 select-none">
         {/* The way back to the selection page (D19): the tile, the wordmark and the channel are one
-            link to it, which never redirects from there (?pick). */}
-        <Tip label={t("select.back")}>
+            link to it, which never redirects from there (?pick). Its tooltip hangs from the tile:
+            centred on the whole title it sat under the slash, pointing at nothing (owner,
+            2026-09-28); Radix drops the arrow when it cannot point at the middle. */}
+        <Tip label={t("select.back")} align="start">
           <Link href="/?pick" className="flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
             {/* The black tile on paper, the white one on ink. */}
             <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />

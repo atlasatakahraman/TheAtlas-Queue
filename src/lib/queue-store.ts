@@ -1,6 +1,6 @@
 "use client";
 import { db } from "@/lib/supabase/browser";
-import type { Activity, ChangeEvent, Draw, Member, Player, QueueState, Row, Sanction } from "@/types/queue";
+import type { Activity, ChangeEvent, Draw, Game, Member, Player, PlayerRecord, QueueState, Row, Sanction, Score } from "@/types/queue";
 
 // The dashboard's client state (spec § Realtime → Client store). get_state seeds it; events on
 // ch:<channel_id> move it one version at a time: v == local+1 applies, v <= local is an echo of
@@ -16,6 +16,7 @@ export type QueueView = QueueState & {
   arrived: Record<string, number>; // player id → when a realtime arrival landed
   reverted: Record<string, number>; // player id → when a failed action put it back
   reveal: Draw | null; // a draw this device has not played yet
+  gamesEpoch: number; // bumped when the games list must be read again (Clear games and its undo)
 };
 
 export type RpcError = { key: string; detail: Record<string, unknown> };
@@ -36,6 +37,8 @@ export function markPlayed(id: string) {
     localStorage.setItem(PLAYED_KEY, JSON.stringify([id, ...played().filter((x) => x !== id)].slice(0, 20)));
   } catch {}
 }
+
+const byNumber = (a: Game, b: Game) => b.n - a.n;
 
 const byOrder = (a: Player, b: Player) => a.sort_key - b.sort_key || a.joined_at.localeCompare(b.joined_at);
 
@@ -68,6 +71,7 @@ export function createQueueStore(initial: QueueState, me: number) {
     arrived: {},
     reverted: {},
     reveal: null,
+    gamesEpoch: 0,
   };
   const listeners = new Set<() => void>();
   const set = (next: QueueView) => {
@@ -130,6 +134,30 @@ export function createQueueStore(initial: QueueState, me: number) {
             : upsert(next.members, m, (x) => x.kick_user_id === m.kick_user_id);
           break;
         }
+        case "games": {
+          const g = r as unknown as Game;
+          next.games = g.removed_at
+            ? next.games.filter((x) => x.id !== g.id)
+            : upsert(next.games, g, (x) => x.id === g.id).sort(byNumber);
+          break;
+        }
+        case "games_reload":
+          // Too many games changed to send (Clear games, its Undo): read the newest again.
+          next.games = [];
+          next.gamesEpoch = next.gamesEpoch + 1;
+          break;
+        case "player_records": {
+          const rec = r as unknown as PlayerRecord;
+          next.records = r._deleted
+            ? next.records.filter((x) => x.name !== rec.name)
+            : upsert(next.records, rec, (x) => x.name === rec.name);
+          break;
+        }
+        case "score": {
+          const { since, t1, t2 } = r as unknown as Score;
+          next.score = { since, t1, t2 };
+          break;
+        }
         case "activity": {
           const a = r as unknown as Activity;
           // Clear history leaves its own line only (0022).
@@ -157,16 +185,21 @@ export function createQueueStore(initial: QueueState, me: number) {
       const s = data as QueueState;
       // A draw that landed while this tab was away still reveals if it is fresh.
       const reveal = s.draw && s.draw.id !== view.draw?.id && revealable(s.draw) ? s.draw : view.reveal;
-      set({ ...view, ...s, players: s.players.sort(byOrder), reveal });
+      // Older games a Games tab paged in stay; the newest 20 come from the snapshot.
+      const newest = new Set(s.games.map((g) => g.id));
+      const oldest = s.games.at(-1)?.n ?? Infinity;
+      const games = [...s.games, ...view.games.filter((g) => !newest.has(g.id) && g.n < oldest)];
+      set({ ...view, ...s, games, players: s.players.sort(byOrder), reveal });
     })().finally(() => (inflight = undefined));
     return inflight;
   }
 
   function apply(ev: ChangeEvent, remote: boolean) {
-    if (ev.kind === "draw_stale") return set(merge(view, ev.rows, true));
+    if (ev.kind === "draw_stale" || ev.kind === "game_stale") return set(merge(view, ev.rows, true));
     if (ev.v <= view.v) return;
     if (ev.v > view.v + 1) return void refetch();
     set({ ...merge(view, ev.rows, remote), v: ev.v });
+    if (ev.rows.some((r) => r._t === "games_reload")) void refetch();
   }
 
   // Calls a member RPC with a request_id; one automatic retry with the same id on a network
@@ -253,6 +286,8 @@ export function createQueueStore(initial: QueueState, me: number) {
     call,
     optimistic,
     revert,
+    // A page of older games the Games tab read (keyset, 50 at a time).
+    addGames: (rows: Game[]) => set({ ...view, games: rows.reduce((l, g) => upsert(l, g, (x) => x.id === g.id), view.games).sort(byNumber) }),
     clearReveal: () => {
       if (view.reveal) markPlayed(view.reveal.id);
       set({ ...view, reveal: null });

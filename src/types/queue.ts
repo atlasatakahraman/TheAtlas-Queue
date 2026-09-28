@@ -53,6 +53,42 @@ export type Draw = {
   undone_at: string | null;
 };
 
+// A recorded game (D27, 0027): both rosters as they stood, each player with their rank then. A
+// player removed from all history leaves { removed: true } in their place. n is the channel's
+// game number, never reused, so /games/<n> stays put.
+export type GameEntry =
+  | { id: string; kick_username: string; riot_id: string | null; locked: boolean; rank: Rank; removed?: undefined }
+  | { removed: true };
+export type Game = {
+  id: string;
+  channel_id: string;
+  n: number;
+  draw_id: string | null;
+  winner: 1 | 2;
+  teams: [GameEntry[], GameEntry[]];
+  team_size: number;
+  started_at: string | null;
+  ended_at: string;
+  recorded_by: string | null;
+  removed_at: string | null;
+};
+// A name's record over the kept games; streak is signed (3 won in a row, -2 lost two).
+export type PlayerRecord = {
+  name: string;
+  wins: number;
+  losses: number;
+  streak: number;
+  best: number;
+  last_game_at: string | null;
+};
+// This stream's score: games since the stream went live (or the last 12 hours offline).
+export type Score = { since: string; t1: number; t2: number };
+
+// What Victory does next (Settings, D27): record only, shuffle, a new draw from queue + teams or
+// from the queue only, everyone back to the queue, losers back.
+export const AFTER_GAME = ["none", "shuffle", "draw_all", "draw_queue", "queue", "losers"] as const;
+export type AfterGame = (typeof AFTER_GAME)[number];
+
 export type Sanction = {
   id: string;
   kick_username: string;
@@ -123,6 +159,8 @@ export type Settings = {
   fair_play: boolean;
   draw_reveal: DrawReveal;
   clear_on_offline: boolean;
+  after_game: AfterGame;
+  games_retention_days: number;
   stream_locale: Lang;
   watch_enabled: boolean;
   watch_sections: WatchSection[];
@@ -146,6 +184,9 @@ export type QueueState = {
   respect: Record<string, number>;
   activity: Activity[];
   members: Member[];
+  games: Game[];
+  score: Score;
+  records: PlayerRecord[];
 };
 
 // The dashboard's server actions (src/lib/server/dashboard.ts), handed down by the server page

@@ -413,9 +413,9 @@ export function PlayerAvatar({ player }: { player: Player }) {
 }
 
 // Respect (spec § Respect score): 100 is a clean record.
-function RespectBadge({ player }: { player: Player }) {
+export function RespectBadge({ name }: { name: string }) {
   const { t } = useT();
-  const score = useQueue((v) => v.respect[player.kick_username.toLowerCase()]) ?? 100;
+  const score = useQueue((v) => v.respect[name.toLowerCase()]) ?? 100;
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -804,7 +804,7 @@ export function PlayerRow({
             {/* One line (D36): the name truncates first, then the tags fold to icons. */}
             <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
               <PlayerName player={player} seen={seen} stacked={table} typeAt={landAt} keyboard={kbd} />
-              {table && <RespectBadge player={player} />}
+              {table && <RespectBadge name={player.kick_username} />}
               <PlayerTags player={player} showState={table} />
             </div>
           </div>

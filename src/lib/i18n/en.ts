@@ -547,6 +547,23 @@ export const en = {
   "sanction.quick.g1": "1 game",
   "sanction.quick.g2": "2 games",
   "sanction.quick.w1": "1 week",
+  "mod.sub.label": "Sanction type",
+  "mod.sub.warn": "Warnings",
+  "mod.sub.punish": "Punishments",
+  "mod.sub.ban": "Bans",
+  "mod.empty.warn": "No warnings this session.",
+  "mod.empty.punish": "No punishments this session.",
+  "mod.empty.ban": "No bans.",
+  "mod.warn_again": "Warn again",
+  "mod.length.games": "{n} games left",
+  "mod.time_left": "{t} left",
+  "mod.after_games": "When the games are played",
+  "col.length": "Length",
+  "col.reason": "Reason",
+  "col.respect": "Respect",
+  "col.given": "Given",
+  "col.ends": "Ends",
+  "col.since": "Since",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

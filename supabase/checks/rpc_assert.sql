@@ -741,5 +741,68 @@ begin
   if not exists (select 1 from public.watch_sitemap() w where w.slug = 'qa-watch') then raise exception 'watch: an enabled page is not in the sitemap'; end if;
 end $$;
 
+-- 0030 (D38): teammate variety. Channel qa-variety, team size 2, v1..v4. No history is a plain
+-- split (every split turns up); the same 4 drawn again after a game are split differently; after
+-- two games Shuffle finds the one split nobody shared; the recorded players carry their Kick id;
+-- more than 10 free players sample; nobody but the draw RPCs can call the scorer.
+do $$
+declare
+  ch    constant uuid := 'c0000000-0000-4000-8000-000000000005';
+  owner constant text := '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+  ids   uuid[];
+  seen  text[] := '{}';
+  t     uuid[];
+  f1    text;
+  f2    text;
+  s2    text;
+  mate  text;
+  base  uuid;
+  k     integer;
+begin
+  execute 'reset role';
+  insert into public.channels (id, kick_channel_id, slug, display_name) values (ch, -601, 'qa-variety', 'qa variety');
+  insert into public.channel_members (channel_id, kick_user_id, role, source) values (ch, -101, 'owner', 'owner');
+  insert into public.settings (channel_id, team_size) values (ch, 2);
+  insert into public.players (channel_id, kick_user_id, kick_username, source, joined_at)
+    select ch, -600 - i, 'v' || i, 'chat', now() - make_interval(secs => 10 - i) from generate_series(1, 4) i;
+  select array_agg(id order by kick_username) into ids from public.players where channel_id = ch;
+  for k in 1..200 loop
+    t := private.split_teams(ch, ids, 2, '{}', '{}');
+    if cardinality(t) <> 2 or not t <@ ids then raise exception 'variety: a split of 4 is not 2 of them: %', t; end if;
+    seen := seen || (select string_agg(x::text, ',' order by x) from unnest(t) x);
+  end loop;
+  if (select count(distinct x) from unnest(seen) x) <> 6 then raise exception 'variety: no history is not a plain split'; end if;
+  t := private.split_teams(ch, (select array_agg(gen_random_uuid()) from generate_series(1, 12)), 6, '{}', '{}');
+  if cardinality(t) <> 6 then raise exception 'variety: 12 free players are not sampled: %', t; end if;
+  if has_function_privilege('authenticated', 'private.split_teams(uuid, uuid[], integer, uuid[], uuid[])', 'execute') then
+    raise exception 'variety: the scorer is callable by a browser role';
+  end if;
+
+  execute 'set local role authenticated';
+  perform set_config('request.jwt.claims', owner, true);
+  perform public.draw_teams(ch, null, false, gen_random_uuid());
+  select string_agg(kick_username, ',' order by kick_username) filter (where team = 1),
+         string_agg(kick_username, ',' order by kick_username) filter (where team = 2)
+  into f1, f2 from public.players where channel_id = ch;
+  perform public.record_game(ch, 1::smallint, null, gen_random_uuid());
+  if exists (select 1 from public.game_players where channel_id = ch and kick_user_id is null) then
+    raise exception 'variety: a recorded player has no Kick id';
+  end if;
+  base := (select id from public.draws where channel_id = ch and undone_at is null order by created_at desc limit 1);
+  perform public.draw_teams(ch, base, false, gen_random_uuid());
+  select string_agg(kick_username, ',' order by kick_username) filter (where team = 1) into s2 from public.players where channel_id = ch;
+  if s2 in (f1, f2) then raise exception 'variety: the same 4 were split as before (% | %)', f1, f2; end if;
+  perform public.record_game(ch, 2::smallint, (select id from public.games where channel_id = ch order by n desc limit 1), gen_random_uuid());
+  base := (select id from public.draws where channel_id = ch and undone_at is null order by created_at desc limit 1);
+  perform public.shuffle_teams(ch, base, gen_random_uuid());
+  -- v1 has shared a team with two of the others; the third is the only teammate left unshared.
+  select p.kick_username into mate from public.players p join public.players me on me.channel_id = p.channel_id and me.team = p.team
+  where p.channel_id = ch and me.kick_username = 'v1' and p.kick_username <> 'v1';
+  if exists (select 1 from public.game_players a join public.game_players b on b.game_id = a.game_id and b.team = a.team
+             where a.channel_id = ch and a.name = 'v1' and b.name = mate) then
+    raise exception 'variety: Shuffle paired v1 with a past teammate (%)', mate;
+  end if;
+end $$;
+
 select 'rpc ok' as result;
 rollback;

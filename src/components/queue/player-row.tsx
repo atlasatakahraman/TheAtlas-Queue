@@ -848,7 +848,14 @@ export function PlayerRow({
               <Joined player={player} />
             </span>
           )}
-          <span className="flex items-center justify-end">
+          {/* In a narrow list the buttons take a line of their own under the name (at 375px four
+              44px touch buttons left the name 27px): under 40rem of table, 24rem of roster. */}
+          <span
+            className={cn(
+              "flex items-center justify-end",
+              table ? "@max-[40rem]:col-span-full @max-[40rem]:mt-2" : "@max-[24rem]:col-span-full @max-[24rem]:mt-2",
+            )}
+          >
             <QuickActions player={player} />
             <RowMenu player={player} kit="dropdown" open={menuOpen} onOpenChange={setMenuOpen} />
           </span>

@@ -370,7 +370,7 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
             </Button>
           </Tip>
         </header>
-        <div data-rows className="flex flex-col gap-1.5">
+        <div data-rows className="@container flex flex-col gap-1.5">
           <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
           <EmptySlots from={count} size={size} onAdd={canAdd ? openAt : undefined} />
         </div>

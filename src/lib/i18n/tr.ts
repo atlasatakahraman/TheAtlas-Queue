@@ -552,4 +552,12 @@ export const tr: Record<LabelKey, string> = {
   "col.given": "Verildi",
   "col.ends": "Bitiş",
   "col.since": "Başlangıç",
+  "why.pick_none": "Seçilecek kimse yok",
+  "why.queue_empty": "Sıra boş",
+  "why.already_in": "Zaten {team} içinde",
+  "why.already_waiting": "Zaten bekliyor",
+  "why.teams_empty": "Takımlarda kimse yok",
+  "why.shuffle_two": "Takımlarda en az iki oyuncu gerekir",
+  "why.reroll_none": "Yeniden çekilecek takım kurası yok",
+  "why.draw_landing": "Kuranın oturmasını bekle",
 };

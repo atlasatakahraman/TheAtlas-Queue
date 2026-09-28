@@ -8,6 +8,7 @@ import { NewSanctionDialog } from "@/components/queue/sanction-dialog";
 import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
 import { useDrawActions } from "@/components/queue/teams-tab";
 import { enter, useUi } from "@/components/queue/ui";
+import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -180,11 +181,13 @@ function SanctionMenu({ m, active }: { m: Sanction; active: boolean }) {
   const warnTone = "text-warning focus:text-current [&_svg]:text-current!";
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="max-md:size-11" aria-label={t("menu.open", { name })}>
-          <Ellipsis aria-hidden />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tip label={t("menu.open", { name })}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="max-md:size-11" aria-label={t("menu.open", { name })}>
+            <Ellipsis aria-hidden />
+          </Button>
+        </DropdownMenuTrigger>
+      </Tip>
       <DropdownMenuContent align="end" className="min-w-56 p-1.5">
         {m.kind === "warn" && (
           <DropdownMenuItem disabled={!canWrite} className={warnTone} onSelect={() => ui.setSanction({ name, kind: "warn" })}>

@@ -564,6 +564,14 @@ export const en = {
   "col.given": "Given",
   "col.ends": "Ends",
   "col.since": "Since",
+  "why.pick_none": "No one to pick from",
+  "why.queue_empty": "The queue is empty",
+  "why.already_in": "Already in {team}",
+  "why.already_waiting": "Already waiting",
+  "why.teams_empty": "No one is on a team",
+  "why.shuffle_two": "Needs at least two players on the teams",
+  "why.reroll_none": "No team draw to reroll",
+  "why.draw_landing": "Wait for the draw to land",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

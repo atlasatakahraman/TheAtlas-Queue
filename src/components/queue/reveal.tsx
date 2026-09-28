@@ -2,6 +2,7 @@
 import { FastForward, type LucideIcon, RotateCcw, Undo2, UserPlus, Users, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/components/i18n";
+import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import { PlayerAvatar, RankText, usePlayerActions, useTeamRoom } from "@/components/queue/player-row";
 import { ResponsiveDialog } from "@/components/queue/responsive-dialog";
@@ -354,32 +355,39 @@ function PickedActions({ p }: { p: Player }) {
   const a = usePlayerActions(p);
   const canWrite = useCanWrite();
   const room = useTeamRoom();
-  const moves: { label: string; icon: LucideIcon; tone: string; run: () => unknown; off: boolean }[] = [
+  const size = useQueue((v) => v.settings.team_size);
+  // Why a move is disabled (D25), shown in its tooltip; null when it can run.
+  const moves: { label: string; icon: LucideIcon; tone: string; run: () => unknown; why: string | null }[] = [
     ...([1, 2] as const).map((n) => ({
       label: t("menu.move_to", { team: t(`team.${n}`) }),
       icon: UserPlus,
       tone: n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2",
       run: () => a.moveTo(n),
-      off: p.team === n || room(n) < 1,
+      why:
+        p.team === n
+          ? t("why.already_in", { team: t(`team.${n}`) })
+          : room(n) < 1
+            ? t("why.team_full", { team: t(`team.${n}`), n: size - room(n), size })
+            : null,
     })),
-    { label: t("menu.to_waiting"), icon: Undo2, tone: "text-muted-foreground", run: a.toWaiting, off: p.status !== "playing" },
-    { label: t("menu.remove"), icon: X, tone: "text-muted-foreground", run: a.remove, off: false },
+    { label: t("menu.to_waiting"), icon: Undo2, tone: "text-muted-foreground", run: a.toWaiting, why: p.status !== "playing" ? t("why.already_waiting") : null },
+    { label: t("menu.remove"), icon: X, tone: "text-muted-foreground", run: a.remove, why: null },
   ];
   return (
     <span className="ml-auto flex shrink-0 items-center">
-      {moves.map(({ label, icon: Icon, tone, run, off }) => (
-        <Button
-          key={label}
-          variant="ghost"
-          size="icon"
-          className={cn("max-md:size-11", tone)}
-          disabled={!canWrite || off}
-          aria-label={label}
-          title={label}
-          onClick={() => void run()}
-        >
-          <Icon aria-hidden />
-        </Button>
+      {moves.map(({ label, icon: Icon, tone, run, why }) => (
+        <Tip key={label} label={!canWrite ? t("why.offline") : (why ?? label)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("max-md:size-11", tone)}
+            disabled={!canWrite || !!why}
+            aria-label={label}
+            onClick={() => void run()}
+          >
+            <Icon aria-hidden />
+          </Button>
+        </Tip>
       ))}
     </span>
   );

@@ -6,6 +6,7 @@ import { BadgePicker } from "@/components/queue/badge-picker";
 import { Tag } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
+import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -472,15 +473,17 @@ function LabelsSection() {
               value={own[k] ?? ""}
               onChange={(e) => setLabel(k, e.target.value)}
             />
-            <Button
-              variant="ghost"
-              size="icon-lg"
-              className={cn("max-md:size-11", !own[k] && "invisible")}
-              aria-label={t("settings.labels.reset")}
-              onClick={() => setLabel(k, "")}
-            >
-              <RotateCcw aria-hidden />
-            </Button>
+            <Tip label={own[k] ? t("settings.labels.reset") : null}>
+              <Button
+                variant="ghost"
+                size="icon-lg"
+                className={cn("max-md:size-11", !own[k] && "invisible")}
+                aria-label={t("settings.labels.reset")}
+                onClick={() => setLabel(k, "")}
+              >
+                <RotateCcw aria-hidden />
+              </Button>
+            </Tip>
           </div>
         ))}
       </div>

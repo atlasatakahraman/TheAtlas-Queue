@@ -13,6 +13,7 @@ import { useMedia } from "@/components/use-client-state";
 import { useNow } from "@/components/use-now";
 import { span } from "@/lib/time";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tip } from "@/components/tip";
 import { ThemeButton } from "@/components/theme-button";
 import { Typed, usePrefs } from "@/components/prefs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -169,20 +170,26 @@ export function TopBar() {
       <div className="flex shrink-0 items-center gap-1">
         <ConnectionPill />
         <div className="flex items-center gap-1 max-md:hidden">
-          <Button variant="ghost" size="icon-lg" aria-label={t("palette.open")} onClick={() => ui.setPalette(true)}>
-            <Search aria-hidden />
-          </Button>
+          <Tip label={t("palette.open")}>
+            <Button variant="ghost" size="icon-lg" aria-label={t("palette.open")} onClick={() => ui.setPalette(true)}>
+              <Search aria-hidden />
+            </Button>
+          </Tip>
           <LangSwitch />
-          <Button variant="ghost" size="icon-lg" asChild>
-            <a href={SOURCE_URL} target="_blank" rel="noreferrer" aria-label={t("header.github")}>
-              <GitHubMark />
-            </a>
-          </Button>
+          <Tip label={t("header.github")}>
+            <Button variant="ghost" size="icon-lg" asChild>
+              <a href={SOURCE_URL} target="_blank" rel="noreferrer" aria-label={t("header.github")}>
+                <GitHubMark />
+              </a>
+            </Button>
+          </Tip>
           <ThemeButton />
           {role === "owner" && (
-            <Button variant="ghost" size="icon-lg" aria-label={t("tab.settings")} onClick={() => ui.setTab("settings")}>
-              <Settings aria-hidden />
-            </Button>
+            <Tip label={t("tab.settings")}>
+              <Button variant="ghost" size="icon-lg" aria-label={t("tab.settings")} onClick={() => ui.setTab("settings")}>
+                <Settings aria-hidden />
+              </Button>
+            </Tip>
           )}
         </div>
         <DropdownMenu>

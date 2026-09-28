@@ -8,6 +8,7 @@ import { draggedPlayer, PlayerRow, RankText, Tag, TeamAddContext, useMoveTo, use
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typed, useMotion } from "@/components/prefs";
+import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -340,17 +341,29 @@ function TeamCard({ team, count, size, avg, landing = false, children }: {
               {avg}
             </span>
           )}
-          <Button
-            variant="ghost"
-            size="lg"
-            className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
-            disabled={!canAdd}
-            data-add-target
-            onClick={(e) => openAt(e.currentTarget)}
+          <Tip
+            label={
+              !canWrite
+                ? t("why.offline")
+                : landing
+                  ? t("why.draw_landing")
+                  : count >= size
+                    ? t("why.team_full", { team: t(`team.${team}`), n: count, size })
+                    : null
+            }
           >
-            <UserPlus aria-hidden />
-            {t("teams.add", { team: t(`team.${team}`) })}
-          </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className={cn("max-md:h-11", team === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2")}
+              disabled={!canAdd}
+              data-add-target
+              onClick={(e) => openAt(e.currentTarget)}
+            >
+              <UserPlus aria-hidden />
+              {t("teams.add", { team: t(`team.${team}`) })}
+            </Button>
+          </Tip>
         </header>
         <div data-rows className="flex flex-col gap-1.5">
           <TeamAddContext.Provider value={rowAdd}>{children}</TeamAddContext.Provider>
@@ -520,6 +533,7 @@ export function TeamsTab() {
   const landing = useLanding(revealing, rosters);
   const e3 = enter(ui.entering, 3);
   const e4 = enter(ui.entering, 4);
+  const offline = !canWrite ? t("why.offline") : null;
   const riot = useRanks();
 
   return (
@@ -579,28 +593,37 @@ export function TeamsTab() {
           </Label>
         </div>
         <div className="flex flex-wrap items-center gap-2 max-md:grid max-md:grid-cols-2">
-          <Button variant="destructive" size="lg" className="max-md:h-11" disabled={!canWrite || playing === 0} onClick={() => void clearTeams()}>
-            {t("action.clear_teams")}
-          </Button>
-          <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || playing < 2} onClick={() => void shuffle()}>
-            {t("action.shuffle_teams")}
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="max-md:h-11"
-            disabled={!canWrite || draw?.kind !== "teams"}
-            onClick={() => void reroll()}
-          >
-            {t("action.reroll")}
-          </Button>
+          {/* A disabled button says why (D25). */}
+          <Tip label={offline ?? (playing === 0 ? t("why.teams_empty") : null)}>
+            <Button variant="destructive" size="lg" className="max-md:h-11" disabled={!canWrite || playing === 0} onClick={() => void clearTeams()}>
+              {t("action.clear_teams")}
+            </Button>
+          </Tip>
+          <Tip label={offline ?? (playing < 2 ? t("why.shuffle_two") : null)}>
+            <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || playing < 2} onClick={() => void shuffle()}>
+              {t("action.shuffle_teams")}
+            </Button>
+          </Tip>
+          <Tip label={offline ?? (draw?.kind !== "teams" ? t("why.reroll_none") : null)}>
+            <Button
+              variant="outline"
+              size="lg"
+              className="max-md:h-11"
+              disabled={!canWrite || draw?.kind !== "teams"}
+              onClick={() => void reroll()}
+            >
+              {t("action.reroll")}
+            </Button>
+          </Tip>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || picking.pool === 0}>
-                {t("action.pick")}
-                <ChevronDown aria-hidden />
-              </Button>
-            </DropdownMenuTrigger>
+            <Tip label={offline ?? (picking.pool === 0 ? t("why.pick_none") : null)}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="lg" className="max-md:h-11" disabled={!canWrite || picking.pool === 0}>
+                  {t("action.pick")}
+                  <ChevronDown aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+            </Tip>
             <DropdownMenuContent align="end" className="min-w-44 p-1.5">
               {picking.sizes.map((n) => (
                 <DropdownMenuItem key={n} onSelect={() => void pick(n, picking.source)}>
@@ -609,9 +632,11 @@ export function TeamsTab() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="lg" className="max-md:hidden" disabled={!canWrite} onClick={() => void drawTeams()}>
-            {t("action.draw")}
-          </Button>
+          <Tip label={offline}>
+            <Button size="lg" className="max-md:hidden" disabled={!canWrite} onClick={() => void drawTeams()}>
+              {t("action.draw")}
+            </Button>
+          </Tip>
         </div>
       </div>
       {/* Under 768px the view's primary sticks above the tab bar (DESIGN.md § Mobile). */}

@@ -8,6 +8,8 @@ export function Tip({ label, children, side }: {
   children: React.ReactElement;
   side?: "top" | "right" | "bottom" | "left";
 }) {
+  // No label, no tooltip: the control renders as it is.
+  if (!label) return children;
   return (
     <Tooltip>
       <TooltipTrigger asChild>

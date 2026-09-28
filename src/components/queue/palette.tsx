@@ -175,7 +175,6 @@ function PlayerCard({ player, onBack }: { player: Player; onBack: () => void }) 
         type="button"
         onClick={onBack}
         aria-label={t("palette.back")}
-        title={t("palette.back")}
         className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
       >
         <ArrowLeft className="size-4" aria-hidden />

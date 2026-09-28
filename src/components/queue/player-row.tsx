@@ -385,11 +385,13 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
     );
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="max-md:size-11" aria-label={t("menu.open", { name: player.kick_username })}>
-          <Ellipsis aria-hidden />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tip label={t("menu.open", { name: player.kick_username })}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="max-md:size-11" aria-label={t("menu.open", { name: player.kick_username })}>
+            <Ellipsis aria-hidden />
+          </Button>
+        </DropdownMenuTrigger>
+      </Tip>
       <DropdownMenuContent align="end" className="min-w-60 p-1.5" onCloseAutoFocus={releaseFocus}>
         {header}
         {items}
@@ -438,9 +440,9 @@ function WinRate({ player }: { player: Player }) {
   if (w == null || l == null || w + l === 0) return <span className="text-meta text-muted-foreground">—</span>;
   const pct = Math.round((w / (w + l)) * 100);
   return (
-    <span title={t("row.record", { w, l })} className={cn("text-meta tabular-nums", pct >= 50 ? "text-success" : "text-muted-foreground")}>
-      {pct}%
-    </span>
+    <Tip label={t("row.record", { w, l })}>
+      <span className={cn("text-meta tabular-nums", pct >= 50 ? "text-success" : "text-muted-foreground")}>{pct}%</span>
+    </Tip>
   );
 }
 

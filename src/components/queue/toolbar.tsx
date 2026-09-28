@@ -4,6 +4,7 @@ import { useT } from "@/components/i18n";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { type PickSource, useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
+import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -36,13 +37,17 @@ export function Toolbar() {
   const { draw, reroll, shuffle, pick, clearTeams, clearQueue } = useDrawActions();
   const { source, setSource, sources, pool, sizes } = usePick();
   const playing = players.filter((p) => p.status === "playing").length;
+  // A disabled button says why (D25).
+  const offline = !canWrite ? t("why.offline") : null;
 
   return (
     <div role="toolbar" aria-label={t("palette.actions")} className="flex flex-wrap items-center gap-2">
-      <Button variant="outline" size="lg" className="max-md:size-11" disabled={!canWrite} onClick={() => ui.setAdding(true)}>
-        <UserPlus aria-hidden />
-        <span className="max-md:sr-only">{t("action.add")}</span>
-      </Button>
+      <Tip label={offline}>
+        <Button variant="outline" size="lg" className="max-md:size-11" disabled={!canWrite} onClick={() => ui.setAdding(true)}>
+          <UserPlus aria-hidden />
+          <span className="max-md:sr-only">{t("action.add")}</span>
+        </Button>
+      </Tip>
       <Separator orientation="vertical" className="my-auto h-6! max-md:hidden" />
 
       <div role="group" aria-label={t("action.pick")} className="flex items-center rounded-lg border border-input">
@@ -51,17 +56,18 @@ export function Toolbar() {
           <span className="max-md:sr-only">{t("pick.label")}</span>
         </span>
         {sizes.map((n) => (
-          <Button
-            key={n}
-            variant="ghost"
-            size="lg"
-            className="rounded-none px-2.5 tabular-nums max-md:h-11"
-            disabled={!canWrite || pool === 0}
-            aria-label={t("action.pick.n", { n })}
-            onClick={() => void pick(n, source)}
-          >
-            ×{n}
-          </Button>
+          <Tip key={n} label={offline ?? (pool === 0 ? t("why.pick_none") : null)}>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="rounded-none px-2.5 tabular-nums max-md:h-11"
+              disabled={!canWrite || pool === 0}
+              aria-label={t("action.pick.n", { n })}
+              onClick={() => void pick(n, source)}
+            >
+              ×{n}
+            </Button>
+          </Tip>
         ))}
         <Select value={source} onValueChange={(v) => setSource(v as PickSource)}>
           <SelectTrigger aria-label={t("pick.source")} className="h-9! rounded-l-none border-0 border-l border-input max-md:h-11!">
@@ -78,12 +84,14 @@ export function Toolbar() {
       </div>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="lg" className="max-md:size-11" disabled={!canWrite}>
-            <Shuffle aria-hidden />
-            <span className="max-md:sr-only">{t("action.shuffle")}</span>
-          </Button>
-        </DropdownMenuTrigger>
+        <Tip label={offline}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="lg" className="max-md:size-11" disabled={!canWrite}>
+              <Shuffle aria-hidden />
+              <span className="max-md:sr-only">{t("action.shuffle")}</span>
+            </Button>
+          </DropdownMenuTrigger>
+        </Tip>
         <DropdownMenuContent align="end" className="min-w-60 p-1.5">
           <DropdownMenuItem onSelect={() => void draw()}>
             <Swords aria-hidden />
@@ -107,16 +115,18 @@ export function Toolbar() {
       </DropdownMenu>
       <Separator orientation="vertical" className="my-auto h-6! max-md:hidden" />
 
-      <Button
-        variant="destructive"
-        size="lg"
-        className="max-md:size-11"
-        disabled={!canWrite || players.length === 0}
-        onClick={() => void clearQueue()}
-      >
-        <Trash2 aria-hidden />
-        <span className="max-md:sr-only">{t("action.clear_queue")}</span>
-      </Button>
+      <Tip label={offline ?? (players.length === 0 ? t("why.queue_empty") : null)}>
+        <Button
+          variant="destructive"
+          size="lg"
+          className="max-md:size-11"
+          disabled={!canWrite || players.length === 0}
+          onClick={() => void clearQueue()}
+        >
+          <Trash2 aria-hidden />
+          <span className="max-md:sr-only">{t("action.clear_queue")}</span>
+        </Button>
+      </Tip>
     </div>
   );
 }

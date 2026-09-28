@@ -1,5 +1,5 @@
 "use client";
-import { Heart, HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords } from "lucide-react";
+import { Heart, HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords, Trophy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
 import { TopBar } from "@/components/queue/header";
@@ -17,6 +17,7 @@ import { SettingsTab } from "@/components/queue/settings-tab";
 import { QueueProvider, useAct, useQueue, useStore } from "@/components/queue/store";
 import { TeamsTab } from "@/components/queue/teams-tab";
 import { LAST_CHANNEL_COOKIE, TAB_COOKIE, type Tab } from "@/components/queue/tabs";
+import { GamesTab } from "@/components/queue/games-tab";
 import { HistoryTab } from "@/components/queue/history-tab";
 import { enter, type SanctionDraft, SearchRefContext, UiContext } from "@/components/queue/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -51,8 +52,8 @@ function ChannelLabels({ children }: { children: React.ReactNode }) {
   return <I18nProvider labels={labels}>{children}</I18nProvider>;
 }
 
-const ICONS = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, history: HistoryIcon, settings: Settings2 } as const;
-const ORDER: Tab[] = ["queue", "teams", "moderation", "history", "settings"];
+const ICONS = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, history: HistoryIcon, games: Trophy, settings: Settings2 } as const;
+const ORDER: Tab[] = ["queue", "teams", "moderation", "history", "games", "settings"];
 
 function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
   const { t } = useT();
@@ -68,6 +69,7 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
         (m) => !m.revoked_at && (!m.expires_at || Date.parse(m.expires_at) > now) && (m.games_left === null || m.games_left > 0),
       ).length
     : 0;
+  const games = useQueue((v) => v.score.t1 + v.score.t2);
   const offline = useQueue((v) => !v.online || v.conn === "down");
   const [tab, setTabState] = useState<Tab>(initialTab);
   const [palette, setPalette] = useState(false);
@@ -121,8 +123,8 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
 
   // Settings is not a tab (owner, 2026-09-23): the top bar's gear, the account menu, the page menu
   // and the palette open it.
-  const tabs: Tab[] = ["queue", "teams", "moderation", "history"];
-  const counts: Record<Tab, number> = { queue: count, teams: playing, moderation: sanctions, history: 0, settings: 0 };
+  const tabs: Tab[] = ["queue", "teams", "moderation", "history", "games"];
+  const counts: Record<Tab, number> = { queue: count, teams: playing, moderation: sanctions, history: 0, games, settings: 0 };
   const e2 = enter(entering, 2);
   // Only the arriving panel slides in. Given to the leaving one too, its animation kept Radix
   // from unmounting it, so it sat under the new panel for ~240ms (owner, 2026-09-27).
@@ -203,6 +205,9 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
           <TabsContent value="history" {...panel("history")}>
             <HistoryTab />
           </TabsContent>
+          <TabsContent value="games" {...panel("games")}>
+            <GamesTab />
+          </TabsContent>
           {role === "owner" && (
             <TabsContent value="settings" {...panel("settings")}>
               <SettingsTab />
@@ -234,10 +239,10 @@ function Shell({ initialTab, account }: { initialTab: Tab; account: Account }) {
         aria-label={t("tab.nav")}
         className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
       >
-        {/* A pill slides behind the active icon (a quarter of the bar per tab); it fades on Settings. */}
+        {/* A pill slides behind the active icon (a fifth of the bar per tab); it fades on Settings. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute top-0 left-0 w-1/4 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
+          className="pointer-events-none absolute top-0 left-0 w-1/5 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
           style={{ transform: `translateX(${Math.max(active, 0) * 100}%)`, opacity: active < 0 ? 0 : 1 }}
         >
           <span className="mx-auto mt-1.5 block h-8 w-14 rounded-full bg-accent" />

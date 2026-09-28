@@ -771,7 +771,8 @@ rows on the grid), offline (actions disabled with the reason).
 
 #### Games tab, *Maçlar* (Stage 10, D27)
 
-The fourth tab (`Trophy`, count of games this stream). Two views on the filter-pill control:
+The fifth tab, after History as the tab table orders them (`Trophy`, count of games this stream; key
+`5`). Two views on the filter-pill control:
 **Games** and **Stats**, plus a search by name.
 
 ```
@@ -788,6 +789,9 @@ Kurtlar 3 – 2 Kartallar                                             [Games | S
 - **Stats**: a table (Player · Games · W · L · Win rate · Streak), sortable like the queue
   table, minimum-games filter; *most wins* and *longest streak* lead in a two-tile strip.
 - Loads the last 20, then 50 more on scroll (keyset), a skeleton row while fetching.
+  The search reads the server (`game_players`), the newest 50 matches. Stats reads every
+  `player_records` row of the channel and again after each game change. *Remove this game* has
+  Undo and does not ask; *Clear games* and *Remove from all history* ask first.
 - States: empty (*No games yet. Press Victory on the winning team.*), loading, error with Retry,
   offline.
 - Elsewhere: channel W / L beside each name in the queue table's player card and hover, and this

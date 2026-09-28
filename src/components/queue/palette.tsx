@@ -20,6 +20,7 @@ import {
   Sparkles,
   Sun,
   Swords,
+  Trophy,
   UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -55,7 +56,7 @@ function Keys({ children }: { children: string }) {
   );
 }
 
-const TAB_ICONS: Record<Tab, LucideIcon> = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, history: HistoryIcon, settings: Settings2 };
+const TAB_ICONS: Record<Tab, LucideIcon> = { queue: ListOrdered, teams: Swords, moderation: ShieldAlert, history: HistoryIcon, games: Trophy, settings: Settings2 };
 
 // With nothing typed the palette lists this many players; typing searches them all.
 const PLAYERS_AT_REST = 5;
@@ -250,7 +251,7 @@ function RootCommands({ search, run, onPlayer }: { search: string; run: Run; onP
   const { draw, reroll, pick, shuffle, clearTeams, clearQueue } = useDrawActions();
   const picking = usePick();
   const playing = players.filter((p) => p.status === "playing").length;
-  const tabs: Tab[] = role === "owner" ? ["queue", "teams", "moderation", "history", "settings"] : ["queue", "teams", "moderation", "history"];
+  const tabs: Tab[] = role === "owner" ? ["queue", "teams", "moderation", "history", "games", "settings"] : ["queue", "teams", "moderation", "history", "games"];
   const shown = search ? players : players.slice(0, PLAYERS_AT_REST);
 
   return (
@@ -321,7 +322,7 @@ function RootCommands({ search, run, onPlayer }: { search: string; run: Run; onP
             <CommandItem key={k} onSelect={run(() => ui.setTab(k))}>
               <Icon aria-hidden />
               {t(`tab.${k}`)}
-              {i < 4 && <Keys>{String(i + 1)}</Keys>}
+              {i < 5 && <Keys>{String(i + 1)}</Keys>}
             </CommandItem>
           );
         })}
@@ -362,7 +363,7 @@ function RootCommands({ search, run, onPlayer }: { search: string; run: Run; onP
 
 const TYPING = "input, textarea, select, [contenteditable=true], [role=combobox]";
 
-const TAB_KEYS: Tab[] = ["queue", "teams", "moderation", "history"];
+const TAB_KEYS: Tab[] = ["queue", "teams", "moderation", "history", "games"];
 
 // Global keys (DESIGN.md § Focus and keyboard, D18): a narrow set that no browser shortcut uses.
 // Only when no text input and no row has focus and nothing modal is open; ⌘K works everywhere,
@@ -392,7 +393,7 @@ export function Hotkeys() {
       if (key === "/") {
         e.preventDefault();
         focusSearch();
-      } else if (/^[1-4]$/.test(key)) {
+      } else if (/^[1-5]$/.test(key)) {
         e.preventDefault();
         setTab(TAB_KEYS[Number(key) - 1]);
       } else if (!writable) {

@@ -161,6 +161,21 @@ function ModerationBody() {
 }
 
 // A card per day: its heading, then time · icon · sentence lines.
+// Games: the title, its view pills, search and (streamer) Clear, then one-line game rows at the
+// games-tab row height.
+function GamesBody() {
+  return (
+    <div className="flex flex-col gap-4">
+      <Head pills={false} actions={2} />
+      <div className="flex flex-col gap-1.5">
+        {Array.from({ length: 6 }, (_, i) => (
+          <Skeleton key={i} className="h-[3.875rem] w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HistoryBody() {
   return (
     <div className="flex flex-col gap-4">
@@ -215,5 +230,6 @@ const BODIES: Record<Tab, () => React.ReactNode> = {
   teams: TeamsBody,
   moderation: ModerationBody,
   history: HistoryBody,
+  games: GamesBody,
   settings: SettingsBody,
 };

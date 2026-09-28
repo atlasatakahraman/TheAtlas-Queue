@@ -33,10 +33,11 @@ export function rememberWatched(slug: string) {
 // Settings is its own page (D20, D30), a section at a time in the URL: /c/<slug>/settings/<section>.
 // "settings" stays a Tab so every way in (gear, menus, palette) keeps calling setTab; it navigates.
 // Your data arrives with Stage 16.
-export const SETTINGS = ["commands", "riot", "teams", "games", "perks", "watch", "overlays", "moderators", "labels"] as const;
+export const SETTINGS = ["commands", "joining", "riot", "teams", "games", "perks", "watch", "overlays", "moderators", "labels"] as const;
 export type SettingsSection = (typeof SETTINGS)[number];
 export const SETTINGS_TITLES = {
   commands: "settings.commands",
+  joining: "settings.joining",
   riot: "settings.riot",
   teams: "settings.teams",
   games: "settings.games",

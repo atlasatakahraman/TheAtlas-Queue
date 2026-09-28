@@ -6,6 +6,8 @@ import {
   BadgeCheck,
   Coffee,
   Dices,
+  DoorClosed,
+  DoorOpen,
   Eraser,
   Hand,
   Hourglass,
@@ -62,6 +64,7 @@ const LOOK: Record<string, [LucideIcon, string, Exclude<Kind, "all">]> = {
   clear_queue: [ListX, "text-destructive", "queue"],
   remove_protection: [ShieldOff, "text-muted-foreground", "queue"],
   set_fair_play: [Scale, "text-muted-foreground", "teams"],
+  set_join_open: [DoorClosed, "text-warning", "queue"],
   draw_teams: [Dices, "text-brand", "teams"],
   reroll: [Dices, "text-brand", "teams"],
   pick_from_waiting: [Hand, "text-brand", "teams"],
@@ -212,14 +215,20 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
   const { t } = useT();
   const toTeam =
     (a.action === "move_player" && a.payload.status === "playing") || a.action === "move_players" ? (a.payload.team === 2 ? 2 : 1) : null;
-  const [Icon, tone] = LOOK[a.action] ?? UNDO;
+  const [Icon, tone] = a.action === "set_join_open" && a.payload.open ? [DoorOpen, "text-success"] : (LOOK[a.action] ?? UNDO);
   const where = toTeam
     ? t(`team.${toTeam}`)
     : a.action === "move_player"
       ? t(a.payload.status === "away" ? "act.where.away" : "act.where.waiting")
       : "";
   // A stream end that cleared the queue (0024) says so, with the count.
-  const key = a.action === "stream_offline" && a.payload.count ? "act.stream_offline_cleared" : `act.${a.action}`;
+  // Joining opened or closed (0032) reads as which.
+  const key =
+    a.action === "stream_offline" && a.payload.count
+      ? "act.stream_offline_cleared"
+      : a.action === "set_join_open"
+        ? a.payload.open ? "act.join_opened" : "act.join_closed"
+        : `act.${a.action}`;
   const text = isLabelKey(key) ? t(key as LabelKey, { n: String(a.payload.count ?? a.payload.n ?? "") }) : t("act.other", { action: a.action });
   const name = "font-medium text-foreground";
   const team = toTeam === 2 ? "text-team-2" : "text-team-1";

@@ -1,4 +1,4 @@
-import { ChevronDown, Dices, Plus, Shuffle, Trash2, Trophy, UserPlus } from "lucide-react";
+import { ChevronDown, Dices, DoorOpen, Plus, Shuffle, Trash2, Trophy, UserPlus } from "lucide-react";
 import { cookies } from "next/headers";
 import {
   CARD_HEAD,
@@ -135,6 +135,10 @@ function Toolbar({ t, picks }: { t: T; picks: number }) {
       <Button variant="destructive" size="lg" tabIndex={-1} className={cn("max-md:size-11", SHADE)}>
         <Trash2 />
         <span className="max-md:sr-only">{t("action.clear_queue")}</span>
+      </Button>
+      <Button variant="outline" size="lg" tabIndex={-1} className={cn("ml-auto max-md:h-11 max-md:px-3", SHADE)}>
+        <DoorOpen />
+        <span className="max-md:sr-only">{t("join.open")}</span>
       </Button>
     </div>
   );

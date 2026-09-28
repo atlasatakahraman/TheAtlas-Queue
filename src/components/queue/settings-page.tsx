@@ -2,6 +2,7 @@
 import {
   ArrowLeft,
   Ban,
+  DoorOpen,
   Eye,
   Languages,
   type LucideIcon,
@@ -203,6 +204,55 @@ function CommandsSection() {
         ))}
       </div>
       {s.errors.commands && <p className="text-meta text-destructive">{t("settings.commands.clash")}</p>}
+      <SaveRow s={s} />
+    </Section>
+  );
+}
+
+// The chat !join rules (D23, 0032). Joining open is the toolbar's write too (set_join_open), so it
+// reads the live value; the numbers wait for Save, the switch and the picker save as they change.
+function JoiningSection() {
+  const { t } = useT();
+  const act = useAct();
+  const canWrite = useCanWrite();
+  const open = useQueue((v) => v.settings.join_open);
+  const cmd = useQueue((v) => v.settings.join_command);
+  const s = useSection(["queue_max", "join_cooldown", "join_subs_only", "join_badges"] as const);
+  return (
+    <Section title={t("settings.joining")} onEnter={() => void s.save()}>
+      <SwitchField
+        id="join_open"
+        label={t("settings.join_open")}
+        hint={t("settings.join_open.hint", { cmd })}
+        checked={open}
+        disabled={!canWrite}
+        onChange={(v) => void act("set_join_open", { p_open: v })}
+      />
+      <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+        <Field id="queue_max" label={t("settings.queue_max")} hint={t("settings.queue_max.hint")} error={s.errors.queue_max}>
+          <NumberInput id="queue_max" value={s.draft.queue_max} invalid={!!s.errors.queue_max} onChange={(v) => s.set("queue_max", v)} />
+        </Field>
+        <Field id="join_cooldown" label={t("settings.join_cooldown")} hint={t("settings.join_cooldown.hint")} error={s.errors.join_cooldown}>
+          <NumberInput id="join_cooldown" value={s.draft.join_cooldown} invalid={!!s.errors.join_cooldown} onChange={(v) => s.set("join_cooldown", v)} />
+        </Field>
+      </div>
+      <SwitchField
+        id="join_subs_only"
+        label={t("settings.join_subs_only")}
+        hint={t("settings.join_subs_only.hint")}
+        checked={s.draft.join_subs_only}
+        onChange={(v) => void s.put("join_subs_only", v)}
+      />
+      {s.draft.join_subs_only && (
+        <BadgePicker
+          label={t("settings.join_badges")}
+          value={s.draft.join_badges}
+          onChange={(v) => void s.put("join_badges", v)}
+          effect={(who, on) => t(on ? "settings.join_badges.on" : "settings.join_badges.off", { who })}
+          result={(who) => t("settings.join.viewer", { who })}
+          refusal={t("settings.join_badges.refused")}
+        />
+      )}
       <SaveRow s={s} />
     </Section>
   );
@@ -572,6 +622,7 @@ function LabelsSection() {
 // Each section's icon in its own colour (owner, 2026-09-28).
 const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; body: () => React.ReactNode }> = {
   commands: { icon: Terminal, tone: "text-brand", body: CommandsSection },
+  joining: { icon: DoorOpen, tone: "text-warning", body: JoiningSection },
   riot: { icon: Swords, tone: "text-team-2", body: RiotSection },
   teams: { icon: Users, tone: "text-team-1", body: TeamsSection },
   games: { icon: Trophy, tone: "text-brand", body: GamesSection },

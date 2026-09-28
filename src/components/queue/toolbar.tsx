@@ -1,10 +1,11 @@
 "use client";
-import { Dices, RefreshCw, Shuffle, Swords, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { Dices, DoorClosed, DoorOpen, RefreshCw, Shuffle, Swords, Trash2, UserPlus, UsersRound } from "lucide-react";
 import { useEffect } from "react";
 import { useT } from "@/components/i18n";
-import { useCanWrite, useQueue } from "@/components/queue/store";
+import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
 import { type PickSource, useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
+import { cn } from "@/lib/utils";
 import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +30,8 @@ export function Keys({ children }: { children: string }) {
 }
 
 // The toolbar on every tab (August's action row): Add · Pick ×1 ×2 ×3 from waiting, the teams or
-// the whole queue · Shuffle ▾ · Clear queue. Under 768px the labels go and the icons stay.
+// the whole queue · Shuffle ▾ · Clear queue · Joining, at the right end. Under 768px the labels go
+// and the icons stay.
 export function Toolbar() {
   const { t } = useT();
   const ui = useUi();
@@ -133,6 +135,40 @@ export function Toolbar() {
           <span className="max-md:sr-only">{t("action.clear_queue")}</span>
         </Button>
       </Tip>
+      <JoinButton />
     </div>
+  );
+}
+
+// Joining open or closed (D23): one press mid-stream, for moderators too (set_join_open). With a
+// queue limit it counts who is not playing against it. No toast: pressing again is the undo.
+function JoinButton() {
+  const { t } = useT();
+  const act = useAct();
+  const canWrite = useCanWrite();
+  const open = useQueue((v) => v.settings.join_open);
+  const max = useQueue((v) => v.settings.queue_max);
+  const cmd = useQueue((v) => v.settings.join_command);
+  const queued = useQueue((v) => v.players.filter((p) => p.status !== "playing").length);
+  const Icon = open ? DoorOpen : DoorClosed;
+  return (
+    <Tip label={!canWrite ? t("why.offline") : t(open ? "join.close_tip" : "join.open_tip", { cmd })}>
+      <Button
+        variant="outline"
+        size="lg"
+        className="ml-auto max-md:h-11 max-md:px-3"
+        aria-pressed={!open}
+        disabled={!canWrite}
+        onClick={() => void act("set_join_open", { p_open: !open })}
+      >
+        <Icon aria-hidden className={cn(!open && "text-warning")} />
+        <span className={cn("max-md:sr-only", !open && "text-warning")}>{t(open ? "join.open" : "join.closed")}</span>
+        {max > 0 && (
+          <span className={cn("tabular-nums", queued >= max ? "text-destructive" : "text-muted-foreground")}>
+            {queued}/{max}
+          </span>
+        )}
+      </Button>
+    </Tip>
   );
 }

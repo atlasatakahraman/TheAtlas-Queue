@@ -197,6 +197,12 @@ export type Settings = {
   perk_uses: number;
   perk_window_days: number;
   perk_badges: string[];
+  // The chat !join rules (0032, D23); adding by hand skips them.
+  join_open: boolean;
+  queue_max: number;
+  join_cooldown: number;
+  join_subs_only: boolean;
+  join_badges: string[];
   labels: Partial<Record<Lang, Record<string, string>>>;
   updated_at: string;
 };

@@ -19,12 +19,14 @@ export const BADGE_LOOK: Record<Badge, { icon: LucideIcon; tone: string }> = {
 // A tile per badge, a checkbox group (Tab between tiles, Space toggles). Each tile says what its
 // holders get as it stands (owner, 2026-09-28); the last selected tile refuses to clear, with the
 // reason; the sentence under the tiles says the result live.
-export function BadgePicker({ label, value, onChange, effect, result }: {
+export function BadgePicker({ label, value, onChange, effect, result, refusal }: {
   label: string;
   value: readonly string[];
   onChange: (next: string[]) => void;
   effect: (who: string, on: boolean) => string;
   result: (who: string) => string;
+  // Why the last tile will not clear; the perk's reason unless given.
+  refusal?: string;
 }) {
   const { t, lang } = useT();
   const id = useId();
@@ -78,7 +80,7 @@ export function BadgePicker({ label, value, onChange, effect, result }: {
         })}
       </div>
       <p aria-live="polite" className={cn("text-meta", refused || picked.length === 0 ? "text-destructive" : "text-muted-foreground")} id={`${id}-refused`}>
-        {refused || picked.length === 0 ? t("settings.perk_badges.refused") : result(who)}
+        {refused || picked.length === 0 ? (refusal ?? t("settings.perk_badges.refused")) : result(who)}
       </p>
     </div>
   );

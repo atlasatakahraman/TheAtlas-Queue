@@ -885,7 +885,7 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).
-- Built in Stage 12 with eight sections; Overlays joined in Stage 13, Your data arrives with
+- Built in Stage 12 with eight sections; Overlays joined in Stage 13, Joining in Stage 14, Your data arrives with
   Stage 16 (no empty sections), and the `?` help links with Stage 15's help pages. Moving
   between sections is a history entry, not a reload. `?tab=settings` redirects here; a
   moderator is sent back to the queue.
@@ -983,6 +983,12 @@ Joining
 - Tooltip says what a press does (*Close joining: !sıra is turned away*). Owner and moderators;
   a press is in History (*mirayy closed joining*), no Undo (press again).
 - Under 768px the label goes, the icon (and count) stay. The toolbar skeleton draws it shaded.
+- **Built (Stage 14).** As drawn. *Joining is open* in Settings is the toolbar's write too
+  (`set_join_open`), so both show the live value; the badge picker takes its own refusal (*Keep at
+  least one: with none, nobody could join*). History reads *opened joining* (`DoorOpen`, success)
+  and *closed joining* (`DoorClosed`, warning). Feed reasons: *joining is closed*, *the queue is
+  full*, *no badge that may join*, *sitting out after a game*. Sitting out counts by the Kick name
+  a game recorded, as game history does.
 
 #### Help `/help` (Stage 15, D33)
 

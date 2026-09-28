@@ -31,7 +31,7 @@ import { isError, type QueueView } from "@/lib/queue-store";
 import { averageRank } from "@/lib/rank";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
-import { CARD_HEAD, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
+import { CARD_HEAD, MIRROR, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
 
 // The draw reveal's cadence (DESIGN.md § The draw reveal): one name every 160ms, each typed at
 // 30ms a character and sharpening over 200ms. Off the motion ladder on purpose: it is a sequence.
@@ -328,7 +328,7 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
       <div className="flex flex-col gap-3 p-4">
         {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
         <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} place={add?.place} onClose={() => setAdd(null)} />
-        <header aria-label={t(`team.${team}`)} className={CARD_HEAD}>
+        <header aria-label={t(`team.${team}`)} className={cn(CARD_HEAD, team === 2 && MIRROR)}>
           {refused ? (
             <span role="status" className="text-destructive">
               {t("why.team_full", { team: t(`team.${team}`), n: count, size })}
@@ -346,8 +346,8 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
               {avg}
             </span>
           )}
-          {/* Victory beside Add, left of it (owner, 2026-09-28). */}
-          <span className="flex shrink-0 items-center gap-2">
+          {/* Victory beside Add, on the inner side of it (owner, 2026-09-28). */}
+          <span className={cn("flex shrink-0 items-center gap-2", team === 2 && MIRROR)}>
           {victory}
           <Tip
             label={

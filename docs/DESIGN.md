@@ -1296,8 +1296,10 @@ sits between them (D25).
   player is already there or the team is full, and so are the hover buttons (7.47).
 - **Right-click on the card** (not a player): the team's menu: *Team N · n of size*, Add from
   waiting ▸, Add a new player…, Shuffle current teams, Clear teams.
-- **Victory (Stage 10, D27):** in the card's header, left of *Add to {team}* (owner,
-  2026-09-28; it first sat under the roster), a plain outline button in the team colour,
+- **Victory (Stage 10, D27):** in the card's header, on the inner side of *Add to {team}* (owner,
+  2026-09-28; it first sat under the roster). Side by side (from 1024px) Team 2's header is
+  Team 1's mirrored, *Add*, *Victory*, then the count on the right, so the cards face each
+  other; stacked, both read the same way. A plain outline button in the team colour,
   `Trophy` and *Victory*: one press marks the team as winner (owner, 2026-09-27: no ▾, no
   menu). The after-game action is Settings' default; Undo in the toast takes the result back.
   Disabled while either team is empty, and the tooltip says so. The score (*3 – 2*, the numbers alone in

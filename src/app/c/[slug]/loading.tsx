@@ -13,6 +13,7 @@ import {
   MAIN,
   MASTHEAD,
   MID,
+  MIRROR,
   MOD_COLS,
   MOD_ROW,
   PICKS_COOKIE,
@@ -228,9 +229,9 @@ function TeamsBody({ t, cols }: Ctx) {
     <section className="flex min-w-0 flex-col overflow-hidden rounded-xl bg-card">
       <div className="h-[5px] bg-muted" />
       <div className="flex flex-col gap-3 p-4">
-        <header className={CARD_HEAD}>
+        <header className={cn(CARD_HEAD, team === 2 && MIRROR)}>
           <Shade>{t("teams.count", { n: 0, size: 5 })}</Shade>
-          <span className="flex shrink-0 items-center gap-2">
+          <span className={cn("flex shrink-0 items-center gap-2", team === 2 && MIRROR)}>
             <Button variant="outline" size="lg" tabIndex={-1} className={cn("max-md:h-11", SHADE)}>
               <Trophy />
               {t("action.victory")}

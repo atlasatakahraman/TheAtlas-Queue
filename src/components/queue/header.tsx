@@ -99,6 +99,8 @@ export function TopBar() {
   const slug = useQueue((v) => v.channel.slug);
   // On phones the channel types first: the wordmark before it is hidden there.
   const phone = useMedia("(max-width: 639px)");
+  // A game's crumbs type on one beat after the channel's last letter.
+  const crumbAt = (phone ? 0 : 17 * 40) + ([...channel].length + 2) * 40;
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
   return (
@@ -128,12 +130,18 @@ export function TopBar() {
         {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab. */}
         {ui.game !== null && (
           <span className="flex shrink-0 items-baseline gap-3 cap-center font-serif text-title text-muted-foreground max-xl:text-body">
-            <span aria-hidden>/</span>
+            <span aria-hidden>
+              <Typed text="/" startDelay={crumbAt} />
+            </span>
             <Link href={`/c/${slug}?tab=games`} className="rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40">
-              {t("tab.games")}
+              <Typed text={t("tab.games")} startDelay={crumbAt + 2 * 40} />
             </Link>
-            <span aria-hidden>/</span>
-            <span className="text-foreground tabular-nums">{ui.game}</span>
+            <span aria-hidden>
+              <Typed text="/" startDelay={crumbAt + ([...t("tab.games")].length + 3) * 40} />
+            </span>
+            <span className="text-foreground tabular-nums">
+              <Typed text={String(ui.game)} startDelay={crumbAt + ([...t("tab.games")].length + 5) * 40} />
+            </span>
           </span>
         )}
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}

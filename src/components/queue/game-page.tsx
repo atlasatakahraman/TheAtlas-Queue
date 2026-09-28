@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useT } from "@/components/i18n";
-import { copyResult } from "@/components/queue/games-tab";
+import { copyResult, gameSize, WinLoss } from "@/components/queue/games-tab";
 import { GP_CARD_HEAD, GP_GRID, GP_HEAD, GP_META, GP_ROW, GP_TITLE } from "@/components/queue/geometry";
 import { CardTrigger } from "@/components/queue/player-card";
 import { RankText, useRanks, useRiotIds } from "@/components/queue/player-row";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNow } from "@/components/use-now";
 import { isError } from "@/lib/queue-store";
+import { span } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Game, GameView, Player, PlayerRecord } from "@/types/queue";
 
@@ -66,8 +67,23 @@ export function GamePage({ view }: { view: GameView }) {
   const when = now
     ? new Intl.DateTimeFormat(lang, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(ended)
     : null;
-  const mins = game.started_at ? Math.max(1, Math.round((ended.getTime() - Date.parse(game.started_at)) / 6e4)) : null;
-  const [before, after] = t("game.title", { n: game.n }).split("{team}");
+  const length = game.started_at ? span(Math.max(60_000, ended.getTime() - Date.parse(game.started_at)), t) : null;
+  // The winner in its colour and "game 5" in gold Newsreader, as the counts (owner, 2026-09-28).
+  const title = t("game.title")
+    .split(/(\{team\}|\{game\})/)
+    .map((part, i) =>
+      part === "{team}" ? (
+        <span key={i} className={game.winner === 1 ? "text-team-1" : "text-team-2"}>
+          {t(`team.${game.winner}`)}
+        </span>
+      ) : part === "{game}" ? (
+        <span key={i} className="text-brand tabular-nums">
+          {t("game.title.game", { n: game.n })}
+        </span>
+      ) : (
+        part
+      ),
+    );
   const step = (to: number | null, label: string, Icon: typeof ChevronLeft) => (
     <Tip label={label}>
       {to === null ? (
@@ -123,15 +139,13 @@ export function GamePage({ view }: { view: GameView }) {
 
       <div className="flex flex-col gap-2">
         <h1 className={GP_TITLE}>
-          {before}
-          <span className={game.winner === 1 ? "text-team-1" : "text-team-2"}>{t(`team.${game.winner}`)}</span>
-          {after}
+          {title}
         </h1>
         {/* Set apart by space, no dot separators (DESIGN.md). */}
         <p className={GP_META}>
           <time dateTime={game.ended_at}>{when}</time>
-          {mins !== null && <span>{t("games.minutes", { n: mins })}</span>}
-          <span>{t("games.size", { n: game.team_size })}</span>
+          {length && <span>{length}</span>}
+          <span>{gameSize(game, t)}</span>
         </p>
       </div>
 
@@ -197,7 +211,11 @@ function GameCard({ game, team, records }: { game: Game; team: 1 | 2; records: P
                 )}
                 <span className="flex items-center gap-4 text-meta whitespace-nowrap text-muted-foreground tabular-nums">
                   {ranks && <RankText player={{ rank: e.rank } as Player} />}
-                  {record && <span>{t("game.record", { w: record.wins, l: record.losses })}</span>}
+                  {record && (
+                    <span>
+                      <WinLoss text={t("game.record")} w={record.wins} l={record.losses} />
+                    </span>
+                  )}
                 </span>
               </li>
             );

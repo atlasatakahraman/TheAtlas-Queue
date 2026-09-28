@@ -116,8 +116,8 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
   }, [cols]);
 
   useEffect(() => {
-    document.title = `${t(`tab.${tab}`)} · TheAtlas Queue`;
-  }, [tab, t]);
+    document.title = `${game ? t("game.tab_title", { n: game.n }) : t(`tab.${tab}`)} · TheAtlas Queue`;
+  }, [tab, t, game]);
 
   // ?tab= in the URL, and a cookie so the server renders the same tab next time.
   const router = useRouter();

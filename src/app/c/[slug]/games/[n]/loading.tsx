@@ -39,7 +39,7 @@ export default async function GameLoading() {
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Shade className={GP_TITLE}>{t("game.title", { team: t("team.1"), n: 10 })}</Shade>
+            <Shade className={GP_TITLE}>{t("game.title", { team: t("team.1"), game: t("game.title.game", { n: 10 }) })}</Shade>
             <Shade className={GP_META}>00:00 00 00 00:00 00 min 5 v 5</Shade>
           </div>
           <div className={GP_GRID}>

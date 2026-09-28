@@ -599,8 +599,7 @@ export const en = {
   "games.empty": "No games yet. Press Victory on the winning team.",
   "games.search.none": "No games with {name}.",
   "games.error": "Games could not be loaded.",
-  "games.size": "{n} v {n}",
-  "games.minutes": "{n} min",
+  "games.size": "{a} v {b}",
   "games.menu": "Actions for game {n}",
   "games.open": "Open",
   "games.copy": "Copy result",
@@ -621,6 +620,7 @@ export const en = {
   "stats.most_wins": "Most wins",
   "stats.longest": "Longest streak",
   "stats.tile.wins": "{n} wins",
+  "stats.tile.win": "1 win",
   "stats.tile.streak": "{n} in a row",
   "stats.streak.won": "won {n}",
   "stats.streak.lost": "lost {n}",
@@ -632,7 +632,8 @@ export const en = {
   "done.forget_player": "{name} removed from all history.",
   "game.tab_title": "Game {n}",
   "game.back": "Back to Games",
-  "game.title": "{team} won game {n}",
+  "game.title": "{team} won {game}",
+  "game.title.game": "game {n}",
   "game.prev": "Previous game",
   "game.next": "Next game",
   "game.missing.title": "Game {n} is not here",
@@ -653,6 +654,10 @@ export const en = {
   "settings.after_game.losers": "Losers back to the queue",
   "settings.games_retention_days": "Keep games for (days)",
   "settings.games_retention_days.hint": "1 to 365. Older games and their records go.",
+  "games.scope": "Which games",
+  "games.scope.stream": "This stream",
+  "games.scope.all": "All time",
+  "games.empty.stream": "No games this stream yet. Press Victory on the winning team.",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

@@ -13,6 +13,7 @@ import { useIsTouch } from "@/components/use-client-state";
 import type { LabelKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Player } from "@/types/queue";
+import { WinLoss } from "@/components/queue/games-tab";
 
 const TIER_TEXT: Record<string, string> = {
   IRON: "text-rank-iron", BRONZE: "text-rank-bronze", SILVER: "text-rank-silver", GOLD: "text-rank-gold",
@@ -145,7 +146,7 @@ export function PlayerCard({ player, seen }: { player: Player; seen: Player }) {
 
       {record && record.wins + record.losses > 0 && (
         <span className="text-foreground tabular-nums">
-          {t("card.channel", { w: record.wins, l: record.losses })}
+          <WinLoss text={t("card.channel")} w={record.wins} l={record.losses} />
           {/* A streak of two or more is worth saying. */}
           {Math.abs(record.streak) >= 2 && `, ${t(record.streak > 0 ? "card.channel.won" : "card.channel.lost", { n: Math.abs(record.streak) })}`}
         </span>

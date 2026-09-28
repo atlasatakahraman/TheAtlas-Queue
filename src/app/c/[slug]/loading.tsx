@@ -381,6 +381,7 @@ function GamesBody({ t }: Ctx) {
         <Shade className="font-serif text-title">{t("tab.games")}</Shade>
         <div className="flex flex-wrap items-center gap-2 max-md:w-full">
           <Pills items={[[t("games.view.games")], [t("games.view.stats")]]} />
+          <Pills items={[[t("games.scope.stream")], [t("games.scope.all")]]} />
           <div className="relative max-md:w-full">
             <Skeleton className={GAMES_SEARCH} />
           </div>

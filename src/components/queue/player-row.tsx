@@ -260,12 +260,14 @@ function useMenu(p: Player): Item[][] {
     ui.setAddAt(key);
     ui.setAdding(true);
   };
+  // Each kind of action its own section (owner, 2026-09-28): copy, edit, place, team, state,
+  // protection, sanctions, remove.
   const groups: Item[][] = [
     [
       ...(riot && p.riot_id ? [{ label: t("menu.copy_riot"), icon: Copy, onSelect: a.copyRiot }] : []),
       { label: t("menu.copy_name"), icon: Gamepad2, onSelect: a.copyName },
-      { label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true },
     ],
+    [{ label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true }],
     [
       { label: t("menu.add_above"), icon: ArrowUpToLine, onSelect: addBeside("before"), write: true, disabled: teamAdd?.full },
       { label: t("menu.add_below"), icon: ArrowDownToLine, onSelect: addBeside("after"), write: true, disabled: teamAdd?.full },
@@ -275,6 +277,8 @@ function useMenu(p: Player): Item[][] {
       // (owner, 2026-09-27).
       { label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true, disabled: punished || p.team === 1 || room(1) < 1 },
       { label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true, disabled: punished || p.team === 2 || room(2) < 1 },
+    ],
+    [
       ...(punished ? [{ label: t("menu.lift"), icon: Undo2, onSelect: a.lift, write: true }] : []),
       ...(p.status === "playing" ? [{ label: t("menu.to_waiting"), icon: Undo2, onSelect: a.toWaiting, write: true }] : []),
       ...(p.status !== "playing"

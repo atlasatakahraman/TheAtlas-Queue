@@ -82,6 +82,8 @@ function PageMenuContent() {
         <UserPlus aria-hidden />
         {t("action.add")}
       </ContextMenuItem>
+      {/* Adding, drawing and clearing each their own section (owner, 2026-09-28). */}
+      <ContextMenuSeparator />
       <ContextMenuItem disabled={!canWrite} onSelect={() => void draw()}>
         <Swords aria-hidden />
         {t("action.draw")}
@@ -91,6 +93,7 @@ function PageMenuContent() {
         <Dices aria-hidden />
         {t("action.pick.n", { n: 1 })}
       </ContextMenuItem>
+      <ContextMenuSeparator />
       <ContextMenuItem variant="destructive" disabled={!canWrite || players.length === 0} onSelect={() => void clearQueue()}>
         <Trash2 aria-hidden />
         {t("action.clear_queue")}

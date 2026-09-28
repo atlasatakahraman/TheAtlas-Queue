@@ -1022,14 +1022,17 @@ shadcn `ContextMenu` on the row, the same content in a `DropdownMenu` on `⋯`, 
 on touch. A header line names the player (the Riot ID in mono, else the Kick name); every item
 has its lucide icon. Groups:
 
-1. copy (Riot ID, Kick name) · edit
+Each kind of action is its own section, divided by a separator (owner, 2026-09-28):
+
+1. copy (Riot ID, Kick name) · then edit on its own
 2. **Add player above** (`ArrowUpToLine`) · **Add player below** (`ArrowDownToLine`) (D37). On a
    roster row they open the team add list (waiting players, then *Add a new player…*) anchored
    on that row; on a queue row they open Add player, and the new player lands at that place.
    One write, one Undo. Disabled on a full team. Built in Stage 7 (7.33, migration `0018_place`).
-3. move (the row buttons' set, with the team's **current name** and colour)
-4. mark away · protection (*Remove protection*, only on a protected sub)
-5. moderation (warn and punish in warning, ban) · remove
+3. teams (both, with the team's **current name** and colour)
+4. state (back to waiting, mark away or back, lift a punishment) · protection (*Remove
+   protection*, only on a protected sub) on its own
+5. moderation (warn and punish in warning, ban) · remove on its own
 
 Ban and remove are `variant="destructive"`. Shortcut hints go here.
 

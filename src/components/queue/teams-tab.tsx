@@ -396,6 +396,7 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
         <Shuffle aria-hidden />
         {t("action.shuffle_teams")}
       </ContextMenuItem>
+      <ContextMenuSeparator />
       <ContextMenuItem variant="destructive" disabled={!canWrite || playing === 0} onSelect={() => void clearTeams()}>
         <UsersRound aria-hidden />
         {t("action.clear_teams")}

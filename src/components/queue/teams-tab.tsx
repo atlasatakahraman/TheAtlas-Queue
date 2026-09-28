@@ -399,7 +399,13 @@ function TeamMenu({ team, count, size, canAdd }: { team: 1 | 2; count: number; s
   return (
     <ContextMenuContent className="min-w-60 p-1.5">
       <ContextMenuLabel className={cn("font-normal", team === 1 ? "text-team-1" : "text-team-2")}>
-        {t(`team.${team}`)} <span className="ml-1.5 text-muted-foreground tabular-nums">{t("teams.count", { n: count, size })}</span>
+        {t(`team.${team}`)}{" "}
+        <span className="ml-1.5 text-muted-foreground tabular-nums">
+          {/* Counts are Newsreader (DESIGN.md § Type), gold when the team is full. */}
+          {t("teams.count", { size })
+            .split("{n}")
+            .flatMap((part, i) => (i === 0 ? [part] : [<span key={i} className={cn("font-serif font-medium", count >= size && "text-brand")}>{count}</span>, part]))}
+        </span>
       </ContextMenuLabel>
       <ContextMenuSub>
         <ContextMenuSubTrigger disabled={!canAdd}>

@@ -339,6 +339,14 @@ TheAtlas's desktop panels: 15px body, not 14px. **Every size is a named `@theme`
 | Overlay name | `text-overlay-name` | 32 / 1.2 | 600 | 0 | Sans |
 | Overlay headline | `text-overlay-headline` | 56 / 1.05 | 400 | -0.02em | Serif |
 
+**Counts are Newsreader** (owner, 2026-09-28). A count that stands on its own is set in the
+serif, `tabular-nums`, medium where it sits beside sans labels: the tab counts, the filter-pill
+counts, the stat tiles, the queue numbers, the unread count, a team's **{n}** in *{n} of
+{size}* (the card header and its menu label). It turns **gold** (`--brand`) only when it marks
+the active or the complete state (the active tab, a full team); otherwise it is muted or
+foreground. A number inside a sentence (*Loading ranks 3*, a toast, a tooltip) stays in the
+sentence's face.
+
 **Never bold a serif heading.** Newsreader has no bold cut; the browser fakes one, badly. Size
 up instead. **Never set a heading in the sans face**, and never set a name in mono.
 

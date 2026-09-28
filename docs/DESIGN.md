@@ -885,7 +885,7 @@ Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fa
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).
-- Built in Stage 12 with eight sections: Overlays arrive with Stage 13 and Your data with
+- Built in Stage 12 with eight sections; Overlays joined in Stage 13, Your data arrives with
   Stage 16 (no empty sections), and the `?` help links with Stage 15's help pages. Moving
   between sections is a history entry, not a reload. `?tab=settings` redirects here; a
   moderator is sent back to the queue.
@@ -908,6 +908,17 @@ Overlays                                                    [+ New overlay]
   position, size, theme, background, language. Leaderboards take a minimum-games number; the
   respect board lists only the most respected.
 - States: none yet (*Add an overlay for OBS*), preview loading (the canvas with skeleton panels).
+- **Built (Stage 13).** The list's row actions are icon buttons with tooltips (*Copy link*, *New
+  link*, *Delete*) and an outlined *Edit*; *New overlay* takes a name and opens its builder at
+  `/settings/overlays/<id>`, a history entry like the sections. *New link* asks for the name typed
+  into the dialog (ADR 0054); its toast has no Undo, Delete's does. The builder stacks, since the
+  Settings column is 44rem: *← Overlays*, the live preview (the real `/overlay/<key>` in a frame
+  scaled from 1920×1080, live through the same ping, on a checkerboard unless the background is
+  solid), the masked link with *Copy link*, the name (Save), the widgets (drag by the grip or ↑ ↓,
+  a switch each), then Position (eight anchors), Size (S 0.8×, M, L 1.25×), Panels (dark
+  Mürekkep, light Kâğıt), Background (see-through, solid), Language (the stream language unless
+  set), and the rows and minimum games only while a widget that uses them is on. Switches and
+  selects save as they change (ADR 0033).
 
 **Most wins** widget (owner, 2026-09-28): a leaderboard panel for the overlay.
 
@@ -980,6 +991,14 @@ reloads the source often, and a page that animates on every reload looks broken 
 - Sizes from the overlay rows of [The scale](#the-scale); nothing under 24px, so it survives a
   720p stream.
 - Language: the overlay's own setting, defaulting to the *stream language* chat replies use.
+- **Built (Stage 13).** Widgets stack in a column at their anchor 48px in (side by side along the
+  top and bottom edges), scaled by the size. Titles 24px in the muted ink, names
+  `text-overlay-name`, the score `text-overlay-headline`. Teams, queue (*N more waiting* past its
+  rows), last result and both boards hide when empty; the score always shows. The reveal plays
+  once per overlay (an OBS reload does not replay it), never for a draw over 30 seconds old, and
+  fades out 20 seconds after it arrived. A light theme (Kâğıt panels at 92%) is the builder's
+  choice; the default stays Mürekkep at 88%. The page joins the `watch:<slug>` ping topic, which
+  0031 keeps sending while a channel has an overlay even with `/watch` off.
 
 ---
 

@@ -6,6 +6,7 @@ import {
   Languages,
   type LucideIcon,
   MessageSquare,
+  MonitorPlay,
   RotateCcw,
   Shield,
   Star,
@@ -21,6 +22,7 @@ import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/i18n";
 import { BadgePicker } from "@/components/queue/badge-picker";
+import { OverlaysSection } from "@/components/queue/overlays-section";
 import { confirm } from "@/components/queue/confirm";
 import { Tag } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
@@ -96,7 +98,7 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
   return { draft, set, put, dirty: changed.length > 0, save, state, errors };
 }
 
-function Section({ title, hint, children, onEnter }: {
+export function Section({ title, hint, children, onEnter }: {
   title: string;
   hint?: string;
   children: React.ReactNode;
@@ -129,7 +131,7 @@ function Section({ title, hint, children, onEnter }: {
   );
 }
 
-function Field({ id, label, hint, error, children }: { id?: string; label: string; hint?: string; error?: string; children: React.ReactNode }) {
+export function Field({ id, label, hint, error, children }: { id?: string; label: string; hint?: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
@@ -141,7 +143,7 @@ function Field({ id, label, hint, error, children }: { id?: string; label: strin
 }
 
 // A switch with its label and one line of description, the whole block clickable.
-function SwitchField({ id, label, hint, checked, onChange, disabled }: {
+export function SwitchField({ id, label, hint, checked, onChange, disabled }: {
   id: string;
   label: string;
   hint?: string;
@@ -161,7 +163,7 @@ function SwitchField({ id, label, hint, checked, onChange, disabled }: {
 }
 
 // Save for the typed fields; a section of switches and selects only reports (manual false).
-function SaveRow({ s, manual = true }: { s: { dirty: boolean; save: () => Promise<unknown> | void; state: string; errors: Errors }; manual?: boolean }) {
+export function SaveRow({ s, manual = true }: { s: { dirty: boolean; save: () => Promise<unknown> | void; state: string; errors: Errors }; manual?: boolean }) {
   const { t } = useT();
   const canWrite = useCanWrite();
   if (!manual && !s.errors.form && s.state !== "saved") return null;
@@ -178,8 +180,8 @@ function SaveRow({ s, manual = true }: { s: { dirty: boolean; save: () => Promis
   );
 }
 
-const inputCls = "h-9 max-md:h-11";
-const triggerCls = "h-9! w-full max-md:h-11!";
+export const inputCls = "h-9 max-md:h-11";
+export const triggerCls = "h-9! w-full max-md:h-11!";
 
 function CommandsSection() {
   const { t } = useT();
@@ -491,8 +493,8 @@ function WatchSectionSettings() {
           onChange={(on) => toggle(x, on)}
         />
       ))}
-      {/* This site's own address (a preview links to itself). The overlay's link comes back with
-          Stage 13's overlays, each with its own key (owner, 2026-09-28). */}
+      {/* This site's own address (a preview links to itself). Overlays have their own section,
+          each with its own key (Stage 13). */}
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-meta">
         <dt className="text-muted-foreground">{t("settings.watch.link")}</dt>
         <dd className="font-mono text-code break-all">
@@ -575,6 +577,7 @@ const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; bo
   games: { icon: Trophy, tone: "text-brand", body: GamesSection },
   perks: { icon: Star, tone: "text-brand", body: PerksSection },
   watch: { icon: Eye, tone: "text-badge-founder", body: WatchSectionSettings },
+  overlays: { icon: MonitorPlay, tone: "text-badge-og", body: OverlaysSection },
   moderators: { icon: Shield, tone: "text-success", body: ModeratorsSection },
   labels: { icon: Languages, tone: "text-badge-vip", body: LabelsSection },
 };
@@ -594,7 +597,8 @@ export function SettingsPage() {
   const go = (e: React.MouseEvent, s: SettingsSection) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
-    if (s !== open) window.history.pushState(null, "", `${base}/${s}`);
+    // From an overlay's builder, Overlays goes back to its list.
+    if (window.location.pathname !== `${base}/${s}`) window.history.pushState(null, "", `${base}/${s}`);
   };
   const e2 = enter(ui.entering, 2);
   const Body = SECTION_META[shown].body;

@@ -230,3 +230,39 @@ export type DashboardActions = {
 // One realtime event, and every mutating RPC's return value.
 export type Row = { _t: string; _deleted?: true } & Record<string, unknown>;
 export type ChangeEvent = { v: number; kind: string; rows: Row[]; actor: string | null };
+
+// An OBS overlay (D29, 0031): its own secret key, its widgets in order, each on or off, and where
+// and how it draws. The owner reads it; moderators never see a key.
+export const OVERLAY_WIDGETS = ["teams", "score", "reveal", "queue", "last", "wins", "respect"] as const;
+export type OverlayWidget = (typeof OVERLAY_WIDGETS)[number];
+export const OVERLAY_ANCHORS = ["top-left", "top", "top-right", "left", "right", "bottom-left", "bottom", "bottom-right"] as const;
+export type OverlayConfig = {
+  widgets: { type: OverlayWidget; on: boolean }[];
+  anchor: (typeof OVERLAY_ANCHORS)[number];
+  size: "s" | "m" | "l";
+  theme: "ink" | "paper";
+  background: "transparent" | "solid";
+  lang: Lang | null;
+  queue_rows: 5 | 10 | 15;
+  board_rows: 3 | 5 | 10;
+  min_games: 0 | 1 | 3 | 5 | 10 | 20;
+  board_period: "stream" | "all";
+};
+export type Overlay = { id: string; channel_id: string; key: string; name: string; config: OverlayConfig; created_at: string; updated_at: string };
+
+// What /overlay/<key> shows (0031 overlay_snapshot): only the widgets that are on carry data.
+export type OverlaySnapshot = {
+  v: number;
+  slug: string;
+  config: OverlayConfig;
+  lang: Lang;
+  labels: Labels | null;
+  team_size: number;
+  teams: { id: string; kick_username: string; team: 1 | 2; team_slot: number | null; locked: boolean }[] | null;
+  queue: { total: number; rows: { id: string; kick_username: string }[] } | null;
+  score: { t1: number; t2: number } | null;
+  last: { n: number; winner: 1 | 2; ended_at: string; teams: [string[], string[]] } | null;
+  wins: { name: string; wins: number; games: number }[] | null;
+  respect: { name: string; respect: number; games: number }[] | null;
+  draw: Pick<Draw, "id" | "kind" | "n" | "result" | "created_at"> | null;
+};

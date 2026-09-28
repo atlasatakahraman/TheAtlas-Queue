@@ -5,14 +5,18 @@ import type { WatchSnapshot } from "@/types/queue";
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-// The live /watch snapshot. `watch:<slug>` is a public Realtime topic that carries only {v}
-// (spec § Realtime): a hint to refetch the cached /api/watch, never data. Joined over a bare
-// WebSocket (Phoenix protocol, as supabase-js speaks it) so /watch ships no Supabase client.
-// A snapshot older than the ping retries once after a second (the CDN may still hold the last
-// one); a refocus and a minute's quiet refetch too, which also catch the page being turned off.
-export function useWatch(slug: string, initial: WatchSnapshot): WatchSnapshot {
+// A snapshot's version; a page that is off (/watch disabled) has none and is always taken.
+const ver = (s: object) => ("v" in s && typeof s.v === "number" ? s.v : 0);
+
+// A live public snapshot. `watch:<slug>` is a public Realtime topic that carries only {v}
+// (spec § Realtime): a hint to refetch the cached `url`, never data. Joined over a bare WebSocket
+// (Phoenix protocol, as supabase-js speaks it) so the public pages ship no Supabase client. A
+// snapshot older than the ping retries once after a second (the CDN may still hold the last
+// one); a refocus and a minute's quiet refetch too. A 404 is null: the overlay's key was rotated
+// or deleted (/watch keeps what it has).
+export function useLive<T extends object>(slug: string | null, url: string, initial: T | null): T | null {
   const [snap, setSnap] = useState(initial);
-  const v = useRef(initial.disabled ? 0 : initial.v);
+  const v = useRef(initial ? ver(initial) : 0);
 
   useEffect(() => {
     let closed = false;
@@ -21,19 +25,21 @@ export function useWatch(slug: string, initial: WatchSnapshot): WatchSnapshot {
     let tries = 0;
 
     const load = async (want = 0, again = true) => {
-      const r = await fetch(`/api/watch/${encodeURIComponent(slug)}`).catch(() => null);
+      const r = await fetch(url).catch(() => null);
       if (!r || closed || (!r.ok && r.status !== 404)) return;
-      const s = r.ok ? ((await r.json()) as WatchSnapshot) : null;
-      if (closed || !s) return;
-      if (s.disabled) setSnap(s);
-      else if (s.v >= v.current) {
-        v.current = s.v;
+      const s = r.ok ? ((await r.json()) as T) : null;
+      if (closed) return;
+      if (!s) return setSnap(null);
+      const sv = ver(s);
+      if (sv === 0 || sv >= v.current) {
+        v.current = sv;
         setSnap(s);
       }
-      if (want > (s.disabled ? 0 : s.v) && again) setTimeout(() => void load(want, false), 1000);
+      if (want > sv && again) setTimeout(() => void load(want, false), 1000);
     };
 
     const connect = () => {
+      if (!slug) return;
       ws = new WebSocket(`${URL_BASE.replace(/^http/, "ws")}/realtime/v1/websocket?apikey=${KEY}&vsn=1.0.0`);
       const topic = `realtime:watch:${slug}`;
       let ref = 0;
@@ -66,7 +72,12 @@ export function useWatch(slug: string, initial: WatchSnapshot): WatchSnapshot {
       document.removeEventListener("visibilitychange", onShow);
       ws?.close();
     };
-  }, [slug]);
+  }, [slug, url]);
 
   return snap;
+}
+
+// The live /watch snapshot; a channel that vanished while open keeps its first paint.
+export function useWatch(slug: string, initial: WatchSnapshot): WatchSnapshot {
+  return useLive(slug, `/api/watch/${encodeURIComponent(slug)}`, initial) ?? initial;
 }

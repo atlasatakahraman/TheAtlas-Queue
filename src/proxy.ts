@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // The webhook proves itself with Kick's signature, the health route with its bearer.
-// /watch and its API are public (spec § Security); so are the files crawlers and share previews
-// read.
-const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/TheAtlas", "/api/kick/webhook", "/api/cron/", "/watch/", "/api/watch/", "/opengraph-image"];
+// /watch, /overlay and their APIs are public (spec § Security; an overlay's key is its secret); so
+// are the files crawlers and share previews read.
+const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/TheAtlas", "/api/kick/webhook", "/api/cron/", "/watch/", "/api/watch/", "/overlay/", "/api/overlay/", "/opengraph-image"];
 // `/` is the home page and the sign-in page.
 const PUBLIC_EXACT = new Set(["/", "/robots.txt", "/sitemap.xml", "/manifest.webmanifest"]);
 
-function csp(nonce: string) {
+function csp(nonce: string, framed: boolean) {
   const dev = process.env.NODE_ENV !== "production";
   const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL;
   return [
@@ -19,7 +19,8 @@ function csp(nonce: string) {
     "img-src 'self' data: blob: https://*.kick.com https://ddragon.leagueoflegends.com",
     "font-src 'self'",
     `connect-src 'self'${supabase ? ` ${supabase} ${supabase.replace("https://", "wss://")}` : ""}`,
-    "frame-ancestors 'none'",
+    // Only an overlay may be framed, by this site: the Settings builder's live preview.
+    framed ? "frame-ancestors 'self'" : "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self' https://id.kick.com",
     "object-src 'none'",
@@ -30,7 +31,7 @@ function csp(nonce: string) {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const policy = csp(nonce);
+  const policy = csp(nonce, pathname.startsWith("/overlay/"));
 
   const isPublic = PUBLIC_EXACT.has(pathname) || PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
   if (!isPublic) {

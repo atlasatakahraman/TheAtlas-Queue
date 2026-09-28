@@ -860,7 +860,7 @@ Its own page with the dashboard's top bar; the breadcrumb reads *… / HoustonHU
 **← Queue** leads back. Two columns from 1024px: a sticky **section list** (left, 14rem) and one
 section at a time (right, max 44rem); the section is in the URL (`/settings/riot`).
 
-Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fair play, reveal, *clear the queue when the stream ends*)
+Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · **Teams & draws** (team size, fair play, reveal, *clear the queue when the stream ends*)
 · **Games** (after-game action, retention) · **Perks** (the badge picker) · **Watch** ·
 **Overlays** · **Moderators** · **Labels** · **Your data**.
 
@@ -871,7 +871,7 @@ Sections, in order: **Commands** · **Riot** · **Teams & draws** (team size, fa
   section's Save, disabled until one of them changed (owner, 2026-09-27, ADR 0033); errors
   under their field.
 - **The section list** (owner, 2026-09-28): each section has its icon in its own colour
-  (Commands `Terminal` brand, Riot `Swords` team 2, Teams & draws `Users` team 1, Games `Trophy`
+  (Commands `Terminal` brand, Joining `DoorOpen` warning, Riot `Swords` team 2, Teams & draws `Users` team 1, Games `Trophy`
   gold, Perks `Star` brand, Watch `Eye` badge-founder, Overlays `MonitorPlay` badge-og, Moderators
   `Shield` success, Labels `Languages` badge-vip, Your data `Database` destructive). The icons
   move as the dashboard tabs' icons do: a −6° tilt and ×1.15 on hover (200ms, off with
@@ -936,6 +936,53 @@ Overlays                                                    [+ New overlay]
 - The first row's rank number takes the gold, the rest are muted; names in `--ink-text`, wins
   tabular. A rank change swaps rows without motion (no entrance on the overlay, see below).
 - Empty: the panel hides itself rather than show *No games yet* on stream.
+
+#### Joining: Settings and the toolbar (Stage 14, D23)
+
+The rules a chat `!join` must pass. They bind **chat only**: the streamer and moderators add anyone
+by hand (owner, 2026-09-28). A refused `!join` is a feed line with its reason, like a ban
+(*kaanxd was turned away: joining is closed*), at most one per viewer per 10 s. Followers-only is
+out: Kick's public API cannot tell whether a viewer follows (checked 2026-09-28; it only sends
+`channel.followed` for new follows).
+
+**Settings → Joining** (*Katılım*), after Commands, icon `DoorOpen` in `--warning`:
+
+```
+Joining
+┌──────────────────────────────────────────────────────────────┐
+│ Joining is open                                          [●] │
+│   Viewers join with !sıra.                                   │
+│ Queue limit            [ 20 ]   0 means no limit             │
+│ Sit out after a game   [ 1  ]   games                        │
+│ Subscribers only                                         [ ] │
+│   (badge picker while on)                                    │
+│                                                     [ Save ] │
+└──────────────────────────────────────────────────────────────┘
+```
+
+- **Joining is open**: a switch, saves at once; its line names the join command. Also on the
+  toolbar (below), since it is flipped mid-stream.
+- **Queue limit** (0–500, 0 = none): counts everyone in the queue who is not playing. A full
+  queue turns `!join` away; the streamer can still add.
+- **Sit out after a game** (0–20 games): a player recorded in a game (Victory, D27) can join
+  again from chat once that many later games are recorded. Games taken back do not count.
+- **Subscribers only**: a switch; on, the [badge picker](#badge-picker) under it (default
+  Subscriber) says who may join, one live sentence under it (*Only subscribers and VIPs can join
+  from chat*). Moderators and the streamer always pass it.
+- Numbers wait for Save (ADR 0033), switches and the picker save as they change.
+
+**The toolbar** gets one button at its right end (`ml-auto`), so it moves nothing before it:
+
+```
+[+ Add] | [Pick ×1 ×2 ×3 ▾] [Shuffle ▾] | [Clear queue]                 [Joining open 12/20]
+```
+
+- `outline`, `DoorOpen` + *Joining open*; closed: `DoorClosed` + *Joining closed*, icon and
+  label in `--warning` (attention, not an error). `aria-pressed` is the closed state. With a
+  limit, the count follows in muted tabular figures (*12/20*), destructive at the limit.
+- Tooltip says what a press does (*Close joining: !sıra is turned away*). Owner and moderators;
+  a press is in History (*mirayy closed joining*), no Undo (press again).
+- Under 768px the label goes, the icon (and count) stay. The toolbar skeleton draws it shaded.
 
 #### Help `/help` (Stage 15, D33)
 

@@ -37,9 +37,13 @@ function PickDialog() {
   const store = useStore();
   const reveal = useQueue((v) => v.reveal);
   const pick = reveal?.kind === "pick" ? reveal : null;
+  // The last pick stays in the dialog while it animates out, so it does not close empty.
+  const [last, setLast] = useState(pick);
+  if (pick && pick !== last) setLast(pick);
+  const shown = pick ?? last;
   return (
     <ResponsiveDialog open={!!pick} onOpenChange={(o) => !o && store.clearReveal()} title={t("pick.title")}>
-      {pick && <PickBody key={pick.id} picked={pick.result.picked ?? []} />}
+      {shown && <PickBody key={shown.id} picked={shown.result.picked ?? []} />}
     </ResponsiveDialog>
   );
 }

@@ -1249,8 +1249,8 @@ sits between them (D25).
 [🏆 Victory]                                                     Stage 10 (D27)
 ```
 
-- **Header line**, muted: **{n} of {size}** (in gold, `--brand`, once the team is full, as the
-  active tab's count; owner, 2026-09-28) and the average rank; no colour square (the card's top
+- **Header line**, muted: **{n} of {size}** (once the team is full the **{n}** alone turns gold,
+  `--brand`, as the active tab's count; owner, 2026-09-28) and the average rank; no colour square (the card's top
   edge already carries the team colour); right, **Add to {team}** in the team colour, which
   opens a searchable list of waiting players ending in *Add a new player…*. Every empty slot
   opens the same list on itself (6.12).

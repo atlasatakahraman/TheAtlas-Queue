@@ -6,6 +6,7 @@ import { LangSwitch } from "@/components/lang-switch";
 import { ThemeButton } from "@/components/theme-button";
 import { Typed } from "@/components/prefs";
 import { Button } from "@/components/ui/button";
+import { HOME, HOME_FOOTER, HOME_MAIN } from "@/components/queue/geometry";
 
 const SOURCE = "https://github.com/atlasatakahraman/TheAtlas-Queue";
 
@@ -16,8 +17,8 @@ export function Home({ callbackUrl }: { callbackUrl: string }) {
   // Each point carries its own icon (no bullet dots, owner 2026-09-27).
   const points = [["home.point.chat", MessageSquare], ["home.point.fair", Scale], ["home.point.safe", Server]] as const;
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-8 max-md:px-4">
-      <main className="flex flex-1 flex-col justify-center gap-8 py-16">
+    <div className={HOME}>
+      <main className={HOME_MAIN}>
         <h1 className="font-serif text-display max-md:text-title">
           <Typed text="TheAtlas" />{" "}
           {/* Queue types on after the name, one 40ms beat for the space. */}
@@ -47,7 +48,7 @@ export function Home({ callbackUrl }: { callbackUrl: string }) {
           <p className="text-meta text-muted-foreground">{t("home.stores")}</p>
         </div>
       </main>
-      <footer className="flex items-center justify-between gap-4 border-t border-border py-4 text-meta text-muted-foreground">
+      <footer className={HOME_FOOTER}>
         <span className="flex items-center gap-3">
           TheAtlas Queue
           <a className="underline-offset-4 hover:text-foreground hover:underline" href={SOURCE} rel="noopener">

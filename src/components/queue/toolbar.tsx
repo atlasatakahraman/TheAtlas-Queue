@@ -1,5 +1,6 @@
 "use client";
 import { Dices, RefreshCw, Shuffle, Swords, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { useEffect } from "react";
 import { useT } from "@/components/i18n";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { type PickSource, useDrawActions, usePick } from "@/components/queue/teams-tab";
@@ -17,6 +18,7 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { PICKS_COOKIE, TOOLBAR } from "@/components/queue/geometry";
 
 export function Keys({ children }: { children: string }) {
   return (
@@ -39,9 +41,13 @@ export function Toolbar() {
   const playing = players.filter((p) => p.status === "playing").length;
   // A disabled button says why (D25).
   const offline = !canWrite ? t("why.offline") : null;
+  // For the next load's skeleton, which draws as many ×n (geometry.ts).
+  useEffect(() => {
+    document.cookie = `${PICKS_COOKIE}=${sizes.length}; path=/; max-age=31536000; samesite=lax`;
+  }, [sizes.length]);
 
   return (
-    <div role="toolbar" aria-label={t("palette.actions")} className="flex flex-wrap items-center gap-2">
+    <div role="toolbar" aria-label={t("palette.actions")} className={TOOLBAR}>
       <Tip label={offline}>
         <Button variant="outline" size="lg" className="max-md:size-11" disabled={!canWrite} onClick={() => ui.setAdding(true)}>
           <UserPlus aria-hidden />

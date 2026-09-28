@@ -64,6 +64,7 @@ import { useNow } from "@/components/use-now";
 import type { LabelKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Player, Sanction } from "@/types/queue";
+import { MID, ROW, ROW_BUTTONS, ROW_ROSTER, TABLE_HEAD, WIDE, tableCols } from "@/components/queue/geometry";
 
 const TIER_MARK: Record<string, string> = {
   IRON: "bg-rank-iron", BRONZE: "bg-rank-bronze", SILVER: "bg-rank-silver", GOLD: "bg-rank-gold",
@@ -629,30 +630,6 @@ function useReorder() {
   };
 }
 
-// The queue table's columns (August): #, player, Kick, rank, win rate, joined, actions. They follow
-// the table's own width, not the window's (owner, 2026-09-28: at 1024 to 1279px the side column
-// left the table 600px and the name column collapsed under the tags): [data-rows] is a size
-// container. Under 40rem the row keeps #, player and actions; under 52rem win rate and joined
-// go too. The actions
-// column is a fixed width (three quick actions and the menu), so the header row, whose last cell
-// is empty, lines up with the rows.
-// The actions column holds its four 32px buttons with room to spare (8.5rem; at 6rem they ran
-// 32px into Joined, owner 2026-09-28); the player column takes twice the Kick
-// column, since its name shares the line with the respect score and tags (at 1280×720 the name
-// had 53px of 175, owner 2026-09-27).
-// With Riot IDs off (owner, 2026-09-27) the Kick, Rank and Win rate columns go: the name is the
-// Kick name and there is no rank to show. Riot IDs without ranks keep Kick (2026-09-28).
-const TABLE_COLS_PLAIN =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,1fr)_8.5rem] @min-[52rem]:grid-cols-[2rem_minmax(0,1fr)_5.5rem_8.5rem]";
-const TABLE_COLS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_8.5rem] @min-[52rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_5rem_5.5rem_8.5rem]";
-const TABLE_COLS_IDS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem] @min-[52rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_5.5rem_8.5rem]";
-// The cells that leave under each width (the same thresholds as the columns above).
-const MID = "@max-[40rem]:hidden";
-const WIDE = "@max-[52rem]:hidden";
-const tableCols = (ids: boolean, ranks: boolean) => (ranks ? TABLE_COLS : ids ? TABLE_COLS_IDS : TABLE_COLS_PLAIN);
-
 // A player row (DESIGN.md § Recipes → Queue row). "table" is the Queue tab's row; "roster" is a
 // team card's row: number, avatar, name#tag, rank, menu, on the floor colour.
 export function PlayerRow({
@@ -807,9 +784,10 @@ export function PlayerRow({
           }}
           style={enterStyle?.style}
           className={cn(
-            "group/row relative grid items-center gap-x-3 rounded-xl border border-l-[3px] border-row-edge px-4 py-3 outline-none",
+            "group/row relative outline-none",
+            ROW,
             "transition-colors duration-150 ease-out hover:bg-accent focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
-            table ? cn("bg-row", tableCols(ids, ranks)) : "grid-cols-[1.25rem_minmax(0,1fr)_auto_auto] bg-background",
+            table ? cn("bg-row", tableCols(ids, ranks)) : ROW_ROSTER,
             edge,
             recent(arrivedAt) && "animate-arrive",
             recent(revertedAt) && "animate-highlight",
@@ -851,10 +829,7 @@ export function PlayerRow({
           {/* In a narrow list the buttons take a line of their own under the name (at 375px four
               44px touch buttons left the name 27px): under 40rem of table, 24rem of roster. */}
           <span
-            className={cn(
-              "flex items-center justify-end",
-              table ? "@max-[40rem]:col-span-full @max-[40rem]:mt-2" : "@max-[24rem]:col-span-full @max-[24rem]:mt-2",
-            )}
+            className={table ? ROW_BUTTONS.table : ROW_BUTTONS.roster}
           >
             <QuickActions player={player} />
             <RowMenu player={player} kit="dropdown" open={menuOpen} onOpenChange={setMenuOpen} />
@@ -891,7 +866,7 @@ export function TableHeader({ sort }: { sort: ReturnType<typeof useQueueSort> })
     );
   };
   return (
-    <div className={cn("grid items-center gap-x-3 border border-l-[3px] border-transparent px-4", MID, tableCols(ids, ranks))}>
+    <div className={cn(TABLE_HEAD, tableCols(ids, ranks))}>
       {/* While sorted, the # itself is the way back (owner, 2026-09-28): muted like the other
           headers, foreground on hover. */}
       {sort.key ? (

@@ -44,6 +44,7 @@ import { useNow } from "@/components/use-now";
 import { isLabelKey, type LabelKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Activity } from "@/types/queue";
+import { DAY, DAY_HEAD, LINE } from "@/components/queue/geometry";
 
 const KINDS = ["all", "queue", "teams", "moderation", "chat"] as const;
 type Kind = (typeof KINDS)[number];
@@ -183,8 +184,8 @@ export function HistoryTab() {
           <p className="py-10 text-muted-foreground">{t("mod.activity.empty")}</p>
         ) : (
           days.map(({ day, rows }, i) => (
-            <section key={day || i} className="rounded-xl bg-card py-2">
-              <h3 className="h-8 px-4 pt-2 text-caption text-muted-foreground uppercase select-none">{day}</h3>
+            <section key={day || i} className={DAY}>
+              <h3 className={DAY_HEAD}>{day}</h3>
               <ol>
                 {rows.map((a) => (
                   <Line key={a.id} a={a} clock={clock} />
@@ -221,7 +222,8 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
   return (
     <li
       className={cn(
-        "grid grid-cols-[4.25rem_1rem_minmax(0,1fr)_auto] items-baseline gap-x-3 px-4 py-2 text-body transition-colors hover:bg-accent/60",
+        LINE,
+        "transition-colors hover:bg-accent/60",
         a.undone_at && "text-muted-foreground",
       )}
     >

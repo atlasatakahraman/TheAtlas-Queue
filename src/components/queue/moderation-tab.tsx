@@ -22,6 +22,7 @@ import { useNow } from "@/components/use-now";
 import { ago, span } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Sanction } from "@/types/queue";
+import { MOD_COLS, MOD_ROW } from "@/components/queue/geometry";
 
 const KINDS = ["warn", "punish", "ban"] as const;
 type Kind = (typeof KINDS)[number];
@@ -32,11 +33,7 @@ function isActive(m: Sanction, now: number) {
 
 // The tables' grids (DESIGN.md § Management tab), on the queue table's rules; under 768px only
 // the player, the length and the menu stay.
-const COLS: Record<Kind, string> = {
-  warn: "grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)_4.5rem_8rem_2rem]",
-  punish: "grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-[minmax(0,1.3fr)_8rem_minmax(0,2fr)_4.5rem_8rem_2rem]",
-  ban: "grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)_4.5rem_8rem_2rem]",
-};
+const COLS: Record<Kind, string> = MOD_COLS;
 
 export function ModerationTab() {
   const { t } = useT();
@@ -146,7 +143,7 @@ function SanctionRow({ m, now }: { m: Sanction; now: number }) {
   return (
     <div
       className={cn(
-        "grid items-center gap-x-3 rounded-xl border border-row-edge bg-row px-4 py-3",
+        MOD_ROW,
         COLS[m.kind],
         !active && "border-dashed bg-transparent text-muted-foreground",
       )}

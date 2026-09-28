@@ -19,6 +19,7 @@ import { tr } from "@/lib/i18n/tr";
 import { isError, type RpcError } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
 import { AFTER_GAME, type AfterGame, DRAW_REVEALS, type Settings, type WatchSection } from "@/types/queue";
+import { SECTION, SECTION_CARD } from "@/components/queue/geometry";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 const SECTIONS: WatchSection[] = ["teams", "queue", "moderation", "riot_ids"];
@@ -90,7 +91,7 @@ function Section({ title, hint, children, step, onEnter }: {
   return (
     <section
       style={e.style}
-      className={cn("grid grid-cols-[16rem_minmax(0,1fr)] gap-6 border-t border-border py-8 first:border-t-0 first:pt-0 max-md:grid-cols-1 max-md:gap-4", e.className)}
+      className={cn(SECTION, e.className)}
     >
       <div className="flex flex-col gap-1">
         <h3 className="font-serif text-team">{title}</h3>
@@ -98,7 +99,7 @@ function Section({ title, hint, children, step, onEnter }: {
         {hint && <p className="text-meta text-muted-foreground">{hint}</p>}
       </div>
       <div
-        className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 max-md:p-4"
+        className={SECTION_CARD}
         onKeyDown={(e) => {
           if (!onEnter || e.key !== "Enter" || e.nativeEvent.isComposing || !(e.target instanceof HTMLInputElement)) return;
           e.preventDefault();

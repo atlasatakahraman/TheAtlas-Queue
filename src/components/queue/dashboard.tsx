@@ -29,6 +29,7 @@ import { SLIDE, useSlide } from "@/components/use-slide";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { DashboardActions, GameView, Player, QueueState } from "@/types/queue";
+import { BAR, BAR_IN, COLS_COOKIE, MAIN, TAB, TAB_TRACK } from "@/components/queue/geometry";
 
 type Account = { name: string; image: string | null };
 
@@ -108,6 +109,12 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
     return () => clearTimeout(id);
   }, [slug]);
 
+  // The table's columns, for the next load's skeleton (the server has no settings while loading).
+  const cols = useQueue((v) => (v.settings.require_riot_id && v.settings.riot_enabled ? "ranks" : v.settings.require_riot_id ? "ids" : "plain"));
+  useEffect(() => {
+    document.cookie = `${COLS_COOKIE}=${cols}; path=/; max-age=31536000; samesite=lax`;
+  }, [cols]);
+
   useEffect(() => {
     document.title = `${t(`tab.${tab}`)} · TheAtlas Queue`;
   }, [tab, t]);
@@ -148,12 +155,12 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
       <PageMenu>
       {/* The top bar runs the full width on its own ground (August's header); its content keeps
           the page's width. It sticks while the page scrolls. */}
-      <div className="sticky top-0 z-40 border-b border-border bg-card">
-        <div className="mx-auto w-full max-w-[1440px] px-8 py-3 max-md:px-4">
+      <div className={cn("sticky top-0 z-40", BAR)}>
+        <div className={BAR_IN}>
           <TopBar />
         </div>
       </div>
-      <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-6 px-8 pt-8 pb-4 max-md:px-4 max-md:pt-6 max-md:pb-28">
+      <div className={MAIN}>
         {!game && <Masthead />}
         {offline && (
           <div role="status" className="rounded-lg border border-warning/45 px-4 py-2.5 text-meta text-foreground">
@@ -172,7 +179,7 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
             ref={track}
             variant="line"
             style={e2.style}
-            className={cn("relative h-auto! w-full gap-1.5 rounded-xl! bg-muted p-1.5 max-md:hidden dark:bg-card", e2.className)}
+            className={cn(TAB_TRACK, e2.className)}
           >
             <span ref={box} aria-hidden className={cn(SLIDE, "inset-y-1.5 rounded-lg bg-card shadow-sm ring-1 ring-border dark:bg-accent")} />
             {tabs.map((k) => {
@@ -181,7 +188,7 @@ function Shell({ initialTab, account, game }: { initialTab: Tab; account: Accoun
                 <TabsTrigger
                   key={k}
                   value={k}
-                  className="group/tab h-12 flex-1 gap-2 rounded-lg px-5 text-body text-muted-foreground select-none after:hidden hover:text-foreground data-[state=active]:text-foreground"
+                  className={cn(TAB, "group/tab gap-2 px-5 text-body text-muted-foreground select-none after:hidden hover:text-foreground data-[state=active]:text-foreground")}
                 >
                   {/* The gold line under the label (icon, name, count) grows from its centre when the
                       tab turns active; the stock full-width underline stays hidden (after:hidden). */}

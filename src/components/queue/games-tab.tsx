@@ -19,13 +19,12 @@ import { useNow } from "@/components/use-now";
 import { db } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import type { Game, PlayerRecord } from "@/types/queue";
+import { GAME_ROW, GAMES_SEARCH } from "@/components/queue/geometry";
 
 // Games (DESIGN.md § Games tab, D27): the score as the title, then Games (one line a game, newest
 // first, 50 more on scroll) or Stats (every name's record), and a name search for both.
 const VIEWS = ["games", "stats"] as const;
 const PAGE = 50;
-// A game row and its skeleton share one height, as the queue's rows do.
-const ROW = "h-[3.875rem]";
 
 export function GamesTab() {
   const { t } = useT();
@@ -76,7 +75,7 @@ export function GamesTab() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("games.search")}
               aria-label={t("games.search")}
-              className="h-9 w-56 pl-9 max-md:h-11 max-md:w-full"
+              className={GAMES_SEARCH}
             />
           </div>
           {/* Streamer only, as Clear history; asks first, and Undo brings the games back. */}
@@ -97,7 +96,7 @@ export function GamesTab() {
 }
 
 function RowSkeleton() {
-  return <Skeleton className={cn(ROW, "w-full rounded-xl")} />;
+  return <Skeleton className={cn(GAME_ROW, "w-full rounded-xl")} />;
 }
 
 function Failed({ retry }: { retry: () => void }) {
@@ -215,7 +214,7 @@ function GameRow({ game }: { game: Game }) {
   return (
     <li
       className={cn(
-        ROW,
+        GAME_ROW,
         "relative grid grid-cols-[3rem_minmax(0,1fr)_auto_auto_auto] items-center gap-x-4 rounded-xl border border-l-[3px] border-row-edge bg-row pr-2 pl-4 transition-colors hover:bg-accent/60 max-sm:grid-cols-[2.5rem_minmax(0,1fr)_auto_auto]",
         game.winner === 1 ? "border-l-team-1" : "border-l-team-2",
       )}

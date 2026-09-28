@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useT } from "@/components/i18n";
 import { copyResult } from "@/components/queue/games-tab";
+import { GP_CARD_HEAD, GP_GRID, GP_HEAD, GP_META, GP_ROW, GP_TITLE } from "@/components/queue/geometry";
 import { CardTrigger } from "@/components/queue/player-card";
 import { RankText, useRanks, useRiotIds } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
@@ -55,7 +56,7 @@ export function GamePage({ view }: { view: GameView }) {
     return (
       <div className="flex flex-col items-start gap-3 py-6">
         {games}
-        <h1 className="font-serif text-headline max-md:text-title">{t("game.missing.title", { n: view.n })}</h1>
+        <h1 className={GP_TITLE}>{t("game.missing.title", { n: view.n })}</h1>
         <p className="text-muted-foreground">{t("game.missing.body")}</p>
       </div>
     );
@@ -85,7 +86,7 @@ export function GamePage({ view }: { view: GameView }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className={GP_HEAD}>
         {games}
         <div className="flex items-center gap-1">
           {step(prev, t("game.prev"), ChevronLeft)}
@@ -121,20 +122,20 @@ export function GamePage({ view }: { view: GameView }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <h1 className="font-serif text-headline max-md:text-title">
+        <h1 className={GP_TITLE}>
           {before}
           <span className={game.winner === 1 ? "text-team-1" : "text-team-2"}>{t(`team.${game.winner}`)}</span>
           {after}
         </h1>
         {/* Set apart by space, no dot separators (DESIGN.md). */}
-        <p className="flex flex-wrap gap-x-6 gap-y-1 text-meta text-muted-foreground tabular-nums">
+        <p className={GP_META}>
           <time dateTime={game.ended_at}>{when}</time>
           {mins !== null && <span>{t("games.minutes", { n: mins })}</span>}
           <span>{t("games.size", { n: game.team_size })}</span>
         </p>
       </div>
 
-      <div className="grid grid-cols-2 items-start gap-4 max-lg:grid-cols-1">
+      <div className={GP_GRID}>
         {([game.winner, game.winner === 1 ? 2 : 1] as const).map((team) => (
           <GameCard key={team} game={game} team={team} records={view.records} />
         ))}
@@ -155,7 +156,7 @@ function GameCard({ game, team, records }: { game: Game; team: 1 | 2; records: P
     <section className="flex min-w-0 flex-col overflow-hidden rounded-xl bg-card">
       <div className={cn("h-[5px]", team === 1 ? "bg-team-1" : "bg-team-2")} aria-hidden />
       <div className="flex flex-col gap-3 p-4">
-        <h2 className={cn("flex min-h-9 items-center gap-2 font-serif text-title", tone)}>
+        <h2 className={cn(GP_CARD_HEAD, tone)}>
           {t(`team.${team}`)}
           {game.winner === team && (
             <>
@@ -166,7 +167,7 @@ function GameCard({ game, team, records }: { game: Game; team: 1 | 2; records: P
         </h2>
         <ol className="flex flex-col gap-1.5">
           {game.teams[team - 1].map((e, i) => {
-            const row = "grid min-h-[3.875rem] grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl border border-row-edge bg-background px-4 py-3";
+            const row = GP_ROW;
             const number = <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{i + 1}</span>;
             if (e.removed)
               return (

@@ -4,6 +4,7 @@ import { useQueue } from "@/components/queue/store";
 import { Toolbar } from "@/components/queue/toolbar";
 import { enter, useUi } from "@/components/queue/ui";
 import { cn } from "@/lib/utils";
+import { MASTHEAD } from "@/components/queue/geometry";
 
 // DESIGN.md § Pages → Dashboard: the streamer's subtitle, if set, and right, the toolbar every tab
 // shares (August's title row). The channel and *Moderating* are in the top bar's breadcrumb; the
@@ -16,7 +17,7 @@ export function Masthead() {
   const [e0, e1] = [enter(ui.entering, 0), enter(ui.entering, 1)];
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+    <header className={MASTHEAD}>
       <div className="flex min-w-0 flex-col gap-1">
         {/* No big channel title (owner, 2026-09-23): the top bar names the channel; the heading
             stays for screen readers. */}

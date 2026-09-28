@@ -14,6 +14,7 @@ import type { LabelKey } from "@/lib/i18n";
 import { db } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import type { Onboarded, OnboardSettings } from "@/types";
+import { STEP, STEP_HEAD, WELCOME } from "@/components/queue/geometry";
 
 // DESIGN.md § Onboarding: three stacked steps, each finishing in place. No wizard, no Next.
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
@@ -22,8 +23,8 @@ type Row = { _t: string; kick_username?: string; riot_id?: string | null };
 
 function Step({ n, title, done, children }: { n: number; title: string; done: boolean; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 rounded-xl bg-card p-6 max-md:p-4">
-      <h2 className="flex items-center gap-3 font-serif text-team">
+    <section className={STEP}>
+      <h2 className={STEP_HEAD}>
         <span
           className={cn(
             "flex size-8 shrink-0 items-center justify-center rounded-full border font-serif text-numeral tabular-nums select-none",
@@ -97,7 +98,7 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-8 py-12 max-md:px-4 max-md:py-8">
+    <main className={WELCOME}>
       <header className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="font-serif text-display max-md:text-title">

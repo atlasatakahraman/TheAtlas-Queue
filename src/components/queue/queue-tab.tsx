@@ -17,6 +17,7 @@ import { isLabelKey } from "@/lib/i18n";
 import { ago } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Activity, Player } from "@/types/queue";
+import { QUEUE_GRID, SEARCH } from "@/components/queue/geometry";
 
 const FILTERS = ["all", "waiting", "playing", "away", "punished"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -71,7 +72,7 @@ export function QueueTab() {
   const [e3, e4, e5] = [enter(ui.entering, 3), enter(ui.entering, 4), enter(ui.entering, 5)];
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-6 max-lg:grid-cols-1">
+    <div className={QUEUE_GRID}>
       <section className="flex min-w-0 flex-col gap-4">
         <div style={e3.style} className={cn("flex flex-wrap items-end justify-between gap-4", e3.className)}>
           <h2 className="min-w-0 font-serif text-title">{t("queue.title")}</h2>
@@ -100,7 +101,7 @@ export function QueueTab() {
               }}
               placeholder={t("queue.search")}
               aria-label={t("queue.search")}
-              className="h-9 w-64 pl-9 max-md:h-11 max-md:w-full"
+              className={SEARCH}
             />
           </div>
         </div>

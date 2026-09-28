@@ -992,7 +992,18 @@ Every view designs all of these, not only the full one.
 **Loading.** The dashboard and `/watch` are server-rendered with their data; while the server
 works, `loading.tsx` draws **the page being opened** ([Designed ahead](#designed-ahead-stage-7-d36)):
 on `/c/<slug>`, the chrome and then the tab the page will render (Queue, Teams, Management, History
-or Settings, from the same `queue.tab` cookie), each in its own geometry (owner, 2026-09-27).
+or Games or Settings, from the same `queue.tab` cookie), each in its own geometry (owner,
+2026-09-27). **The same width, height and behaviour at every size** (owner, 2026-09-28, 10.10):
+a skeleton and its page read the same classes from `src/components/queue/geometry.ts` (as
+TheAtlas turborepo sizes its sidebar skeleton from `--sidebar-width`), so rows drop their buttons
+to a second line under the same container widths and controls grow to 44px under 768px on both.
+Controls are the page's own `Button`s shaded (`SHADE`); words are the page's labels drawn
+transparent (`Shade`), so they take the room they will. What only the data decides comes from
+cookies the dashboard writes: the table's columns (`queue.cols`) and how many of Pick's ×n
+show (`queue.picks`). Checked with a probe against the preview at 375, 768, 1024, 1280 and
+1440px: every box matches but the data's own lengths (players in a team, the history, the chat
+feed). The page keeps the scrollbar's gutter (`scrollbar-gutter: stable`), so a short skeleton
+and the long page after it are the same width.
 Anything fetched later shows **skeleton rows**: the real row shape (`bg-row`,
 `row-edge`, `rounded-xl`) with `bg-muted` bars where the text goes, at most six, pulsing once a
 second, still under reduced motion. Never a centred spinner in a list.

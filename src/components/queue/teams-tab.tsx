@@ -31,6 +31,7 @@ import { isError, type QueueView } from "@/lib/queue-store";
 import { averageRank } from "@/lib/rank";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
+import { CARD_HEAD, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
 
 // The draw reveal's cadence (DESIGN.md § The draw reveal): one name every 160ms, each typed at
 // 30ms a character and sharpening over 200ms. Off the motion ladder on purpose: it is a sequence.
@@ -142,10 +143,8 @@ export function revealDuration(order: Landing[]): number {
   return Math.max(0, ...order.map((o) => o.at + [...o.entry.kick_username].length * REVEAL.speed + REVEAL.sharpen));
 }
 
-// Every roster slot is one row high, filled or not: a team card holds team-size slots (August's
-// fixed team boxes), so the cards keep their height while names land and leave.
-const SLOT = "min-h-[3.875rem]";
-
+// Every roster slot is one row high (SLOT), filled or not: a team card holds team-size slots
+// (August's fixed team boxes), so the cards keep their height while names land and leave.
 // Slots keep their icon and their look while they cannot add (connecting, offline, a draw
 // landing), so nothing shifts when adding comes back (owner, 2026-09-27); dimming them read as
 // broken (owner, 2026-09-28), so only the header's Add shows the wait. Everyone on the dashboard
@@ -329,7 +328,7 @@ function TeamCard({ team, count, size, avg, landing = false, victory, children }
       <div className="flex flex-col gap-3 p-4">
         {/* No team name here: the match headline above names both teams (owner, 2026-09-23). */}
         <AddToTeam key={add?.n ?? 0} team={team} at={add?.at ?? null} place={add?.place} onClose={() => setAdd(null)} />
-        <header aria-label={t(`team.${team}`)} className="flex min-h-9 items-center justify-between gap-3 text-meta text-muted-foreground">
+        <header aria-label={t(`team.${team}`)} className={CARD_HEAD}>
           {refused ? (
             <span role="status" className="text-destructive">
               {t("why.team_full", { team: t(`team.${team}`), n: count, size })}
@@ -583,7 +582,7 @@ export function TeamsTab() {
         )}
       </div>
 
-      <div style={e4.style} className={cn("grid grid-cols-2 items-stretch gap-4 max-lg:grid-cols-1", e4.className)}>
+      <div style={e4.style} className={cn(TEAMS_GRID, e4.className)}>
         {landing && <RevealEnd key={revealing!.id} duration={landing.duration} />}
         {rosters.map((roster, i) => (
           <Fragment key={i}>
@@ -634,7 +633,7 @@ export function TeamsTab() {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-card p-4 max-md:flex-col max-md:items-stretch">
+      <div className={TEAMS_BAR}>
         {/* One line, centred on the buttons beside it; the effect needs no sentence (owner,
             2026-09-27). The label is the touch target, not the 18px switch. */}
         <div className="flex items-center gap-3">
@@ -649,7 +648,7 @@ export function TeamsTab() {
             {t("teams.fair_play")}
           </Label>
         </div>
-        <div className="flex flex-wrap items-center gap-2 max-md:grid max-md:grid-cols-2">
+        <div className={TEAMS_BAR_BUTTONS}>
           {/* A disabled button says why (D25). */}
           <Tip label={offline ?? (playing === 0 ? t("why.teams_empty") : null)}>
             <Button variant="destructive" size="lg" className="max-md:h-11" disabled={!canWrite || playing === 0} onClick={() => void clearTeams()}>

@@ -509,4 +509,9 @@ export const tr: Record<LabelKey, string> = {
   "confirm.clear_history.body": "Her satır herkes için silinir ve öncesindeki hiçbir şey geri alınamaz. Bu işlem de geri alınamaz.",
   "error.history.empty": "Temizlenecek geçmiş yok.",
   "mod.clear": "Yaptırımları temizle",
+  "live.on": "Canlı",
+  "live.off": "Çevrimdışı",
+  "live.title.none": "{time} itibarıyla yayında",
+  "live.title.off": "Yayın kapalı",
+  "live.on_air": "{t} süredir yayında",
 };

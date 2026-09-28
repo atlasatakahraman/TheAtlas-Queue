@@ -273,6 +273,8 @@
   --animate-signal: signal 450ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   /* A tab's count changing: the new figure rises into place. */
   --animate-count: count 200ms ease-out both;
+  /* Live in the top bar: the Radio icon's two outer arcs fade in turn (D25). */
+  --animate-on-air: on-air 2s ease-in-out infinite;
 }
 
 @layer base {
@@ -311,6 +313,12 @@
   from {
     opacity: 0;
     transform: translateY(0.45em);
+  }
+}
+
+@keyframes on-air {
+  50% {
+    opacity: 0.25;
   }
 }
 
@@ -486,7 +494,8 @@
   .type-in,
   .animate-enter,
   .animate-signal,
-  .animate-count {
+  .animate-count,
+  .animate-on-air {
     animation: none;
   }
   .animate-arrive {

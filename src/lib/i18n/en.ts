@@ -521,6 +521,11 @@ export const en = {
   "confirm.clear_history.body": "Every line goes for everyone, and nothing before it can be undone. This cannot be undone either.",
   "error.history.empty": "There is no history to clear.",
   "mod.clear": "Clear sanctions",
+  "live.on": "Live",
+  "live.off": "Offline",
+  "live.title.none": "Live since {time}",
+  "live.title.off": "The stream is offline",
+  "live.on_air": "On air for {t}",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

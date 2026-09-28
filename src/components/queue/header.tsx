@@ -1,5 +1,5 @@
 "use client";
-import { Ellipsis, LogOut, Search, Settings } from "lucide-react";
+import { Ellipsis, LogOut, Radio, RadioOff, Search, Settings } from "lucide-react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
@@ -7,8 +7,12 @@ import { useSetLang, useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { ConnectionPill } from "@/components/queue/connection-pill";
 import { useQueue } from "@/components/queue/store";
+import { cn } from "@/lib/utils";
 import { useUi } from "@/components/queue/ui";
 import { useMedia } from "@/components/use-client-state";
+import { useNow } from "@/components/use-now";
+import { span } from "@/lib/time";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeButton } from "@/components/theme-button";
 import { Typed, usePrefs } from "@/components/prefs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -86,6 +90,44 @@ function AccountMenu() {
   );
 }
 
+// Live / Offline after the breadcrumb (D25, DESIGN.md § Top bar): an icon and a word, no capsule
+// and no dot (the Radio icon's centre is hidden). Live shows the time on air, the stream title
+// in the tooltip; on phones the icon alone stays.
+function LiveStatus() {
+  const { t, lang } = useT();
+  const since = useQueue((v) => v.channel.live_since);
+  const title = useQueue((v) => v.channel.stream_title);
+  const now = useNow(60_000);
+  const ms = since && now ? Math.max(0, now - Date.parse(since)) : null;
+  const clock = ms === null ? "" : `${Math.floor(ms / 3_600_000)}:${String(Math.floor(ms / 60_000) % 60).padStart(2, "0")}`;
+  const tip = since
+    ? title || t("live.title.none", { time: new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit" }).format(new Date(since)) })
+    : t("live.title.off");
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          tabIndex={0}
+          aria-label={since ? `${t("live.on")}${ms === null ? "" : `, ${t("live.on_air", { t: span(ms, t) })}`}` : t("live.off")}
+          className={cn(
+            "flex shrink-0 items-center gap-1.5 rounded-sm text-meta font-medium outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40",
+            since ? "text-success" : "text-muted-foreground",
+          )}
+        >
+          {since ? (
+            <Radio aria-hidden className="size-4 [&_circle]:hidden [&_path:nth-child(2)]:animate-on-air [&_path:nth-child(3)]:animate-on-air [&_path:nth-child(3)]:[animation-delay:1s]" />
+          ) : (
+            <RadioOff aria-hidden className="size-4" />
+          )}
+          <span className="max-sm:hidden">{since ? t("live.on") : t("live.off")}</span>
+          {clock && <span className="tabular-nums max-sm:hidden">{clock}</span>}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-72 break-words">{tip}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 // The top bar (August's header): the TheAtlas tile and wordmark; right, the connection pill,
 // search, EN | TR, GitHub, theme, settings and the account. Under 768px the middle tools fold
 // into ⋯ and the pill, ⋯ and the account stay.
@@ -121,6 +163,7 @@ export function TopBar() {
         <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">
           <Typed text={channel} startDelay={phone ? 0 : 17 * 40} />
         </span>
+        <LiveStatus />
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}
       </span>
       <div className="flex shrink-0 items-center gap-1">

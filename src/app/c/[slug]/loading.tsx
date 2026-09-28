@@ -132,18 +132,27 @@ function TeamsBody() {
   );
 }
 
-// Sanctions: title with New and Clear, the pills, a list of rows.
+// Management (D25): the title; the sub-tab pills with New action and Clear on their right; the
+// table's header line and its rows (one line each, 50px).
 function ModerationBody() {
   return (
     <div className="flex flex-col gap-4">
-      <Head actions={2} />
+      <Skeleton className="h-8 w-40" />
+      <div className="flex flex-wrap items-center gap-3">
+        <Skeleton className="h-10 w-80 max-w-full" />
+        <div className="ml-auto flex gap-2 max-md:ml-0">
+          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-9 w-36" />
+        </div>
+      </div>
       <div className="flex flex-col gap-1.5">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="flex h-16 items-center gap-3 rounded-xl bg-card px-4">
-            <Skeleton className="size-5" />
+        <div className="h-[1.125rem] max-md:hidden" />
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} className="flex h-[3.125rem] items-center gap-3 rounded-xl border border-row-edge bg-row px-4">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-4 w-48 max-md:hidden" />
-            <Skeleton className="ml-auto h-8 w-8" />
+            <Skeleton className="ml-auto h-4 w-20 max-md:hidden" />
+            <Skeleton className="size-8 max-md:ml-auto" />
           </div>
         ))}
       </div>

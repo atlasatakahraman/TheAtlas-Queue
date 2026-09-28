@@ -134,7 +134,7 @@ function SanctionRow({ m, now }: { m: Sanction; now: number }) {
   // for bans. Two lines, never joined by a glyph.
   const last =
     m.kind === "punish" ? (
-      <span>{m.expires_at ? when(m.expires_at) : t("mod.after_games")}</span>
+      <span>{m.expires_at ? when(m.expires_at) : active ? t("mod.after_games") : ""}</span>
     ) : (
       <>
         <span>{m.kind === "ban" ? when(m.created_at) : now ? ago(m.created_at, now, t) : ""}</span>

@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Ellipsis, LogOut, Radio, RadioOff, Search, Settings } from "lucide-react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
@@ -15,7 +16,7 @@ import { span } from "@/lib/time";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tip } from "@/components/tip";
 import { ThemeButton } from "@/components/theme-button";
-import { Typed, usePrefs } from "@/components/prefs";
+import { Typed, useMotion, usePrefs } from "@/components/prefs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,9 +95,16 @@ function AccountMenu() {
 // Live / Offline after the breadcrumb (D25, DESIGN.md § Top bar): an icon and a word, no capsule
 // and no dot (the Radio icon's centre is hidden). Live shows the time on air, the stream title
 // in the tooltip; on phones the icon alone stays. It rises in once the title before it has typed
-// (owner, 2026-09-28: it stood there first while the title typed), `after` ms from mount.
+// (owner, 2026-09-28: it stood there first while the title typed), `after` ms from mount. The
+// wait is a timer started on mount, the typing's own clock: a CSS animation-delay counts from the
+// server HTML's first paint, so on a slow hydration it rose in before the title had begun.
 function LiveStatus({ after }: { after: number }) {
   const { t, lang } = useT();
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setShown(true), after);
+    return () => clearTimeout(id);
+  }, [after]);
   const since = useQueue((v) => v.channel.live_since);
   const title = useQueue((v) => v.channel.stream_title);
   const now = useNow(60_000);
@@ -111,10 +119,10 @@ function LiveStatus({ after }: { after: number }) {
         <span
           tabIndex={0}
           aria-label={since ? `${t("live.on")}${ms === null ? "" : `, ${t("live.on_air", { t: span(ms, t) })}`}` : t("live.off")}
-          style={{ animationDelay: `${after}ms` }}
           className={cn(
-            "flex shrink-0 animate-enter items-center gap-1.5 rounded-sm text-meta font-medium outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40",
+            "flex shrink-0 items-center gap-1.5 rounded-sm text-meta font-medium outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40",
             since ? "text-success" : "text-muted-foreground",
+            shown ? "animate-enter" : "invisible",
           )}
         >
           {since ? (
@@ -139,8 +147,9 @@ export function TopBar() {
   const ui = useUi();
   const role = useQueue((v) => v.role);
   const channel = useQueue((v) => v.channel.display_name);
-  // On phones the channel types first: the wordmark before it is hidden there.
-  const phone = useMedia("(max-width: 639px)");
+  // Under 1280px the channel types first: the wordmark before it is hidden there.
+  const phone = useMedia("(max-width: 1279px)");
+  const motion = useMotion();
   const setLang = useSetLang();
   const { resolvedTheme, setTheme } = useTheme();
   return (
@@ -167,7 +176,7 @@ export function TopBar() {
           <Typed text={channel} startDelay={phone ? 0 : 17 * 40} />
         </span>
         {/* After the channel's last letter and its 200ms sharpening. */}
-        <LiveStatus after={(phone ? 0 : 17 * 40) + [...channel].length * 40 + 200} />
+        <LiveStatus after={motion ? (phone ? 0 : 17 * 40) + [...channel].length * 40 + 200 : 0} />
         {role === "mod" && <span className="shrink-0 text-meta text-muted-foreground max-sm:hidden">{t("masthead.moderating")}</span>}
       </span>
       <div className="flex shrink-0 items-center gap-1">

@@ -736,7 +736,9 @@ After the breadcrumb: an icon and a word, no capsule, **never a dot** (owner, 20
 minute), its two outer arcs fading in turn (2s, off under reduced motion); **Offline** is
 `RadioOff`, muted. The tooltip holds the stream title. On phones the icon alone
 stays beside the channel. It rises in (`animate-enter`) once the channel has typed, so it joins
-the title's sequence instead of standing there first (owner, 2026-09-28).
+the title's sequence instead of standing there first (owner, 2026-09-28). The wait is a timer
+from mount, the typing's own clock, never an `animation-delay`: that counts from the server
+HTML's first paint, so it rose in before the title had begun.
 
 #### Management tab (Stage 9, D25)
 

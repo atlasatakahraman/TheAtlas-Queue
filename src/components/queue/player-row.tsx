@@ -198,6 +198,17 @@ export function useTeamRoom() {
   return (n: 1 | 2) => size - (n === 1 ? n1 : n2);
 }
 
+// Every copy on the dashboard (row menu, palette, player card) says what it copied (owner,
+// 2026-09-28). Resolves whether it worked.
+export function useCopy() {
+  const { t } = useT();
+  return (text: string) =>
+    navigator.clipboard.writeText(text).then(
+      () => (toast(t("done.copied", { text })), true),
+      () => (toast.error(t("error.generic")), false),
+    );
+}
+
 // The row's actions, shared by the menu, the row keys and the command palette.
 export function usePlayerActions(p: Player) {
   const { t } = useT();
@@ -211,11 +222,7 @@ export function usePlayerActions(p: Player) {
       done: status === "playing" ? "done.move_team" : status === "away" ? "done.away" : "done.waiting",
       vars: { name: p.kick_username, team: teamNo ? team(teamNo) : "" },
     });
-  const copy = (text: string) =>
-    navigator.clipboard.writeText(text).then(
-      () => toast(t("common.copied")),
-      () => toast.error(t("error.generic")),
-    );
+  const copy = useCopy();
   return {
     moveTo: (n: 1 | 2) => move("playing", n),
     toWaiting: () => move("waiting", null),

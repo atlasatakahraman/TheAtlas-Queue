@@ -1,10 +1,9 @@
 "use client";
-import { Check, Copy, Heart, RefreshCw, Shield, TrendingDown, TrendingUp } from "lucide-react";
+import { Check, Copy, Heart, RefreshCw, Shield, TrendingDown, TrendingUp, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { BADGE_LOOK, BADGES } from "@/components/queue/badge-picker";
-import { PROFILE_ICON, useRankPending, useRanks, useRefreshRank } from "@/components/queue/player-row";
+import { PROFILE_ICON, Tag, useCopy, useRankPending, useRanks, useRefreshRank } from "@/components/queue/player-row";
 import { useCanWrite, useQueue } from "@/components/queue/store";
 import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
@@ -22,9 +21,10 @@ const TIER_TEXT: Record<string, string> = {
 };
 const APEX = new Set(["MASTER", "GRANDMASTER", "CHALLENGER"]);
 
-// A value copied on click; its icon turns into a check for 1.5 s.
+// A value copied on click; its icon turns into a check for 1.5 s and a toast names it. Children
+// truncate themselves (a Riot ID keeps its #TAG in view).
 function CopyText({ text, label, className, children }: { text: string; label: string; className?: string; children: React.ReactNode }) {
-  const { t } = useT();
+  const copy = useCopy();
   const [done, setDone] = useState(false);
   useEffect(() => {
     if (!done) return;
@@ -36,10 +36,10 @@ function CopyText({ text, label, className, children }: { text: string; label: s
     <button
       type="button"
       aria-label={label}
-      onClick={() => navigator.clipboard.writeText(text).then(() => setDone(true), () => toast.error(t("error.generic")))}
-      className={cn("inline-flex min-w-0 items-center gap-1.5 rounded-sm text-left outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40", className)}
+      onClick={() => void copy(text).then(setDone)}
+      className={cn("inline-flex min-w-0 cursor-pointer items-center gap-1.5 rounded-sm text-left outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40", className)}
     >
-      <span className="min-w-0 truncate">{children}</span>
+      <span className="flex min-w-0">{children}</span>
       <Icon aria-hidden className={cn("size-3.5 shrink-0", done ? "text-success" : "text-muted-foreground")} />
     </button>
   );
@@ -80,7 +80,9 @@ export function PlayerCard({ player, seen }: { player: Player; seen: Player }) {
           <div className="flex items-baseline gap-2">
             {seen.riot_id ? (
               <CopyText text={seen.riot_id} label={t("menu.copy_riot")} className="font-mono text-code">
-                {seen.riot_id}
+                {/* A long name truncates; the #TAG stays (owner, 2026-09-28). */}
+                <span className="truncate">{seen.riot_id.split("#")[0]}</span>
+                {seen.riot_id.includes("#") && <span className="shrink-0">#{seen.riot_id.split("#")[1]}</span>}
               </CopyText>
             ) : (
               <span className="truncate text-name">{player.kick_username}</span>
@@ -145,17 +147,26 @@ export function PlayerCard({ player, seen }: { player: Player; seen: Player }) {
           <Heart aria-hidden className={cn("size-3.5", respect >= 80 ? "text-success" : respect >= 50 ? "text-warning" : "text-destructive")} />
           {t("card.respect")}
         </span>
-        <span>{t(player.source === "chat" ? "card.joined_chat_at" : "card.joined_manual_at", { time: joined })}</span>
+        {/* A player the dashboard added reads Manual, highlighted (owner, 2026-09-28). */}
+        {player.source === "chat" ? (
+          <span>{t("card.joined_chat_at", { time: joined })}</span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5">
+            <Tag tone="brand" icon={UserPlus}>{t("card.manual")}</Tag>
+            <span className="tabular-nums">{joined}</span>
+          </span>
+        )}
         {fairPlay && <span>{t("card.games", { n: player.games_played })}</span>}
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-row-edge pt-3">
         <CopyText text={player.kick_username} label={t("menu.copy_name")} className="text-muted-foreground">
-          {player.kick_username}
+          <span className="truncate">{player.kick_username}</span>
         </CopyText>
         {ranks && seen.riot_id && (
           <Button size="sm" variant="outline" disabled={!canWrite} onClick={refresh}>
-            <RefreshCw aria-hidden />
+            {/* The tier's colour, as the shield above (colour means something, DESIGN.md § Icons). */}
+            <RefreshCw aria-hidden className={r?.tier ? TIER_TEXT[r.tier] : undefined} />
             {t("menu.refresh_rank")}
           </Button>
         )}

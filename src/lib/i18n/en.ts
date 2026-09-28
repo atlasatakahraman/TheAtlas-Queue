@@ -542,7 +542,6 @@ export const en = {
   "card.wl": "{w} W {l} L",
   "card.respect": "respect",
   "card.joined_chat_at": "joined {time} from chat",
-  "card.joined_manual_at": "added {time} by hand",
   "sanction.quick": "Quick lengths",
   "sanction.quick.g1": "1 game",
   "sanction.quick.g2": "2 games",
@@ -572,6 +571,8 @@ export const en = {
   "why.shuffle_two": "Needs at least two players on the teams",
   "why.reroll_none": "No team draw to reroll",
   "why.draw_landing": "Wait for the draw to land",
+  "done.copied": "Copied {text}",
+  "card.manual": "Manual",
 } satisfies Record<string, string>;
 
 export type LabelKey = keyof typeof en;

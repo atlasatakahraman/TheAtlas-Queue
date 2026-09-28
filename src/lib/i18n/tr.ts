@@ -530,7 +530,6 @@ export const tr: Record<LabelKey, string> = {
   "card.wl": "{w} G {l} M",
   "card.respect": "saygı",
   "card.joined_chat_at": "{time} sohbetten katıldı",
-  "card.joined_manual_at": "{time} elle eklendi",
   "sanction.quick": "Hızlı süreler",
   "sanction.quick.g1": "1 maç",
   "sanction.quick.g2": "2 maç",
@@ -560,4 +559,6 @@ export const tr: Record<LabelKey, string> = {
   "why.shuffle_two": "Takımlarda en az iki oyuncu gerekir",
   "why.reroll_none": "Yeniden çekilecek takım kurası yok",
   "why.draw_landing": "Kuranın oturmasını bekle",
+  "done.copied": "{text} kopyalandı",
+  "card.manual": "Manuel",
 };

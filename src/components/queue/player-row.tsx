@@ -379,7 +379,7 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
 // newer than this version fall back to the initial. Bump the version when that shows.
 const PROFILE_ICON = (id: number) => `https://ddragon.leagueoflegends.com/cdn/15.7.1/img/profileicon/${id}.png`;
 
-function PlayerAvatar({ player }: { player: Player }) {
+export function PlayerAvatar({ player }: { player: Player }) {
   const name = player.riot_id?.split("#")[0] || player.kick_username;
   return (
     <Avatar className="size-9 border border-row-edge">

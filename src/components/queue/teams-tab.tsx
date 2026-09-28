@@ -90,11 +90,11 @@ const PICK_SIZES = [1, 2, 3];
 // larger than the pool is hidden (owner, 2026-09-27); ×1 stays, disabled, when the pool is empty.
 export function usePick() {
   const [source, setSource] = useStored<PickSource>("queue.pick-source", "waiting", PICK_SOURCES);
-  const pool = useQueue((v) => pickPool(v, source));
+  const pool = useQueue((v) => pickPool(v, source).length);
   return { source, setSource, sources: PICK_SOURCES, pool, sizes: PICK_SIZES.filter((n) => n === 1 || n <= pool) };
 }
 
-function pickPool({ players, moderation }: QueueView, source: PickSource) {
+export function pickPool({ players, moderation }: QueueView, source: PickSource): Player[] {
   const now = Date.now();
   const barred = moderation.filter(
     (m) =>
@@ -111,15 +111,16 @@ function pickPool({ players, moderation }: QueueView, source: PickSource) {
           m.kick_username.toLowerCase() === p.kick_username.toLowerCase() ||
           (m.kick_user_id !== null && m.kick_user_id === p.kick_user_id),
       ),
-  ).length;
+  );
 }
 
 // Whether a draw animates on this device: the streamer's setting, then this browser's
-// Animations (off under reduced motion too).
+// Animations (off under reduced motion too). A team draw lands by Typewriter whichever reveal
+// a pick uses (D22).
 export function useRevealMotion(): boolean {
   const setting = useQueue((v) => v.settings.draw_reveal);
   const motion = useMotion();
-  return setting === "typewriter" && motion;
+  return setting !== "none" && motion;
 }
 
 type Landing = { entry: DrawEntry; team: 0 | 1; at: number };

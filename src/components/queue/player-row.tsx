@@ -632,7 +632,7 @@ function useReorder() {
 // The queue table's columns (August): #, player, Kick, rank, win rate, joined, actions. They follow
 // the table's own width, not the window's (owner, 2026-09-28: at 1024 to 1279px the side column
 // left the table 600px and the name column collapsed under the tags): [data-rows] is a size
-// container. Under 40rem the row keeps #, player and actions; under 54rem win rate and joined
+// container. Under 40rem the row keeps #, player and actions; under 52rem win rate and joined
 // go too. The actions
 // column is a fixed width (three quick actions and the menu), so the header row, whose last cell
 // is empty, lines up with the rows.
@@ -643,14 +643,14 @@ function useReorder() {
 // With Riot IDs off (owner, 2026-09-27) the Kick, Rank and Win rate columns go: the name is the
 // Kick name and there is no rank to show. Riot IDs without ranks keep Kick (2026-09-28).
 const TABLE_COLS_PLAIN =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,1fr)_8.5rem] @min-[54rem]:grid-cols-[2rem_minmax(0,1fr)_5.5rem_8.5rem]";
+  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,1fr)_8.5rem] @min-[52rem]:grid-cols-[2rem_minmax(0,1fr)_5.5rem_8.5rem]";
 const TABLE_COLS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_8.5rem] @min-[54rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_5rem_5.5rem_8.5rem]";
+  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_8.5rem] @min-[52rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem_5rem_5.5rem_8.5rem]";
 const TABLE_COLS_IDS =
-  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem] @min-[54rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_5.5rem_8.5rem]";
+  "grid-cols-[2rem_minmax(0,1fr)_auto] @min-[40rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_8.5rem] @min-[52rem]:grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_5.5rem_8.5rem]";
 // The cells that leave under each width (the same thresholds as the columns above).
 const MID = "@max-[40rem]:hidden";
-const WIDE = "@max-[54rem]:hidden";
+const WIDE = "@max-[52rem]:hidden";
 const tableCols = (ids: boolean, ranks: boolean) => (ranks ? TABLE_COLS : ids ? TABLE_COLS_IDS : TABLE_COLS_PLAIN);
 
 // A player row (DESIGN.md § Recipes → Queue row). "table" is the Queue tab's row; "roster" is a

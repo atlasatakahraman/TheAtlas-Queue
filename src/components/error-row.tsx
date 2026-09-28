@@ -1,16 +1,16 @@
 "use client";
 import { TriangleAlert } from "lucide-react";
 import { useT } from "@/components/i18n";
-import { StatusRow } from "@/components/status-page";
+import { StatusBlock } from "@/components/status-page";
 import { Button } from "@/components/ui/button";
 
-// The error row (DESIGN.md § Not found and errors): the queue is safe, Reload and Retry.
+// The error block (DESIGN.md § Not found and errors): the queue is safe, Reload and Retry.
 export function ErrorRow({ digest, retry, title }: { digest?: string; retry: () => void; title?: string }) {
   const { t } = useT();
   return (
-    <StatusRow
-      kind="error"
-      mark={<TriangleAlert aria-hidden className="size-5 text-warning" />}
+    <StatusBlock
+      error
+      mark={<TriangleAlert aria-hidden className="size-16 text-warning" />}
       title={title ?? t("error.page.title")}
       hint={t("error.safe")}
       code={digest && t("error.page.code", { digest })}

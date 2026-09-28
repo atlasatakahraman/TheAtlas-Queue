@@ -2,9 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { LangSwitch } from "@/components/lang-switch";
 import { ThemeButton } from "@/components/theme-button";
-import { cn } from "@/lib/utils";
 
-// Not found and errors (DESIGN.md § Not found and errors): one queue row under a slim top bar.
+// Not found and errors (DESIGN.md § Not found and errors): the big numeral under a slim top bar.
 // No hooks, so the server's not-found page and the client error boundaries share it.
 
 export function StatusPage({ crumb, children }: { crumb?: string; children: React.ReactNode }) {
@@ -35,14 +34,15 @@ export function StatusPage({ crumb, children }: { crumb?: string; children: Reac
           </span>
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-3xl flex-col px-8 pt-[16vh] pb-16 max-md:px-4 max-md:pt-12">{children}</main>
+      {/* Centred, a little above the middle. */}
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-8 pt-12 pb-[18vh] max-md:px-4">{children}</main>
     </div>
   );
 }
 
-// The row: an empty slot for "missing", a warning-edged row for "error".
-export function StatusRow({ kind, mark, title, hint, code, actions }: {
-  kind: "missing" | "error";
+// The block: the mark (404, or the warning icon), the title, one hint, the buttons.
+export function StatusBlock({ error = false, mark, title, hint, code, actions }: {
+  error?: boolean;
   mark: React.ReactNode;
   title: string;
   hint: string;
@@ -50,20 +50,13 @@ export function StatusRow({ kind, mark, title, hint, code, actions }: {
   actions: React.ReactNode;
 }) {
   return (
-    <div
-      role={kind === "error" ? "alert" : undefined}
-      className={cn(
-        "animate-enter grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 rounded-xl border px-4 py-4 max-md:grid-cols-[2.5rem_minmax(0,1fr)]",
-        kind === "missing" ? "border-dashed border-row-edge" : "border-l-[3px] border-row-edge border-l-warning bg-row",
-      )}
-    >
-      <span className="font-serif text-numeral text-muted-foreground tabular-nums select-none">{mark}</span>
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <h1 className="text-name">{title}</h1>
-        <p className="text-meta text-muted-foreground">{hint}</p>
-        {code && <p className="font-mono text-code text-muted-foreground select-all">{code}</p>}
-      </div>
-      <div className="flex gap-2 max-md:col-span-2 max-md:grid max-md:auto-cols-fr max-md:grid-flow-col max-md:[&>*]:h-11">{actions}</div>
+    <div role={error ? "alert" : undefined} className="flex w-full animate-enter flex-col items-center gap-3 text-center">
+      {/* The figure at display size; an icon mark keeps its own. */}
+      <div className={error ? "mb-3" : "mb-3 font-serif text-[clamp(6rem,20vw,11rem)] leading-none tracking-tight tabular-nums select-none"}>{mark}</div>
+      <h1 className="font-serif text-title">{title}</h1>
+      <p className="text-muted-foreground">{hint}</p>
+      {code && <p className="font-mono text-code text-muted-foreground select-all">{code}</p>}
+      <div className="mt-4 flex gap-2 max-sm:w-full max-sm:flex-col max-sm:[&>*]:h-11">{actions}</div>
     </div>
   );
 }

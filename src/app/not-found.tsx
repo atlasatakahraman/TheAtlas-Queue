@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { StatusPage, StatusRow } from "@/components/status-page";
+import { StatusBlock, StatusPage } from "@/components/status-page";
 import { Button } from "@/components/ui/button";
 import { LANG_COOKIE, parseLang, translate } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: "404", robots: { index: false, follow: false } };
 
-// An empty slot numbered 404 (DESIGN.md § Not found and errors).
+// The big 404 (DESIGN.md § Not found and errors).
 export default async function NotFound() {
   const lang = parseLang((await cookies()).get(LANG_COOKIE)?.value) ?? "en";
   const t = (k: Parameters<typeof translate>[1]) => translate(lang, k);
   return (
     <StatusPage>
-      <StatusRow
-        kind="missing"
+      <StatusBlock
         mark="404"
         title={t("notfound.title")}
         hint={t("notfound.hint")}

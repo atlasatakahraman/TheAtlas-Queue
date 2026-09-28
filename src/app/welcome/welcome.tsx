@@ -129,11 +129,10 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
           </div>
         )}
         {channel?.ok && (
-          <p className="flex flex-wrap items-center gap-x-2 text-meta text-muted-foreground">
+          <p className="flex flex-wrap items-center gap-x-3 text-meta text-muted-foreground">
             <a href={`https://kick.com/${channel.slug}`} target="_blank" rel="noreferrer" className="font-mono text-code underline-offset-2 hover:underline">
               kick.com/{channel.slug}
             </a>
-            <span aria-hidden>·</span>
             {channel.subscriptionError ? (
               <>
                 <span className="text-destructive">{t("welcome.not_connected")}</span>

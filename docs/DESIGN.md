@@ -978,6 +978,7 @@ Native HTML drag and drop, no library (`@dnd-kit` stays removed).
   | A team card elsewhere | the card rings in its team colour | joins at the end of the team |
   | A full team | the card's header reads *{team} is full* in `--destructive`, no ring | refused (`dropEffect = none`) |
   | Its own slot (either side of itself) | nothing | refused, no write (6.9) |
+  | A punished row (owner, 2026-09-28) | nothing | refused: it does not drag either, its place is held |
 
 - Every drop has an Undo toast. Touch has no drag: the row buttons and the menu do the same.
 

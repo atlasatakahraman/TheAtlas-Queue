@@ -633,7 +633,10 @@ export function PlayerRow({
   // A roster row takes its own team's players (a reorder) and, while the team has room, anyone
   // else, who joins the team at that row (D37, owner 2026-09-27).
   const sameTeam = (d: Player) => d.status === "playing" && d.team === player.team;
-  const accepts = (d: Player | null): d is Player => !!d && d.id !== player.id && (table || sameTeam(d) || !teamAdd?.full);
+  // A punished row neither drags nor takes a drop beside it: its place is held for when the
+  // punishment ends (owner, 2026-09-28).
+  const accepts = (d: Player | null): d is Player =>
+    !!d && d.id !== player.id && player.status !== "punished" && (table || sameTeam(d) || !teamAdd?.full);
 
   // Row keys fire only while the row itself has focus (DESIGN.md § Focus and keyboard).
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {

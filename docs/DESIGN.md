@@ -1128,8 +1128,8 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
   draws the line.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
   this stream's score, rosters; the headline is mirrored across the width, owner 2026-09-29:
-  *0 Team 1* on the left, *versus* in the middle, *Team 2 1* on the right, each score on the
-  outer side of its name), **Queue** (rows without a menu; the player card only if the
+  the names stay beside *versus* in the middle, each score at its outer edge: *0 … Team 1 versus
+  Team 2 … 1*), **Queue** (rows without a menu; the player card only if the
   streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results, each with the
   winners' names, and beside them **Most wins**, the all-time top 10, owner 2026-09-28),
   **Management** (off by default; names and kind only, **never reasons**).
@@ -1715,7 +1715,7 @@ language.
 |---|---|---|
 | `/` signed out | absolute: "TheAtlas Queue: Kick queue and fair team draws" | What it does, in one sentence, for a streamer |
 | `/c/<channel>` | "{tab}" → "Teams · TheAtlas Queue" | — (not indexed) |
-| `/watch/<channel>` | "{Channel}'s queue" | "Live queue and team draws for {Channel}'s stream on Kick." |
+| `/watch/<channel>` | "Watch · {Channel}" / "İzle · {Channel}" (owner, 2026-09-29; the share card and the `h1` keep "{Channel}'s queue") | "Live queue and team draws for {Channel}'s stream on Kick." |
 | `/overlay/<channel>` | "Overlay" | — (not indexed) |
 | `/welcome` | "Welcome" | — (not indexed) |
 | `/wiki`, `/wiki/<topic>` | "Wiki: {topic}" | The topic's own line, per language (Stage 15) |

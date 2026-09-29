@@ -14,6 +14,7 @@ export const en = {
   "action.reroll": "Reroll",
   "action.pick": "Pick from waiting",
   "watch.title": "{channel}'s queue",
+  "watch.tab_title": "Watch · {channel}",
   "watch.subtitle": "Live queue and team draws",
   "watch.disabled": "This queue page is turned off.",
   "overlay.queue.title": "Next up",

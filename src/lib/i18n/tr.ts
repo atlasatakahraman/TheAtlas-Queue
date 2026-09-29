@@ -13,6 +13,7 @@ export const tr: Record<LabelKey, string> = {
   "action.reroll": "Yeniden çek",
   "action.pick": "Bekleyenlerden seç",
   "watch.title": "{channel} sırası",
+  "watch.tab_title": "İzle · {channel}",
   "watch.subtitle": "Canlı sıra ve takım çekilişleri",
   "watch.disabled": "Bu sıra sayfası kapalı.",
   "overlay.queue.title": "Sıradakiler",

@@ -14,17 +14,19 @@ type Props = { params: Promise<{ slug: string }> };
 
 const NOINDEX = { index: false, follow: false };
 
-// DESIGN.md § Metadata and SEO: "{Channel}'s queue", indexed while the page is on.
+// DESIGN.md § Metadata and SEO: the tab "Watch · {Channel}", the share card "{Channel}'s queue",
+// indexed while the page is on.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const snap = await watchSnapshot((await params).slug);
   if (!snap) return { title: "404", robots: NOINDEX };
   const lang = await requestLang();
   const channel = snap.channel.name;
-  const title = translate(lang, "watch.title", snap.labels ?? undefined, { channel });
+  const title = translate(lang, "watch.tab_title", undefined, { channel });
   if (snap.disabled) return { title, robots: NOINDEX };
+  const share = translate(lang, "watch.title", snap.labels ?? undefined, { channel });
   const description = translate(lang, "watch.description", undefined, { channel });
   const path = `/watch/${snap.channel.slug}`;
-  return { title, description, alternates: await alternates(path), openGraph: { title, description, url: path, ...ogLocale(lang) } };
+  return { title, description, alternates: await alternates(path), openGraph: { title: share, description, url: path, ...ogLocale(lang) } };
 }
 
 // /watch/<channel> (DESIGN.md § /watch): a real 404 for a channel that does not exist; the

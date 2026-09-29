@@ -157,6 +157,7 @@ export const en = {
   "reason.queue.cooldown_games": "sitting out after a game",
   "tag.sub": "sub",
   "tag.protected": "protected",
+  "tag.protected.left": "protected · {n} left",
   "tag.in_game": "in game",
   "tag.away": "away",
   "tag.first_game": "first game",

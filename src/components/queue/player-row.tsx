@@ -112,7 +112,12 @@ function PunishedTag({ punish }: { punish?: Sanction }) {
   return <Tag fold tone="warning" icon={Hourglass}>{left}</Tag>;
 }
 
-export function PlayerTags({ player, showState = true }: { player: Player; showState?: boolean }) {
+export function PlayerTags({ player, showState = true, shield }: {
+  player: Player;
+  showState?: boolean;
+  /** The current draw's shield for this player (0041): picks left, and when its icon stamps on. */
+  shield?: { left: number; stampAt?: number };
+}) {
   const { t } = useT();
   const fairPlay = useQueue((v) => v.settings.fair_play);
   const moderation = useQueue((v) => v.moderation);
@@ -120,7 +125,9 @@ export function PlayerTags({ player, showState = true }: { player: Player; showS
   return (
     <>
       {player.locked ? (
-        <Tag fold tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>
+        <Tag fold tone="brand" icon={ShieldCheck} stampAt={shield?.stampAt}>
+          {shield ? t("tag.protected.left", { n: shield.left }) : t("tag.protected")}
+        </Tag>
       ) : (
         player.is_subscriber && <Tag fold tone="brand" icon={Star}>{t("tag.sub")}</Tag>
       )}
@@ -574,6 +581,7 @@ export function PlayerRow({
   revertedAt,
   enterStyle,
   landAt,
+  shield,
   sorted = false,
 }: {
   player: Player;
@@ -584,6 +592,7 @@ export function PlayerRow({
   enterStyle?: { className?: string; style?: React.CSSProperties };
   /** A fresh draw landing this row: it rises in at this many ms and types its name. */
   landAt?: number;
+  shield?: { left: number; stampAt?: number };
   /** A column sort is on (D35): the row does not drag. */
   sorted?: boolean;
 }) {
@@ -739,7 +748,7 @@ export function PlayerRow({
             <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
               <PlayerName player={player} seen={seen} stacked={table} typeAt={landAt} keyboard={kbd} />
               {table && <RespectBadge name={player.kick_username} />}
-              <PlayerTags player={player} showState={table} />
+              <PlayerTags player={player} showState={table} shield={shield} />
             </div>
           </div>
           {table && ids && <span className={cn("truncate text-meta text-muted-foreground", MID)}>{player.kick_username}</span>}

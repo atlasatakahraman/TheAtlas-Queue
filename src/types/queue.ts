@@ -44,13 +44,15 @@ export type Player = {
 };
 
 export type DrawEntry = { id: string; kick_username: string; locked: boolean };
+// A protected player in a draw (0041): picks left, and whether this draw spent one.
+export type DrawShield = { id: string; left: number; used: boolean };
 
 export type Draw = {
   id: string;
   channel_id: string;
   kind: "teams" | "pick";
   n: number;
-  result: { teams?: [DrawEntry[], DrawEntry[]]; picked?: DrawEntry[] };
+  result: { teams?: [DrawEntry[], DrawEntry[]]; picked?: DrawEntry[]; protected?: DrawShield[] };
   rerolled_from: string | null;
   created_by: string | null;
   created_at: string;

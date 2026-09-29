@@ -152,6 +152,7 @@ export const tr: Record<LabelKey, string> = {
   "reason.queue.cooldown_games": "maç sonrası bekliyor",
   "tag.sub": "abone",
   "tag.protected": "korumalı",
+  "tag.protected.left": "korumalı · {n} hak",
   "tag.in_game": "oyunda",
   "tag.away": "uzakta",
   "tag.first_game": "ilk oyun",

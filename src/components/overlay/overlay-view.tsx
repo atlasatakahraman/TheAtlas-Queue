@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
 import { Typed } from "@/components/prefs";
-import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
+import { REVEAL, revealOrder, shieldsOf } from "@/components/queue/reveal-order";
 import { useLive } from "@/components/watch/use-watch";
 import { cn } from "@/lib/utils";
 import type { OverlayConfig, OverlaySnapshot, OverlayWidget } from "@/types/queue";
@@ -176,21 +176,26 @@ function Reveal({ snap, overlayKey }: { snap: OverlaySnapshot; overlayKey: strin
   }, [draw, overlayKey]);
   if (!draw || shown?.id !== draw.id) return null;
   const lists = draw.result.teams ?? [draw.result.picked ?? []];
-  const order = revealOrder(lists);
+  const shields = shieldsOf(draw);
+  const order = revealOrder(lists, new Set([...shields].filter(([, s]) => s.used).map(([id]) => id)));
   return (
     <Panel title={t("overlay.draw.title")} className={cn("transition-opacity duration-700", shown.fading && "opacity-0")}>
       <div className={cn("grid gap-x-10 gap-y-1.5", lists.length === 2 && "grid-cols-2")}>
         {lists.map((l, i) => (
           <div key={i} className="flex min-w-0 flex-col gap-1.5">
             {order.filter((o) => o.team === i).map((o) => (
-              <Typed
-                key={o.entry.id}
-                text={o.entry.kick_username}
-                speed={REVEAL.speed}
-                reveal={REVEAL.sharpen}
-                startDelay={o.at}
-                className={cn("truncate text-overlay-name", lists.length === 2 ? tone((i + 1) as 1 | 2) : "text-(--o-gold)")}
-              />
+              <span key={o.entry.id} className="flex min-w-0 items-center gap-2">
+                <Typed
+                  text={o.entry.kick_username}
+                  speed={REVEAL.speed}
+                  reveal={REVEAL.sharpen}
+                  startDelay={o.at}
+                  className={cn("truncate text-overlay-name", lists.length === 2 ? tone((i + 1) as 1 | 2) : "text-(--o-gold)")}
+                />
+                {shields.get(o.entry.id)?.used && (
+                  <ShieldCheck className="size-6 shrink-0 animate-stamp text-(--o-gold)" style={{ animationDelay: `${o.at}ms` }} aria-hidden />
+                )}
+              </span>
             ))}
           </div>
         ))}

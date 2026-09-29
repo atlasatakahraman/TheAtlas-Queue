@@ -30,8 +30,8 @@ import { useStored } from "@/components/use-client-state";
 import { isError, type QueueView } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, DrawEntry, Player } from "@/types/queue";
-import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
-import { Avg, EMPTY_SLOT, EmptySlotBody, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
+import { REVEAL, revealOrder, shieldsOf } from "@/components/queue/reveal-order";
+import { Avg, EMPTY_SLOT, EmptySlotBody, shieldFor, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
 import { PICK_SIZES, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
 
 export { REVEAL };
@@ -494,6 +494,8 @@ export function TeamsTab() {
   );
   const revealing = motion && reveal?.kind === "teams" ? reveal : null;
   const landing = useLanding(revealing, rosters);
+  const current = useQueue((v) => v.draw);
+  const shields = useMemo(() => shieldsOf(current), [current]);
   const e3 = enter(ui.entering, 3);
   const e4 = enter(ui.entering, 4);
   const offline = !canWrite ? t("why.offline") : null;
@@ -575,6 +577,7 @@ export function TeamsTab() {
                     number={n + 1}
                     variant="roster"
                     landAt={at}
+                    shield={shieldFor(shields, landing, p.id)}
                     enterStyle={at === undefined ? undefined : { className: "animate-enter", style: { animationDelay: `${at}ms` } }}
                   />
                 );

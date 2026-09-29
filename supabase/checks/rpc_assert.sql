@@ -933,5 +933,32 @@ begin
   end if;
 end $$;
 
+-- 0033 (D33): an enabled /watch carries the channel's commands, perk only while it is on; a
+-- disabled page and an unknown slug stay as they were; the base snapshot is nobody's to call.
+do $$
+declare
+  ch uuid := gen_random_uuid();
+  s  jsonb;
+begin
+  execute 'reset role';
+  insert into public.channels (id, kick_channel_id, slug, display_name) values (ch, -402, 'qa-watch-cmds', 'qa watch cmds');
+  insert into public.settings (channel_id, join_command, watch_enabled) values (ch, '!q', true);
+  s := public.watch_snapshot('qa-watch-cmds');
+  if s -> 'commands' <> '{"join": "!q", "leave": "!çık", "position": "!sıram", "away": "!afk"}'::jsonb then
+    raise exception 'watch: commands are %', s -> 'commands';
+  end if;
+  if s -> 'players' is null then raise exception 'watch: the base snapshot is gone: %', s; end if;
+  update public.settings set perk_enabled = true where channel_id = ch;
+  if public.watch_snapshot('qa-watch-cmds') #>> '{commands,perk}' is distinct from '!hak' then raise exception 'watch: perk command missing while on'; end if;
+  update public.settings set watch_enabled = false where channel_id = ch;
+  s := public.watch_snapshot('qa-watch-cmds');
+  if s ? 'commands' or s ->> 'disabled' is distinct from 'true' then raise exception 'watch: a disabled page says more: %', s; end if;
+  if public.watch_snapshot('qa-no-such-channel') is not null then raise exception 'watch: an unknown slug is not null'; end if;
+  if has_function_privilege('service_role', 'private.watch_snapshot_base(text)', 'execute')
+     or has_function_privilege('anon', 'private.watch_snapshot_base(text)', 'execute') then
+    raise exception 'watch: the base snapshot is callable';
+  end if;
+end $$;
+
 select 'rpc ok' as result;
 rollback;

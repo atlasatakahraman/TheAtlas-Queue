@@ -6,7 +6,7 @@ import { $ } from "bun";
 
 const ALIAS = "theatlas-queue-preview.vercel.app";
 const BUILD = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"];
-const RUNTIME = ["AUTH_SECRET", "KICK_CLIENT_ID", "KICK_CLIENT_SECRET", "RIOT_API_KEY", "SUPABASE_SECRET_KEY", "SUPABASE_JWT_PRIVATE_JWK"];
+const RUNTIME = ["AUTH_SECRET", "KICK_CLIENT_ID", "KICK_CLIENT_SECRET", "RIOT_API_KEY", "SUPABASE_SECRET_KEY", "SUPABASE_JWT_PRIVATE_JWK", "KICK_TOKEN_KEY"];
 
 const missing = [...BUILD, ...RUNTIME].filter((k) => !process.env[k]);
 if (missing.length) throw new Error(`.env.local lacks ${missing.join(", ")}`);

@@ -3,7 +3,8 @@ import "server-only";
 import { auth } from "@/lib/auth";
 import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
-import { ensureSubscriptions, kickUserBySlug } from "@/lib/server/kick";
+import { dropSubscriptions, ensureSubscriptions, kickUserBySlug } from "@/lib/server/kick";
+import { dropChatToken } from "@/lib/server/kick-tokens";
 import { kickUser } from "@/lib/server/profile";
 import type { FoundKickUser } from "@/types/queue";
 
@@ -89,4 +90,29 @@ export async function reconnect(channelId: string): Promise<string | null> {
   const error = await ensureSubscriptions(m.broadcaster);
   await adminDb().rpc("set_subscription_state", { p_channel: channelId, p_error: error });
   return error;
+}
+
+// Chat replies off (the switch saves chat_replies itself): the token is revoked and deleted.
+export async function stopChatReplies(channelId: string): Promise<void> {
+  if (await membership(channelId, true)) await dropChatToken(channelId);
+}
+
+// Delete my data (DESIGN.md § Settings → Your data): owner only, the channel's slug typed again.
+// Kick stops sending its events, the chat token goes, and the channel row goes with every table
+// that cascades from it. The sign-in (profile) stays.
+export async function deleteMyData(channelId: string, typed: string): Promise<boolean> {
+  const m = await membership(channelId, true);
+  if (!m || typeof typed !== "string") return false;
+  const db = adminDb();
+  const { data: c } = await db.from("channels").select("slug").eq("id", channelId).single();
+  if (!c || typed.trim().toLowerCase() !== c.slug) return false;
+  try {
+    await dropSubscriptions(m.broadcaster);
+  } catch (e) {
+    console.error(JSON.stringify({ route: "action/deleteMyData", step: "subscriptions", error: String(e).slice(0, 120) }));
+  }
+  await dropChatToken(channelId);
+  const { error } = await db.from("channels").delete().eq("id", channelId);
+  if (error) console.error(JSON.stringify({ route: "action/deleteMyData", error: error.message }));
+  return !error;
 }

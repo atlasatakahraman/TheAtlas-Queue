@@ -6,7 +6,8 @@ import { Dashboard } from "@/components/queue/dashboard";
 import { NotMember } from "@/components/queue/not-member";
 import { SETTINGS, TAB_COOKIE, TABS, type Tab } from "@/components/queue/tabs";
 import { auth } from "@/lib/auth";
-import { findKickUser, lookupRank, reconnect, refreshRank } from "@/lib/server/dashboard";
+import { deleteMyData, findKickUser, lookupRank, reconnect, refreshRank, stopChatReplies } from "@/lib/server/dashboard";
+import { hasChatToken } from "@/lib/server/kick-tokens";
 import { LANG_COOKIE, parseLang, translate } from "@/lib/i18n";
 import { adminDb } from "@/lib/server/admin-db";
 import { ensureSubscriptions } from "@/lib/server/kick";
@@ -100,7 +101,8 @@ export default async function ChannelPage({ params, searchParams }: Props) {
       tab={tab}
       game={n ? await gameView(db, channel.id, Number(n)) : undefined}
       settings={settings !== undefined}
-      actions={{ lookupRank, refreshRank, findKickUser, reconnect }}
+      actions={{ lookupRank, refreshRank, findKickUser, reconnect, stopChatReplies, deleteMyData }}
+      chatReconnect={state.role === "owner" && state.settings.chat_replies && !(await hasChatToken(channel.id))}
     />
   );
 }

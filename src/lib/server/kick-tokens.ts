@@ -59,6 +59,9 @@ async function accessToken(channelId: string): Promise<string> {
     }),
     cache: "no-store",
   });
+  // Kick refused the token (revoked, or expired unused): it goes, replies stay on, and the
+  // dashboard asks to reconnect (hasChatToken).
+  if (res.status === 400 || res.status === 401) await db.from("kick_tokens").delete().eq("channel_id", channelId);
   if (!res.ok) throw new Error(`kick refresh ${res.status}`);
   const json = (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number };
   if (json.refresh_token) {
@@ -80,4 +83,28 @@ export async function sendChat(channelId: string, content: string): Promise<{ st
     cache: "no-store",
   });
   return { status: res.status, body: (await res.text()).slice(0, 300) };
+}
+
+export async function hasChatToken(channelId: string): Promise<boolean> {
+  const { count } = await adminDb().from("kick_tokens").select("channel_id", { count: "exact", head: true }).eq("channel_id", channelId);
+  return (count ?? 0) > 0;
+}
+
+// Replies off, or Delete my data: revoked at Kick (best effort; RFC 7009 takes the token in the
+// body) and deleted here either way.
+export async function dropChatToken(channelId: string) {
+  const db = adminDb();
+  const { data } = await db.from("kick_tokens").select("refresh_token_enc").eq("channel_id", channelId).maybeSingle();
+  if (!data) return;
+  try {
+    await fetch("https://id.kick.com/oauth/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token: open(data.refresh_token_enc as string), token_hint_type: "refresh_token" }),
+      cache: "no-store",
+    });
+  } catch (e) {
+    console.error(JSON.stringify({ route: "kick/revoke", error: String(e).slice(0, 120) }));
+  }
+  await db.from("kick_tokens").delete().eq("channel_id", channelId);
 }

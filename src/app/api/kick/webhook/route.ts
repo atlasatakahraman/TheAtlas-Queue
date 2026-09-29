@@ -2,6 +2,7 @@ import { after, NextResponse, type NextRequest } from "next/server";
 import { parseCommand, type Commands } from "@/lib/kick-command";
 import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
+import { answer, isCommandsAsk, listCommands } from "@/lib/server/chat-replies";
 import { verifyWebhook } from "@/lib/server/kick";
 
 // Kick → Postgres (spec § Security → Webhook). 401 bad signature or stale timestamp; 200 for
@@ -60,13 +61,19 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
   }
 
   const cmd = parseCommand(String(p.content ?? ""), ctx.commands);
-  if (!cmd) return "chat";
+  if (!cmd) {
+    if (!isCommandsAsk(String(p.content ?? ""))) return "chat";
+    after(() => listCommands(ctx.channel_id, ctx.commands));
+    return "commands";
+  }
   const { data, error } = await adminDb().rpc("ingest_chat", {
     p_broadcaster: broadcaster, p_message_id: messageId, p_command: cmd.command, p_riot_id: cmd.riotId,
     p_sender_id: s.user_id, p_sender_name: s.username, p_badges: badges,
   });
   if (error) throw new Error(`ingest_chat ${error.message}`);
   const result = data as { result: string; reason?: string; rank_needed?: boolean } | null;
+  // The chat reply, when replies are on, after Kick has its 200.
+  if (result) after(() => answer(ctx.channel_id, cmd.command, result, s.username!));
 
   // Riot never blocks a join: the rank lands as a second event after the response is sent.
   if (result?.rank_needed && cmd.riotId && ctx.riot) {

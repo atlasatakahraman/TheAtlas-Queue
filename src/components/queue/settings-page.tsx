@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Ban,
   CircleHelp,
+  Database,
   DoorOpen,
   Eye,
   Languages,
@@ -20,9 +21,19 @@ import {
   Video,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/i18n";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { BadgePicker } from "@/components/queue/badge-picker";
 import { OverlaysSection } from "@/components/queue/overlays-section";
 import { confirm } from "@/components/queue/confirm";
@@ -227,6 +238,8 @@ function CommandsSection() {
   const { t } = useT();
   const s = useSection(COMMANDS);
   const r = useSection(["chat_replies"] as const);
+  const { stopChatReplies } = useServerActions();
+  const channelId = useQueue((v) => v.channel.id);
   return (
     <Section title={t("settings.commands")} onEnter={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
@@ -255,7 +268,7 @@ function CommandsSection() {
         onChange={(v) =>
           v
             ? void signIn("kick", { callbackUrl: window.location.href }, { scope: "user:read chat:write" })
-            : void r.put("chat_replies", false)
+            : void r.put("chat_replies", false).then(() => stopChatReplies(channelId))
         }
       />
     </Section>
@@ -672,6 +685,79 @@ function LabelsSection() {
 }
 
 
+// Your data (Stage 16, DESIGN.md § Settings → Your data): what is kept, and Delete my data behind
+// the channel's name typed again, since nothing brings it back.
+function DataSection() {
+  const { t, lang } = useT();
+  const { deleteMyData } = useServerActions();
+  const router = useRouter();
+  const channel = useQueue((v) => v.channel);
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const ok = typed.trim().toLowerCase() === channel.slug;
+  return (
+    <Section title={t("settings.data")} hint={t("settings.data.hint")}>
+      <p className="text-body">
+        <a className="underline decoration-brand/60 underline-offset-4 hover:decoration-brand" href={`/wiki/privacy?lang=${lang}`} target="_blank" rel="noopener">
+          {t("settings.data.privacy")}
+        </a>
+      </p>
+      <div>
+        <Button variant="destructive" size="lg" className="max-md:h-11" onClick={() => setOpen(true)}>
+          {t("settings.data.delete")}
+        </Button>
+      </div>
+      {failed && <p className="text-meta text-destructive">{t("settings.data.failed")}</p>}
+      <AlertDialog
+        open={open}
+        onOpenChange={(o) => {
+          if (busy) return;
+          setOpen(o);
+          setTyped("");
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("settings.data.title", { name: channel.display_name })}</AlertDialogTitle>
+            <AlertDialogDescription>{t("settings.data.body")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            aria-label={t("settings.data.type", { name: channel.slug })}
+            placeholder={channel.slug}
+            className={inputCls}
+            value={typed}
+            autoComplete="off"
+            spellCheck={false}
+            onChange={(e) => setTyped(e.target.value)}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel size="lg" disabled={busy}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              size="lg"
+              variant="destructive"
+              disabled={!ok || busy}
+              onClick={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                if (await deleteMyData(channel.id, typed)) return router.push("/");
+                setBusy(false);
+                setOpen(false);
+                setFailed(true);
+              }}
+            >
+              {t("settings.data.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Section>
+  );
+}
+
 // Each section's icon in its own colour (owner, 2026-09-28) and its help page (D33).
 const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; body: () => React.ReactNode; help: string }> = {
   commands: { icon: Terminal, tone: "text-brand", body: CommandsSection, help: "/wiki/chat-commands" },
@@ -684,6 +770,7 @@ const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; bo
   overlays: { icon: MonitorPlay, tone: "text-badge-og", body: OverlaysSection, help: "/wiki/watch#overlays" },
   moderators: { icon: Shield, tone: "text-success", body: ModeratorsSection, help: "/wiki/moderation#moderators" },
   labels: { icon: Languages, tone: "text-badge-vip", body: LabelsSection, help: "/wiki/settings#labels" },
+  data: { icon: Database, tone: "text-destructive", body: DataSection, help: "/wiki/privacy#delete" },
 };
 
 // The Settings page (D20, D30; DESIGN.md § Settings page): the section list beside one section,

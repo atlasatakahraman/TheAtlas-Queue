@@ -27,13 +27,14 @@ import type { Labels } from "@/lib/i18n";
 import { useNow } from "@/components/use-now";
 import { SLIDE, useSlide } from "@/components/use-slide";
 import { cn } from "@/lib/utils";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import type { DashboardActions, GameView, Player, QueueState } from "@/types/queue";
 import { BAR, BAR_IN, COLS_COOKIE, MAIN, TAB, TAB_TRACK } from "@/components/queue/geometry";
 
 type Account = { name: string; image: string | null };
 
-export function Dashboard({ initial, me, account, tab, actions, game, settings = false }: {
+export function Dashboard({ initial, me, account, tab, actions, game, settings = false, chatReconnect = false }: {
   initial: QueueState;
   me: number;
   account: Account;
@@ -43,14 +44,30 @@ export function Dashboard({ initial, me, account, tab, actions, game, settings =
   game?: GameView;
   // The Settings page (/c/<channel>/settings/<section>): the page in place of the tabs.
   settings?: boolean;
+  // Replies are on but Kick refused the stored token (DESIGN.md § Settings → Chat replies).
+  chatReconnect?: boolean;
 }) {
   return (
     <QueueProvider initial={initial} me={me} actions={actions}>
       <ChannelLabels>
+        {chatReconnect && <ChatReconnect />}
         <Shell initialTab={tab} account={account} game={game} settings={settings} />
       </ChannelLabels>
     </QueueProvider>
   );
+}
+
+// Lasting until Reconnect: the same Kick consent the Settings switch asks for.
+function ChatReconnect() {
+  const { t } = useT();
+  useEffect(() => {
+    toast.warning(t("chat.reconnect"), {
+      id: "chat-reconnect",
+      duration: Infinity,
+      action: { label: t("chat.reconnect.action"), onClick: () => void signIn("kick", { callbackUrl: window.location.href }, { scope: "user:read chat:write" }) },
+    });
+  }, [t]);
+  return null;
 }
 
 // The streamer's label overrides apply live: a Settings save re-renders every label.

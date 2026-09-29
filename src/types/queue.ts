@@ -233,6 +233,8 @@ export type DashboardActions = {
   refreshRank: (channelId: string, playerId: string) => Promise<"ok" | "recent" | "failed">;
   findKickUser: (channelId: string, username: string) => Promise<FoundKickUser>;
   reconnect: (channelId: string) => Promise<string | null>;
+  stopChatReplies: (channelId: string) => Promise<void>;
+  deleteMyData: (channelId: string, typed: string) => Promise<boolean>;
 };
 
 // One realtime event, and every mutating RPC's return value.

@@ -126,3 +126,12 @@ export async function kickUserBySlug(slug: string): Promise<{ id: number; slug: 
   const c = ((await res.json()) as { data?: { broadcaster_user_id?: number; slug?: string }[] }).data?.[0];
   return c?.broadcaster_user_id && c.slug ? { id: c.broadcaster_user_id, slug: c.slug } : null;
 }
+
+// Delete my data: the channel's event subscriptions go, so Kick stops sending its chat here.
+export async function dropSubscriptions(broadcasterId: number): Promise<void> {
+  const res = await kick(`${API}/events/subscriptions?broadcaster_user_id=${broadcasterId}`);
+  const ids = ((await res.json()) as { data?: { id: string; broadcaster_user_id: number }[] }).data
+    ?.filter((s) => s.broadcaster_user_id === broadcasterId)
+    .map((s) => s.id);
+  if (ids?.length) await kick(`${API}/events/subscriptions?${ids.map((id) => `id=${encodeURIComponent(id)}`).join("&")}`, { method: "DELETE" });
+}

@@ -1,3 +1,4 @@
+import "server-only";
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 
@@ -9,7 +10,7 @@ const kickProvider = {
     url: "https://id.kick.com/oauth/authorize",
     params: {
       // Sign-in reads who you are, nothing else (spec § Security → Auth). chat:write is asked
-      // for separately when chat replies are switched on (Stage 6).
+      // for only when chat replies are switched on (the Settings switch passes its own scope).
       scope: "user:read",
       response_type: "code",
     },
@@ -63,7 +64,13 @@ export const authConfig: NextAuthConfig = {
   pages: { signIn: "/" },
   callbacks: {
     // The session carries who the user is and nothing else: no Kick access token.
-    jwt({ token, user, account }) {
+    async jwt({ token, user, account }) {
+      // The chat replies consent: its refresh token goes to kick_tokens, encrypted, never into
+      // the session.
+      if (account?.refresh_token && account.scope?.split(" ").includes("chat:write")) {
+        const { saveChatToken } = await import("@/lib/server/kick-tokens");
+        await saveChatToken(Number(account.providerAccountId), account.refresh_token, account.expires_at ?? 0, account.scope.split(" "));
+      }
       if (user) {
         token.kickId = user.id;
         token.kickUsername = user.name;

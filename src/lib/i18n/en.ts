@@ -753,6 +753,8 @@ export const en = {
   "watch.live": "Live",
   "watch.commands": "Chat commands",
   "watch.how": "How it works",
+  "settings.chat_replies": "Chat replies",
+  "settings.chat_replies.hint": "Queue answers in your Kick chat: joins, positions, protected picks. Turning it on asks Kick once for permission to write in your chat.",
   "help.open": "Wiki",
   "help.about": "Wiki: {title}",
   "watch.empty": "Nothing here yet",

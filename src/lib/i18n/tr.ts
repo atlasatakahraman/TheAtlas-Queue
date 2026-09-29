@@ -741,6 +741,8 @@ export const tr: Record<LabelKey, string> = {
   "watch.live": "Canlı",
   "watch.commands": "Sohbet komutları",
   "watch.how": "Nasıl çalışır",
+  "settings.chat_replies": "Sohbet yanıtları",
+  "settings.chat_replies.hint": "Queue, Kick sohbetinde yanıt verir: katılımlar, sıralar, korumalı haklar. Açınca Kick bir kez sohbetine yazma izni ister.",
   "help.open": "Wiki",
   "help.about": "Wiki: {title}",
   "watch.empty": "Henüz bir şey yok",

@@ -44,6 +44,7 @@ import { AFTER_GAME, type AfterGame, DRAW_REVEALS, type Settings, type WatchSect
 import { SECTION, SECTION_CARD, SETTINGS_GRID, SETTINGS_ITEM, SETTINGS_LIST } from "@/components/queue/geometry";
 import { SETTINGS, SETTINGS_TITLES, type SettingsSection } from "@/components/queue/tabs";
 import { DEFAULTS } from "@/lib/defaults";
+import { signIn } from "next-auth/react";
 import { Numerals } from "@/components/numerals";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
@@ -225,6 +226,7 @@ export const triggerCls = "h-9! w-full max-md:h-11!";
 function CommandsSection() {
   const { t } = useT();
   const s = useSection(COMMANDS);
+  const r = useSection(["chat_replies"] as const);
   return (
     <Section title={t("settings.commands")} onEnter={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
@@ -243,6 +245,19 @@ function CommandsSection() {
       </div>
       {s.errors.commands && <p className="text-meta text-destructive">{t("settings.commands.clash")}</p>}
       <SaveRow s={s} />
+      {/* On goes through Kick's consent for chat:write (the sign-in never asks for it); coming back
+          the token is stored and replies read on. Off saves at once. */}
+      <SwitchField
+        id="chat_replies"
+        label={t("settings.chat_replies")}
+        hint={t("settings.chat_replies.hint")}
+        checked={r.draft.chat_replies}
+        onChange={(v) =>
+          v
+            ? void signIn("kick", { callbackUrl: window.location.href }, { scope: "user:read chat:write" })
+            : void r.put("chat_replies", false)
+        }
+      />
     </Section>
   );
 }

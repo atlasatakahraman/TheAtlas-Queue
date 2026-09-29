@@ -64,6 +64,7 @@ export const en: Help = {
         body: [
           `\`${c.join}\` puts you at the end of the queue. \`${c.join} Name#TAG\` also gives your Riot ID, so the streamer sees your rank.`,
           "A join can be turned away: you are banned or punished, already in the queue, joining is closed, the queue is full, you lack a badge the streamer asks for, you are sitting out after a game, or a Riot ID is required and you gave none. The streamer sees why in their feed.",
+          "With chat replies on, Queue answers a join in chat with your place, and says so when you are banned or already in. Other refusals stay in the streamer's feed, so chat is not flooded while joining is closed.",
         ],
       },
       { id: "leave", title: "Leave", body: [`\`${c.leave}\` takes you out of the queue.`] },
@@ -81,6 +82,11 @@ export const en: Help = {
         id: "perk",
         title: "Protected picks left",
         body: [`\`${c.perk}\` asks how many [protected picks](/wiki/perks) you have left, when the streamer has the perk on.`],
+      },
+      {
+        id: "list",
+        title: "All commands",
+        body: ["`!commands` or `!komutlar` lists the channel's commands in chat with a link to this page, when the streamer has chat replies on. These two are the same on every channel and answer at most once every 30 seconds."],
       },
       {
         id: "custom",
@@ -334,6 +340,7 @@ export const en: Help = {
               "**Viewers in a queue**: the Kick name and id from chat, the Riot ID they gave, their badges, and their rank looked up from Riot.",
               "**Moderation**: sanctions with their reasons, kept with the channel. Reasons are seen only on the dashboard.",
               "**Games**: who played and who won, and the records they make.",
+              "**Chat replies**: when a streamer turns them on, Kick's permission to write in their chat, stored encrypted. Turning replies off revokes and deletes it.",
             ],
           },
         ],
@@ -355,6 +362,13 @@ export const en: Help = {
               `A moderator's access from a chat badge: ${k.badgeDays} days after the badge was last seen.`,
             ],
           },
+        ],
+      },
+      {
+        id: "delete",
+        title: "Deleting your data",
+        body: [
+          "A streamer can delete their channel and everything in it from **Settings → Your data** with **Delete my data**: the queue, teams, games and records, moderation, overlays, history, settings and the chat replies permission, and Kick stops sending the channel's chat here. It asks for the channel's name typed again, and it cannot be undone. Signing in again starts a new, empty channel.",
         ],
       },
       {

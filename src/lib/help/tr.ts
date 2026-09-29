@@ -65,6 +65,7 @@ export const tr: Help = {
         body: [
           `\`${c.join}\` seni sıranın sonuna ekler. \`${c.join} Ad#TAG\` Riot ID'ni de verir, böylece yayıncı dereceni görür.`,
           "Bir katılma geri çevrilebilir: yasaklı ya da cezalısındır, zaten sıradasındır, katılım kapalıdır, sıra doludur, yayıncının istediği rozet sende yoktur, maç sonrası bekliyorsundur ya da Riot ID zorunludur ve vermemişsindir. Yayıncı nedenini akışında görür.",
+          "Sohbet yanıtları açıksa Queue katılmayı sohbette yerinle yanıtlar, yasaklıysan ya da zaten sıradaysan bunu söyler. Diğer retler yayıncının akışında kalır, böylece katılım kapalıyken sohbet dolmaz.",
         ],
       },
       { id: "leave", title: "Ayrıl", body: [`\`${c.leave}\` seni sıradan çıkarır.`] },
@@ -82,6 +83,11 @@ export const tr: Help = {
         id: "perk",
         title: "Kalan korumalı hak",
         body: [`\`${c.perk}\` yayıncı ayrıcalığı açtıysa kaç [korumalı hakkın](/wiki/perks) kaldığını sorar.`],
+      },
+      {
+        id: "list",
+        title: "Tüm komutlar",
+        body: ["`!komutlar` ya da `!commands`, yayıncı sohbet yanıtlarını açtıysa kanalın komutlarını bu sayfanın bağlantısıyla sohbette sıralar. Bu ikisi her kanalda aynıdır ve en fazla 30 saniyede bir yanıt verir."],
       },
       {
         id: "custom",
@@ -335,6 +341,7 @@ export const tr: Help = {
               "**Sıradaki izleyiciler**: sohbetten Kick adı ve kimliği, verdikleri Riot ID, rozetleri ve Riot'tan getirilen derecesi.",
               "**Yönetim**: yaptırımlar ve nedenleri, kanalla birlikte tutulur. Nedenler yalnızca panelde görünür.",
               "**Maçlar**: kimin oynadığı, kimin kazandığı ve bıraktıkları kayıtlar.",
+              "**Sohbet yanıtları**: yayıncı açtığında, Kick'in sohbetine yazma izni, şifreli saklanır. Yanıtları kapatmak izni iptal eder ve siler.",
             ],
           },
         ],
@@ -356,6 +363,13 @@ export const tr: Help = {
               `Sohbet rozetinden gelen moderatör erişimi: rozet son görüldükten ${k.badgeDays} gün sonra.`,
             ],
           },
+        ],
+      },
+      {
+        id: "delete",
+        title: "Verilerini silmek",
+        body: [
+          "Yayıncı kanalını ve içindeki her şeyi **Ayarlar → Verilerin** bölümündeki **Verilerimi sil** ile silebilir: sıra, takımlar, maçlar ve kayıtlar, moderasyon, overlay'ler, geçmiş, ayarlar ve sohbet yanıtları izni silinir, Kick kanalın sohbetini buraya göndermeyi bırakır. Kanalın adını yeniden yazmanı ister ve geri alınamaz. Yeniden giriş yapınca yeni, boş bir kanal başlar.",
         ],
       },
       {

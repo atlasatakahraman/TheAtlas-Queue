@@ -30,6 +30,7 @@ export const en = {
   "chat.rejected.banned": "@{name}, you can't join this queue.",
   "chat.rejected.duplicate": "@{name}, you're already in the queue.",
   "chat.rejected.offline": "The queue opens when the stream goes live.",
+  "chat.rejected.closed": "The queue is closed right now.",
   "chat.position": "@{name}, you're #{position} in the queue.",
   "chat.perk": "@{name}, you have {uses} protected picks left.",
   "chat.commands": "Commands: {list}. More: {url}",
@@ -526,6 +527,9 @@ export const en = {
   "labelname.chat.watch": "Chat reply: watch page",
   "labelname.chat.joined.many": "Chat reply: several joined",
   "labelname.chat.rules": "Chat reply: rules",
+  "labelname.chat.rejected.offline": "Chat reply: stream offline",
+  "labelname.chat.rejected.closed": "Chat reply: joining closed",
+  "labelname.chat.commands": "Chat reply: commands",
   // Command palette.
   "palette.hint": "Run an action, find a player or go to a tab.",
   "palette.placeholder": "Type a command or a player's name",

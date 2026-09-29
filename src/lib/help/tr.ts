@@ -65,7 +65,7 @@ export const tr: Help = {
         body: [
           `\`${c.join}\` seni sıranın sonuna ekler. \`${c.join} Ad#TAG\` Riot ID'ni de verir, böylece yayıncı dereceni görür.`,
           "Bir katılma geri çevrilebilir: yasaklı ya da cezalısındır, zaten sıradasındır, katılım kapalıdır, yayın kapalıdır, sıra doludur, yayıncının istediği rozet sende yoktur, maç sonrası bekliyorsundur ya da Riot ID zorunludur ve vermemişsindir. Yayıncı nedenini akışında görür.",
-          "Sohbet yanıtları açıksa Queue katılmayı sohbette yerinle yanıtlar, yasaklıysan ya da zaten sıradaysan bunu söyler. Yayın kapalıyken sıranın yayın açılınca açılacağını bir kez söyler. Yanıtlar birkaç saniye bekler ve birlikte gider, böylece aynı anda gelen katılımlar tek satır olur: *Sıraya katıldı: @a #3, @b #4*. Diğer retler yayıncının akışında kalır, böylece katılım kapalıyken sohbet dolmaz.",
+          "Sohbet yanıtları açıksa Queue katılmayı sohbette yerinle yanıtlar, yasaklıysan ya da zaten sıradaysan bunu söyler. Yayın kapalıyken sıranın yayın açılınca açılacağını, katılım kapalıyken de sıranın kapalı olduğunu bir kez söyler. Yanıtlar birkaç saniye bekler ve birlikte gider, böylece aynı anda gelen katılımlar tek satır olur: *Sıraya katıldı: @a #3, @b #4*. Diğer retler yayıncının akışında kalır, böylece çok sayıda katılma geri çevrildiğinde sohbet dolmaz. Yayıncı her yanıtı [Ayarlar → Etiketler ve dil](/wiki/settings#labels) bölümünden kendi sözleriyle yazabilir.",
         ],
       },
       { id: "leave", title: "Ayrıl", body: [`\`${c.leave}\` seni sıradan çıkarır.`] },
@@ -299,7 +299,7 @@ export const tr: Help = {
       { id: "watch", title: "İzleme sayfası", body: ["Herkese açık sayfa ve bölümleri. Bkz. [İzleme sayfası](/wiki/watch#watch-page)."] },
       { id: "overlays", title: "Overlay'ler", body: ["OBS overlay'lerin. Bkz. [Overlay'ler](/wiki/watch#overlays)."] },
       { id: "moderators", title: "Moderatörler", body: ["Erişimi olan herkes ve erişimin nereden geldiği; ekle, engelle ya da çıkar. Bkz. [Moderatörler](/wiki/moderation#moderators)."] },
-      { id: "labels", title: "Etiketler ve dil", body: ["Takım adları ve başlıklar için her dilde kendi ifadelerin, ve overlay ile sohbet yanıtlarının kullandığı yayın dili."] },
+      { id: "labels", title: "Etiketler ve dil", body: ["Takım adları, başlıklar ve her sohbet yanıtı için her dilde kendi ifadelerin, ve overlay ile sohbet yanıtlarının kullandığı yayın dili."] },
     ],
   },
   keyboard: {

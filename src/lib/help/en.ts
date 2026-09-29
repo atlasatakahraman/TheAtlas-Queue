@@ -64,7 +64,7 @@ export const en: Help = {
         body: [
           `\`${c.join}\` puts you at the end of the queue. \`${c.join} Name#TAG\` also gives your Riot ID, so the streamer sees your rank.`,
           "A join can be turned away: you are banned or punished, already in the queue, joining is closed, the stream is offline, the queue is full, you lack a badge the streamer asks for, you are sitting out after a game, or a Riot ID is required and you gave none. The streamer sees why in their feed.",
-          "With chat replies on, Queue answers a join in chat with your place, and says so when you are banned or already in. While the stream is offline it says once that the queue opens when the stream goes live. Answers wait a few seconds and go out together, so many joins at once read as one line: *Joined the queue: @a #3, @b #4*. Other refusals stay in the streamer's feed, so chat is not flooded while joining is closed.",
+          "With chat replies on, Queue answers a join in chat with your place, and says so when you are banned or already in. While the stream is offline it says once that the queue opens when the stream goes live, and while joining is closed it says once that the queue is closed. Answers wait a few seconds and go out together, so many joins at once read as one line: *Joined the queue: @a #3, @b #4*. Other refusals stay in the streamer's feed, so chat is not flooded when many joins are turned away. The streamer can reword every reply in [Settings → Labels & language](/wiki/settings#labels).",
         ],
       },
       { id: "leave", title: "Leave", body: [`\`${c.leave}\` takes you out of the queue.`] },
@@ -298,7 +298,7 @@ export const en: Help = {
       { id: "watch", title: "Watch page", body: ["The public page and its sections. See [The watch page](/wiki/watch#watch-page)."] },
       { id: "overlays", title: "Overlays", body: ["Your OBS overlays. See [Overlays](/wiki/watch#overlays)."] },
       { id: "moderators", title: "Moderators", body: ["Everyone with access and where it came from; add, block or remove. See [Moderators](/wiki/moderation#moderators)."] },
-      { id: "labels", title: "Labels & language", body: ["Your own wording for team names and titles, in each language, and the stream language the overlay and chat replies use."] },
+      { id: "labels", title: "Labels & language", body: ["Your own wording for team names, titles and every chat reply, in each language, and the stream language the overlay and chat replies use."] },
     ],
   },
   keyboard: {

@@ -895,9 +895,12 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   resume chat replies* (spec § Errors).
   **What it answers** (Stage 16): in the stream language (Labels), with the streamer's own label
   text when set, posted by Kick as the app's bot (*TheAtlas*, with Kick's bot mark; owner's test,
-  2026-09-29). A join: *joined at #n*; a refusal for a ban or a duplicate: its own line; any
-  other refusal (closed, full, badges, cooldown) stays a feed line only, so chat is not flooded
-  while joining is shut. `!sıram`: the position while waiting, nothing otherwise. `!hak`: uses
+  2026-09-29). A join: *joined at #n*; a refusal for a ban or a duplicate: its own line; a join
+  while joining is **closed** (owner's ask, 2026-09-29): *The queue is closed right now.*, one
+  line for the whole chat with no @name, at most once per 30 s per channel, like the offline
+  line; any other refusal (full, badges, cooldown) stays a feed line only, so chat is not
+  flooded while joining is shut. **Every reply's wording is the streamer's** (Labels, per
+  language; migration 0038). `!sıram`: the position while waiting, nothing otherwise. `!hak`: uses
   left while the perk is on. `!komutlar` and `!commands` (fixed, in either language): the
   channel's commands in one line and the wiki's commands page, at most once per 30 s per
   channel. **Watch** (owner's ask, 2026-09-29), the sixth command field in **Commands**, default
@@ -1706,7 +1709,7 @@ The curated set, and nothing else. Everything outside it is translated but fixed
 | Actions | `action.add`, `action.draw`, `action.reroll`, `action.pick` |
 | Watch page | `watch.title`, `watch.subtitle`, `watch.disabled` |
 | Overlay | `overlay.queue.title`, `overlay.draw.title` |
-| Chat replies | `chat.joined`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.rejected.offline`, `chat.position`, `chat.perk` |
+| Chat replies | every one (owner, 2026-09-29; migration 0038): `chat.joined`, `chat.joined.many`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.rejected.offline`, `chat.rejected.closed`, `chat.position`, `chat.perk`, `chat.commands`, `chat.watch`, `chat.rules`. Braced words (`{name}`, `{position}`, `{list}`, `{url}`, …) are filled in; one left out is simply not said |
 
 Team names are ordinary labels, so "Kurtlar" in Turkish and "Wolves" in English is two
 overrides, not a special field.

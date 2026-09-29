@@ -82,7 +82,7 @@ export const tr: Help = {
       {
         id: "perk",
         title: "Kalan korumalı hak",
-        body: [`\`${c.perk}\` yayıncı ayrıcalığı açtıysa kaç [korumalı hakkın](/wiki/perks) kaldığını sorar.`],
+        body: [`\`${c.perk}\` yayıncı ayrıcalığı açtıysa kaç [korumalı hakkın](/wiki/perks) kaldığını sorar. Hak kazandıran bir rozetin yoksa Queue hangi rozetlerin kazandırdığını söyler.`],
       },
       {
         id: "watch",
@@ -262,7 +262,7 @@ export const tr: Help = {
         title: "Korumalı haklar",
         body: [
           `Hak kazandıran rozeti olan bir izleyici çekildiğinde korumalı olur: yeniden çekiliş onu takımında bırakır. Değiştirmediysen her biri ${s.perk_window_days} günde ${s.perk_uses} korumalı hak alır (${L.perk_uses[0]} ile ${L.perk_uses[1]} hak, ${L.perk_window_days[0]} ile ${L.perk_window_days[1]} günde bir).`,
-          `İzleyiciler kalanı \`${c.perk}\` ile sorar. Panelde korumalı oyuncu *korumalı* etiketini taşır; satır menüsü korumayı kaldırabilir.`,
+          `İzleyiciler kalanı \`${c.perk}\` ile sorar; uygun rozeti olmayan izleyiciye bir sayı değil, hangi rozetlerin uygun olduğu söylenir. Panelde korumalı oyuncu *korumalı* etiketini taşır; satır menüsü korumayı kaldırabilir.`,
         ],
       },
       {

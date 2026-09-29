@@ -81,7 +81,7 @@ export const en: Help = {
       {
         id: "perk",
         title: "Protected picks left",
-        body: [`\`${c.perk}\` asks how many [protected picks](/wiki/perks) you have left, when the streamer has the perk on.`],
+        body: [`\`${c.perk}\` asks how many [protected picks](/wiki/perks) you have left, when the streamer has the perk on. Without a badge that earns them, Queue says which badges do.`],
       },
       {
         id: "watch",
@@ -261,7 +261,7 @@ export const en: Help = {
         title: "Protected picks",
         body: [
           `When a viewer with a qualifying badge is drawn, they are protected: a reroll keeps them in their team. Each gets ${s.perk_uses} protected picks every ${s.perk_window_days} days unless you change it (${L.perk_uses[0]} to ${L.perk_uses[1]} picks, every ${L.perk_window_days[0]} to ${L.perk_window_days[1]} days).`,
-          `Viewers check what is left with \`${c.perk}\`. On the dashboard a protected player carries a *Protected* tag, and the row menu can remove it.`,
+          `Viewers check what is left with \`${c.perk}\`; a viewer without a qualifying badge is told which badges qualify, never a count. On the dashboard a protected player carries a *Protected* tag, and the row menu can remove it.`,
         ],
       },
       {

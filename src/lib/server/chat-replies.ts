@@ -8,7 +8,7 @@ import { HERE } from "@/lib/server/site";
 // Chat replies (DESIGN.md § Settings → Chat replies): run after the webhook has answered Kick, in
 // the stream language with the streamer's own labels, only while replies are on.
 
-type Result = { result: string; reason?: string; left?: number; enabled?: boolean; position?: number | null };
+type Result = { result: string; reason?: string; left?: number; enabled?: boolean; eligible?: boolean; position?: number | null };
 type Settings = { chat_replies: boolean; stream_locale: Lang; labels: Labels | null };
 
 // Batched (owner, 2026-09-29): a channel's answers wait up to 5 s and go out together, so a join
@@ -90,6 +90,9 @@ export async function answer(channelId: string, command: keyof Commands, r: Resu
   if (command === "join" && r.result === "rejected" && r.reason === "queue.closed")
     return throttled(`${channelId}:closed`) ? undefined : say(channelId, "chat.rejected.closed", {});
   if (command === "position" && r.position) return say(channelId, "chat.position", { name, position: r.position });
+  // Without a perk badge (0039): who the perk is for, once per viewer per 30 s.
+  if (command === "perk" && r.result === "perk" && r.enabled && r.eligible === false)
+    return throttled(`${channelId}:perk-none:${name.toLowerCase()}`) ? undefined : perkNone(channelId, name);
   if (command === "perk" && r.result === "perk" && r.enabled) return say(channelId, "chat.perk", { name, uses: r.left ?? 0 });
 }
 
@@ -135,6 +138,17 @@ export async function sendRules(channelId: string) {
   const text = s?.rules.replace(/\s+/gu, " ").trim();
   if (!s || !text) return;
   await say(channelId, "chat.rules", { text }, s);
+}
+
+// The perk's badges joined like the badge picker's sentence, in the stream language.
+async function perkNone(channelId: string, name: string) {
+  const { data } = await adminDb().from("settings").select("chat_replies, stream_locale, labels, perk_badges").eq("channel_id", channelId).single();
+  const s = data as (Settings & { perk_badges: string[] }) | null;
+  if (!s) return;
+  const badges = new Intl.ListFormat(s.stream_locale, { type: "conjunction" }).format(
+    s.perk_badges.map((b) => translate(s.stream_locale, `badge.${b}.plural` as LabelKey)),
+  );
+  await say(channelId, "chat.perk.none", { name, badges }, s);
 }
 
 // A piece over Kick's limit (a long rules text) goes out in parts, cut at a space.

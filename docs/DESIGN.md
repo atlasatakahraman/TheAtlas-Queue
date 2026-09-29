@@ -680,8 +680,13 @@ refetches `get_state`). `global-error.tsx` covers a failure of the root layout i
 languages, without the providers.
 
 **Footer.** *Made with ♥ by Atlas Ata KAHRAMAN* (TR *Atlas Ata KAHRAMAN tarafından ♥ ile
-yapıldı*), muted caption in sentence case, centred; the heart is lucide `Heart`, filled in
-`--destructive` (owner, 2026-09-28). August's hover easter egg stays removed (spec D14).
+yapıldı*), centred; the heart is lucide `Heart`, filled in `--destructive` (owner, 2026-09-28).
+A signed colophon (owner, 2026-09-29: redesign it): the words stay a muted caption in sentence
+case, the name is the signature, *Atlas Ata* in Newsreader italic and **KAHRAMAN** in
+letter-spaced small caps (a surname set the book way), one size up, a link to the author's
+GitHub profile that turns to the foreground on hover. Hovering or focusing the credit beats the
+heart once (two pulses, 900ms; off with Animations). August's hover easter egg stays removed
+(spec D14).
 
 **Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
 2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs, 48px high with 18px

@@ -1494,6 +1494,10 @@ shadcn `Dialog` (not `AlertDialog`, which shadcn reserves for confirmations) con
 - The Riot ID field is shown and required only while *Require Riot ID* is on.
 - Footer: Cancel (outline) and Add player (primary).
 
+**Edit player** (row menu) follows the same switch (owner, 2026-09-29): the Riot ID field is shown
+and required only while *Require Riot ID* is on; while it is off the dialog edits the name alone
+and the Riot ID already saved is kept as it is, for when the switch comes back on.
+
 ### Command palette
 
 shadcn `CommandDialog` (`max-w-xl`), opened by `Ctrl/⌘ K` or the masthead's search button.

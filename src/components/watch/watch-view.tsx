@@ -256,15 +256,18 @@ function SectionHead({ id, title, count }: { id: string; title: string; count?: 
 function Headline({ score }: { score: Live["score"] }) {
   const { t } = useT();
   const played = score.t1 + score.t2 > 0;
+  // Mirrored across the width (owner, 2026-09-29): each score on the outer side of its name.
   return (
-    <p className="flex flex-wrap items-baseline justify-center gap-x-4 font-serif text-headline max-md:text-title">
-      <span className="text-team-1">{t("team.1")}</span>
-      <span className="flex items-baseline gap-4 max-md:gap-3">
+    <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-x-4 font-serif text-headline max-md:text-title">
+      <span className="flex min-w-0 items-baseline gap-4 max-md:gap-3">
         {played && <span className="font-medium text-team-1 tabular-nums">{score.t1}</span>}
-        <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
+        <span className="truncate text-team-1">{t("team.1")}</span>
+      </span>
+      <span className="text-title text-muted-foreground italic max-md:text-body">{t("match.vs")}</span>
+      <span className="flex min-w-0 items-baseline justify-end gap-4 max-md:gap-3">
+        <span className="truncate text-team-2">{t("team.2")}</span>
         {played && <span className="font-medium text-team-2 tabular-nums">{score.t2}</span>}
       </span>
-      <span className="text-team-2">{t("team.2")}</span>
     </p>
   );
 }

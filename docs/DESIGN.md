@@ -489,6 +489,12 @@ the reveal can never disagree with what `/watch` and `/overlay` show.
    stays put.
 2. Both rosters clear. Names land **alternately**, team 1 then team 2, one every **160ms**.
    Protected subscribers land first, with their 🛡, because they were never in doubt.
+   **Protection used** (owner, 2026-09-29, migration 0041): when the draw spends a protected pick,
+   each such player lands first and a gold 🛡 **stamps** onto their row (from 2.2× and −18°
+   down to 1×, 480ms, `--brand`); their tag reads *Protected · 2 left*. Then a **redraw beat**
+   of 700ms, and the others land at the usual cadence. The watch page and the overlay's reveal
+   widget play the same. Reduced motion or animations off: no stamp, no beat, the tag with its
+   count at once. The count stays on the tag while that draw is the current one.
 3. Each name types in with `Typewriter` at `speed={30}`, `reveal={200}`. Ten names finish in
    about two seconds.
 4. The average rank under each team name updates when its last name has landed.
@@ -1626,13 +1632,13 @@ Settings → Draws & perks: uses per rolling 30 days and the [badge picker](#bad
 the dashboard the perk is visible, never hidden odds: the *Protected* tags, the protected-first
 order in the reveal, *Remove protection* in the row menu.
 
-**Reroll and when a use is spent** (owner, 2026-09-29, migration 0040): a fresh draw protects
-each drawn player with a perk badge and a use left, and spends nothing. **Reroll re-splits the
-same drawn players**, the protected keeping their team (as Shuffle current teams does); nobody
-new comes in from the queue. A use is spent the first time a Reroll or a Shuffle keeps a
-protected player in place, once per draw however many times it is repeated; no reroll, no use
-spent. Undo of that reroll gives the use back; *Remove protection* gives back the use of this
-draw, if one was spent. Viewers check their own remaining uses
+**Reroll and when a use is spent** (owner, 2026-09-29, migrations 0040 and 0041): a fresh draw
+protects each drawn player with a perk badge and a use left and **spends the use at once**,
+the draw itself being the automatic redraw around them (the reveal shows it: stamp, beat, the
+rest); the draw records who spent one and how many are left. **Reroll re-splits the same drawn
+players**, the protected keeping their team (as Shuffle current teams does); nobody new comes
+in from the queue, and it spends nothing more for that draw. Undo of the draw gives the use
+back; *Remove protection* gives back the use of this draw. Viewers check their own remaining uses
 with `!hak`; a viewer without a perk badge is told who the perk is for, never a count.
 
 ### Buttons

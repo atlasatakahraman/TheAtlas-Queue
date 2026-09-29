@@ -967,7 +967,9 @@ Overlays                                                    [+ New overlay]
   into the dialog (ADR 0054); its toast has no Undo, Delete's does. The builder stacks, since the
   Settings column is 44rem: *← Overlays*, the live preview (the real `/overlay/<key>` in a frame
   scaled from 1920×1080, live through the same ping, on a checkerboard unless the background is
-  solid), the masked link with *Copy link*, the name (Save), the widgets (drag by the grip or ↑ ↓,
+  solid), the masked link with *Copy link* and, under it, the OBS size in the meta size with gold
+  numbers (owner, 2026-09-29): *In OBS, add it as a Browser source, width 1920, height 1080. On a
+  1280×720 canvas keep those numbers and use Fit to screen (Ctrl+F).*, the name (Save), the widgets (drag by the grip or ↑ ↓,
   a switch each), then Position (eight anchors), Size (S 0.8×, M, L 1.25×), Panels (dark
   Mürekkep, light Kâğıt), Background (see-through, solid), Language (the stream language unless
   set), and the rows and minimum games only while a widget that uses them is on. Switches and

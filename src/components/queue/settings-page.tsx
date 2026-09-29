@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { AFTER_GAME, type AfterGame, DRAW_REVEALS, type Settings, type WatchSection } from "@/types/queue";
 import { SECTION, SECTION_CARD, SETTINGS_GRID, SETTINGS_ITEM, SETTINGS_LIST } from "@/components/queue/geometry";
 import { SETTINGS, SETTINGS_TITLES, type SettingsSection } from "@/components/queue/tabs";
+import { DEFAULTS } from "@/lib/defaults";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 const SECTIONS: WatchSection[] = ["teams", "queue", "games", "moderation", "riot_ids"];
@@ -389,7 +390,7 @@ function GamesSection() {
           </SelectContent>
         </Select>
       </Field>
-      <Field id="games_retention_days" label={t("settings.games_retention_days")} hint={t("settings.games_retention_days.hint")} error={s.errors.games_retention_days}>
+      <Field id="games_retention_days" label={t("settings.games_retention_days")} hint={t("settings.games_retention_days.hint", { min: DEFAULTS.limits.games_retention_days[0], max: DEFAULTS.limits.games_retention_days[1] })} error={s.errors.games_retention_days}>
         <div className="max-w-60"><NumberInput id="games_retention_days" value={s.draft.games_retention_days} invalid={!!s.errors.games_retention_days} onChange={(v) => s.set("games_retention_days", v)} /></div>
       </Field>
       <SaveRow s={s} />

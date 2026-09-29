@@ -744,7 +744,7 @@ export const en = {
   "settings.after_game.queue": "Everyone back to the queue",
   "settings.after_game.losers": "Losers back to the queue",
   "settings.games_retention_days": "Keep games for (days)",
-  "settings.games_retention_days.hint": "1 to 365. Older games and their records go.",
+  "settings.games_retention_days.hint": "{min} to {max}. Older games and their records go.",
   "games.scope": "Which games",
   "games.scope.stream": "This stream",
   "games.scope.all": "All time",

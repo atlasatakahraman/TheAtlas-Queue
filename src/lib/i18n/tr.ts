@@ -732,7 +732,7 @@ export const tr: Record<LabelKey, string> = {
   "settings.after_game.queue": "Herkes sıraya döner",
   "settings.after_game.losers": "Kaybedenler sıraya döner",
   "settings.games_retention_days": "Maçları sakla (gün)",
-  "settings.games_retention_days.hint": "1 ile 365 arası. Daha eski maçlar ve kayıtları silinir.",
+  "settings.games_retention_days.hint": "{min} ile {max} arası. Daha eski maçlar ve kayıtları silinir.",
   "games.scope": "Hangi maçlar",
   "games.scope.stream": "Bu yayın",
   "games.scope.all": "Tüm zamanlar",

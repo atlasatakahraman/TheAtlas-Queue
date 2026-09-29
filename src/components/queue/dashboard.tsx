@@ -45,7 +45,7 @@ function Credit() {
   const [shift, setShift] = useState(0);
   useEffect(() => {
     const d = document.documentElement;
-    const ro = new ResizeObserver(() => setShift(d.scrollHeight > d.clientHeight ? 0 : (innerWidth - d.clientWidth) / 2));
+    const ro = new ResizeObserver(() => setShift(d.scrollHeight > d.clientHeight ? 0 : (innerWidth - d.getBoundingClientRect().width) / 2));
     ro.observe(document.body);
     return () => ro.disconnect();
   }, []);

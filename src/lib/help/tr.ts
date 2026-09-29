@@ -65,7 +65,7 @@ export const tr: Help = {
         body: [
           `\`${c.join}\` seni sıranın sonuna ekler. \`${c.join} Ad#TAG\` Riot ID'ni de verir, böylece yayıncı dereceni görür.`,
           "Bir katılma geri çevrilebilir: yasaklı ya da cezalısındır, zaten sıradasındır, katılım kapalıdır, sıra doludur, yayıncının istediği rozet sende yoktur, maç sonrası bekliyorsundur ya da Riot ID zorunludur ve vermemişsindir. Yayıncı nedenini akışında görür.",
-          "Sohbet yanıtları açıksa Queue katılmayı sohbette yerinle yanıtlar, yasaklıysan ya da zaten sıradaysan bunu söyler. Diğer retler yayıncının akışında kalır, böylece katılım kapalıyken sohbet dolmaz.",
+          "Sohbet yanıtları açıksa Queue katılmayı sohbette yerinle yanıtlar, yasaklıysan ya da zaten sıradaysan bunu söyler. Yanıtlar birkaç saniye bekler ve birlikte gider, böylece aynı anda gelen katılımlar tek satır olur: *Sıraya katıldı: @a #3, @b #4*. Diğer retler yayıncının akışında kalır, böylece katılım kapalıyken sohbet dolmaz.",
         ],
       },
       { id: "leave", title: "Ayrıl", body: [`\`${c.leave}\` seni sıradan çıkarır.`] },
@@ -92,7 +92,7 @@ export const tr: Help = {
       {
         id: "list",
         title: "Tüm komutlar",
-        body: ["`!komutlar` ya da `!commands`, yayıncı sohbet yanıtlarını açtıysa kanalın komutlarını bu sayfanın bağlantısıyla sohbette sıralar. Bu ikisi her kanalda aynıdır ve en fazla 30 saniyede bir yanıt verir."],
+        body: ["`!komutlar` ya da `!commands`, yayıncı sohbet yanıtlarını ve **!komutlar yanıtlansın**'ı açtıysa kanalın komutlarını bu sayfanın bağlantısıyla sohbette sıralar. Bu ikisi her kanalda aynıdır ve en fazla 30 saniyede bir yanıt verir. Kanalın mod botu bağlantıları siliyorsa yayıncı TheAtlas'a izin verir."],
       },
       {
         id: "custom",

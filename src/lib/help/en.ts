@@ -64,7 +64,7 @@ export const en: Help = {
         body: [
           `\`${c.join}\` puts you at the end of the queue. \`${c.join} Name#TAG\` also gives your Riot ID, so the streamer sees your rank.`,
           "A join can be turned away: you are banned or punished, already in the queue, joining is closed, the queue is full, you lack a badge the streamer asks for, you are sitting out after a game, or a Riot ID is required and you gave none. The streamer sees why in their feed.",
-          "With chat replies on, Queue answers a join in chat with your place, and says so when you are banned or already in. Other refusals stay in the streamer's feed, so chat is not flooded while joining is closed.",
+          "With chat replies on, Queue answers a join in chat with your place, and says so when you are banned or already in. Answers wait a few seconds and go out together, so many joins at once read as one line: *Joined the queue: @a #3, @b #4*. Other refusals stay in the streamer's feed, so chat is not flooded while joining is closed.",
         ],
       },
       { id: "leave", title: "Leave", body: [`\`${c.leave}\` takes you out of the queue.`] },
@@ -91,7 +91,7 @@ export const en: Help = {
       {
         id: "list",
         title: "All commands",
-        body: ["`!commands` or `!komutlar` lists the channel's commands in chat with a link to this page, when the streamer has chat replies on. These two are the same on every channel and answer at most once every 30 seconds."],
+        body: ["`!commands` or `!komutlar` lists the channel's commands in chat with a link to this page, when the streamer has chat replies and **Answer !komutlar** on. These two are the same on every channel and answer at most once every 30 seconds. If the channel's mod bot deletes links, the streamer allows TheAtlas in it."],
       },
       {
         id: "custom",

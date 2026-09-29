@@ -35,19 +35,35 @@ export async function saveChatToken(kickUserId: number, refreshToken: string, ex
     refresh_token_enc: seal(refreshToken),
     expires_at: new Date(expiresAt * 1000).toISOString(),
     scopes,
+    access_token_enc: null,
+    refreshing_until: null,
   });
   if (error) throw new Error(`kick_tokens ${error.message}`);
   await db.from("settings").update({ chat_replies: true }).eq("channel_id", channel.id);
 }
 
-// A fresh access token from the stored refresh token. Kick rotates the refresh token, so the new
-// one is stored before the access token is used.
-// ponytail: refreshes on every call; keep the access token (encrypted, with its expiry) when
-// replies are frequent enough for Kick's rate limit to matter.
+// The access token, reused until a minute before it expires (0035). A refresh claims the lease
+// first: Kick rotates the refresh token, so only one caller may spend it; the others wait for
+// the token it stores.
 async function accessToken(channelId: string): Promise<string> {
   const db = adminDb();
-  const { data } = await db.from("kick_tokens").select("refresh_token_enc, scopes").eq("channel_id", channelId).maybeSingle();
-  if (!data) throw new Error("no kick token");
+  for (let i = 0; i < 10; i++) {
+    const { data } = await db
+      .from("kick_tokens")
+      .select("refresh_token_enc, access_token_enc, expires_at")
+      .eq("channel_id", channelId)
+      .maybeSingle();
+    if (!data) throw new Error("no kick token");
+    if (data.access_token_enc && Date.parse(data.expires_at as string) - Date.now() > 60_000) return open(data.access_token_enc as string);
+    const { data: mine } = await db.rpc("claim_token_refresh", { p_channel: channelId });
+    if (mine) return refresh(channelId, data.refresh_token_enc as string);
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  throw new Error("kick refresh busy");
+}
+
+async function refresh(channelId: string, refreshEnc: string): Promise<string> {
+  const db = adminDb();
   const res = await fetch("https://id.kick.com/oauth/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -55,21 +71,27 @@ async function accessToken(channelId: string): Promise<string> {
       grant_type: "refresh_token",
       client_id: process.env.KICK_CLIENT_ID!,
       client_secret: process.env.KICK_CLIENT_SECRET!,
-      refresh_token: open(data.refresh_token_enc as string),
+      refresh_token: open(refreshEnc),
     }),
     cache: "no-store",
   });
   // Kick refused the token (revoked, or expired unused): it goes, replies stay on, and the
   // dashboard asks to reconnect (hasChatToken).
   if (res.status === 400 || res.status === 401) await db.from("kick_tokens").delete().eq("channel_id", channelId);
-  if (!res.ok) throw new Error(`kick refresh ${res.status}`);
-  const json = (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number };
-  if (json.refresh_token) {
-    await db
-      .from("kick_tokens")
-      .update({ refresh_token_enc: seal(json.refresh_token), expires_at: new Date(Date.now() + json.expires_in * 1000).toISOString() })
-      .eq("channel_id", channelId);
+  if (!res.ok) {
+    await db.from("kick_tokens").update({ refreshing_until: null }).eq("channel_id", channelId);
+    throw new Error(`kick refresh ${res.status}`);
   }
+  const json = (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number };
+  await db
+    .from("kick_tokens")
+    .update({
+      access_token_enc: seal(json.access_token),
+      ...(json.refresh_token ? { refresh_token_enc: seal(json.refresh_token) } : {}),
+      expires_at: new Date(Date.now() + json.expires_in * 1000).toISOString(),
+      refreshing_until: null,
+    })
+    .eq("channel_id", channelId);
   return json.access_token;
 }
 
@@ -82,6 +104,8 @@ export async function sendChat(channelId: string, content: string): Promise<{ st
     body: JSON.stringify({ type: "bot", content }),
     cache: "no-store",
   });
+  // A revoked access token: the next send refreshes.
+  if (res.status === 401) await adminDb().from("kick_tokens").update({ access_token_enc: null }).eq("channel_id", channelId);
   return { status: res.status, body: (await res.text()).slice(0, 300) };
 }
 

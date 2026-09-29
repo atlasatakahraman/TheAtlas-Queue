@@ -237,7 +237,7 @@ export const triggerCls = "h-9! w-full max-md:h-11!";
 function CommandsSection() {
   const { t } = useT();
   const s = useSection(COMMANDS);
-  const r = useSection(["chat_replies"] as const);
+  const r = useSection(["chat_replies", "commands_list"] as const);
   const { stopChatReplies } = useServerActions();
   const channelId = useQueue((v) => v.channel.id);
   return (
@@ -270,6 +270,14 @@ function CommandsSection() {
             ? void signIn("kick", { callbackUrl: window.location.href }, { scope: "user:read chat:write" })
             : void r.put("chat_replies", false).then(() => stopChatReplies(channelId))
         }
+      />
+      <SwitchField
+        id="commands_list"
+        label={t("settings.commands_list")}
+        hint={t("settings.commands_list.hint")}
+        checked={r.draft.commands_list}
+        disabled={!r.draft.chat_replies}
+        onChange={(v) => void r.put("commands_list", v)}
       />
     </Section>
   );

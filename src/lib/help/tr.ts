@@ -261,7 +261,7 @@ export const tr: Help = {
         id: "perk",
         title: "Korumalı haklar",
         body: [
-          `Hak kazandıran rozeti olan bir izleyici çekildiğinde korumalı olur: yeniden çekiliş onu takımında bırakır. Değiştirmediysen her biri ${s.perk_window_days} günde ${s.perk_uses} korumalı hak alır (${L.perk_uses[0]} ile ${L.perk_uses[1]} hak, ${L.perk_window_days[0]} ile ${L.perk_window_days[1]} günde bir).`,
+          `Hak kazandıran rozeti olan bir izleyici çekildiğinde korumalı olur: yeniden çekiliş aynı oyuncuları yeniden böler ve onu takımında bırakır. Bir hak yalnızca yeniden çekiliş ya da karıştırma onu gerçekten takımında tuttuğunda, çekiliş başına bir kez harcanır; yeniden çekilmeyen bir çekiliş hak harcamaz. Değiştirmediysen her biri ${s.perk_window_days} günde ${s.perk_uses} korumalı hak alır (${L.perk_uses[0]} ile ${L.perk_uses[1]} hak, ${L.perk_window_days[0]} ile ${L.perk_window_days[1]} günde bir).`,
           `İzleyiciler kalanı \`${c.perk}\` ile sorar; uygun rozeti olmayan izleyiciye bir sayı değil, hangi rozetlerin uygun olduğu söylenir. Panelde korumalı oyuncu *korumalı* etiketini taşır; satır menüsü korumayı kaldırabilir.`,
         ],
       },

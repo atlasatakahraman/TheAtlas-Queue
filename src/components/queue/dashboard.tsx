@@ -1,5 +1,5 @@
 "use client";
-import { Heart, HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords, Trophy } from "lucide-react";
+import { HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords, Trophy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
@@ -9,8 +9,6 @@ import { Masthead } from "@/components/queue/masthead";
 import { ModerationTab } from "@/components/queue/moderation-tab";
 import { NotMember } from "@/components/queue/not-member";
 import { PageMenu } from "@/components/queue/page-menu";
-import { Tag } from "@/components/queue/player-row";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Hotkeys, Palette } from "@/components/queue/palette";
 import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dialogs";
 import { QueueTab } from "@/components/queue/queue-tab";
@@ -36,10 +34,9 @@ import { BAR, BAR_IN, COLS_COOKIE, MAIN, TAB, TAB_TRACK } from "@/components/que
 
 type Account = { name: string; image: string | null };
 
-// The credit August carried (owner, 2026-09-29; its hover easter egg stays removed, spec D14):
-// the name and full respect in gold serif, a plain word between them in either language.
+// The credit August carried, a watermark (owner, 2026-09-29; its hover easter egg stays
+// removed, spec D14): the name alone, grey.
 function Credit() {
-  const { t } = useT();
   // The page keeps the scrollbar's room (scrollbar-gutter: stable). With no scrollbar in it the
   // room is empty, so the line moves right by half of it to sit on the window's centre.
   const [shift, setShift] = useState(0);
@@ -50,34 +47,14 @@ function Credit() {
     return () => ro.disconnect();
   }, []);
   return (
-    <footer
-      style={{ translate: `${shift}px` }}
-      className="mt-auto flex flex-wrap items-baseline justify-center gap-x-1.5 gap-y-1 pt-6 text-center text-meta text-muted-foreground select-none"
-    >
-      {t("credit").split(/(\{name\}|\{respect\})/).map((part, i) =>
-        part === "{name}" ? (
-          <a
-            key={i}
-            href="https://github.com/atlasatakahraman"
-            rel="noopener"
-            className="rounded-sm font-serif text-body text-brand outline-none hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-ring/40"
-          >
-            Atlas Ata KAHRAMAN
-          </a>
-        ) : part === "{respect}" ? (
-          <Tooltip key={i}>
-            <TooltipTrigger asChild>
-              {/* The respect tag, score then heart as in a row, in gold serif. */}
-              <span className="font-serif tabular-nums [&>span]:flex-row-reverse [&>span]:self-center [&>span]:text-body [&>span]:font-normal">
-                <Tag tone="brand" icon={Heart}>100</Tag>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{t("mod.respect", { n: 100 })}</TooltipContent>
-          </Tooltip>
-        ) : (
-          part.trim() && <span key={i}>{part.trim()}</span>
-        ),
-      )}
+    <footer style={{ translate: `${shift}px` }} className="mt-auto flex justify-center pt-6 select-none">
+      <a
+        href="https://github.com/atlasatakahraman"
+        rel="noopener"
+        className="rounded-sm font-serif text-body text-muted-foreground/70 outline-none transition-colors hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+      >
+        Atlas Ata KAHRAMAN
+      </a>
     </footer>
   );
 }

@@ -679,14 +679,11 @@ with one line saying the queue is safe on the server (it is: Postgres holds it, 
 refetches `get_state`). `global-error.tsx` covers a failure of the root layout itself, in both
 languages, without the providers.
 
-**Footer.** The credit, one muted line in the meta size, centred (owner, 2026-09-29): *Made by
-**Atlas Ata KAHRAMAN** with **100 ♥*** (TR ***Atlas Ata KAHRAMAN** tarafından **100 ♥** ile
-yapıldı*). The name and the row's own [respect tag](#moderation) are the two gold pieces, both in
-Newsreader at the body size: the name a link to the author's GitHub profile, the tag the heart
-and a full score of 100 with its *Respect 100* tooltip (the maker keeps full respect). A plain
-word always stands between them (*with*, *tarafından*), so the two gold serifs never run
-together. No avatar; nothing moves. Centred on the window: with the page's scrollbar gutter
-empty (a short page), the line shifts right by half of it; on a narrow phone it wraps, centred. August's hover easter egg stays removed (spec D14).
+**Footer.** A watermark (owner, 2026-09-29): the name alone, *Atlas Ata KAHRAMAN*, in Newsreader
+at the body size, grey (`muted-foreground` at 70%, full on hover), a link to the author's GitHub
+profile; no other words, no tag, nothing moves. Centred on the window: with the page's scrollbar
+gutter empty (a short page), it shifts right by half of it. August's hover easter egg stays
+removed (spec D14).
 
 **Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
 2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs, 48px high with 18px

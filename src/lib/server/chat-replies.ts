@@ -8,7 +8,7 @@ import { HERE } from "@/lib/server/site";
 // Chat replies (DESIGN.md § Settings → Chat replies): run after the webhook has answered Kick, in
 // the stream language with the streamer's own labels, only while replies are on.
 
-type Result = { result: string; reason?: string; left?: number; enabled?: boolean; eligible?: boolean; position?: number | null };
+type Result = { result: string; reason?: string; player?: string; left?: number; enabled?: boolean; eligible?: boolean; position?: number | null };
 type Settings = { chat_replies: boolean; stream_locale: Lang; labels: Labels | null };
 
 // Batched (owner, 2026-09-29): a channel's answers wait up to 5 s and go out together, so a join
@@ -39,7 +39,7 @@ async function say(channelId: string, key: LabelKey, vars: Record<string, string
 async function flush(channelId: string, b: Batch) {
   batches.delete(channelId);
   const t = (key: LabelKey, vars: Line["vars"]) => translate(b.s.stream_locale, key, b.s.labels ?? undefined, vars);
-  const joins = b.lines.filter((l) => l.key === "chat.joined");
+  const joins = b.lines.filter((l) => l.key === "chat.joined").sort((x, y) => Number(x.vars.position) - Number(y.vars.position));
   const pieces: string[] = [];
   if (joins.length === 1) pieces.push(t("chat.joined", joins[0].vars));
   let list: string[] = [];
@@ -73,13 +73,20 @@ async function flush(channelId: string, b: Batch) {
 
 // The answer to one command's ingest_chat result; nothing for results chat need not hear.
 export async function answer(channelId: string, command: keyof Commands, r: Result, name: string) {
-  if (command === "join" && r.result === "joined") {
-    const { count } = await adminDb()
+  // The place is those waiting who joined up to this player (as !sıram), not everyone waiting when
+  // this runs: an answer that runs late would count the joins after it (owner's screenshot,
+  // 2026-09-29: HoustonHUB #2 read #6).
+  if (command === "join" && r.result === "joined" && r.player) {
+    const db = adminDb();
+    const { data: me } = await db.from("players").select("joined_at").eq("id", r.player).single();
+    if (!me) return;
+    const { count } = await db
       .from("players")
       .select("id", { count: "exact", head: true })
       .eq("channel_id", channelId)
       .eq("status", "waiting")
-      .is("deleted_at", null);
+      .is("deleted_at", null)
+      .lte("joined_at", me.joined_at);
     return say(channelId, "chat.joined", { name, position: count ?? 1 });
   }
   if (command === "join" && r.result === "rejected" && (r.reason === "queue.banned" || r.reason === "queue.duplicate"))

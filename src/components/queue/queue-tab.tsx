@@ -43,6 +43,7 @@ export function QueueTab() {
   const arrived = useQueue((v) => v.arrived);
   const reverted = useQueue((v) => v.reverted);
   const command = useQueue((v) => v.settings.join_command);
+  const riotIds = useRiotIds();
   const [filter, setFilter] = useStored<Filter>("queue.filter", "all", FILTERS);
   const [query, setQuery] = useState("");
   const searchRef = useContext(SearchRefContext);
@@ -110,7 +111,7 @@ export function QueueTab() {
           <div className="flex flex-col gap-1 py-10">
             <p className="font-serif text-title">{t("queue.empty.title")}</p>
             <p className="text-muted-foreground">
-              <WithCommand text={t("queue.empty.hint")} command={`${command} Name#TAG`} />
+              <WithCommand text={t("queue.empty.hint")} command={riotIds ? `${command} Name#TAG` : command} />
             </p>
           </div>
         ) : shown.length === 0 ? (

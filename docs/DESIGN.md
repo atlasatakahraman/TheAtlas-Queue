@@ -622,7 +622,7 @@ finishing in place. No wizard, no Next buttons.
 1. **Your channel.** "Signed in as HoustonHUB", read from Kick. Nothing to type.
 2. **How viewers join.** The queue command (default `!sıra`), the *Require Riot ID* switch with
    its region, the stream language. Each control has a one-line description.
-3. **Try it.** "Type `!sıra Name#TAG` in your chat now." A live checker waits and, when the first
+3. **Try it.** "Type `!sıra Name#TAG` in your chat now" (`Name#TAG` only while *Require Riot ID* is on). A live checker waits and, when the first
    command arrives, shows the row appearing exactly as it will on the dashboard. A **Skip** link
    sits beside it.
 
@@ -1233,7 +1233,8 @@ Anything fetched later shows **skeleton rows**: the real row shape (`bg-row`,
 second, still under reduced motion. Never a centred spinner in a list.
 
 **Empty.** A Newsreader line and one muted sentence saying how to fill it, the command in mono:
-"Viewers join by typing `!sıra Name#TAG` in Kick chat." No illustration, no second button.
+"Viewers join by typing `!sıra Name#TAG` in Kick chat." The `Name#TAG` part shows only while
+*Require Riot ID* is on (owner, 2026-09-29). No illustration, no second button.
 
 **Error.** A failed load renders inline where the content would be: a `bg-card` block saying what
 failed, with **Retry**. A failed *action* rolls its optimistic change back (the row returns,

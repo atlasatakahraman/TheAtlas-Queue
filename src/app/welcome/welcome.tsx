@@ -233,7 +233,7 @@ export function Welcome({ username, setup }: { username: string; setup: () => Pr
             ) : (
               <p>
                 {t("welcome.try.before")}{" "}
-                <code className="font-mono text-code select-all">{form.join_command} Name#TAG</code>{" "}
+                <code className="font-mono text-code select-all">{form.join_command}{form.require_riot_id && " Name#TAG"}</code>{" "}
                 {t("welcome.try.after")}
               </p>
             )}

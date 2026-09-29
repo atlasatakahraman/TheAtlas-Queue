@@ -111,7 +111,6 @@ export function TopBar() {
   // The wordmark types once per page load: coming back without a reload (a game's page to the
   // tabs, Back) it stands and only the slash onwards types, from the start (owner, 2026-09-28).
   const [again] = useState(() => wordmarkTyped);
-  const [tip, setTip] = useState(false);
   useEffect(() => {
     wordmarkTyped = true;
   }, []);
@@ -130,44 +129,45 @@ export function TopBar() {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex min-w-0 items-center gap-3 select-none">
-        {/* The way back to the selection page (D19): the tile, the wordmark and the channel are one
-            link to it, which never redirects from there (?pick). The whole title opens its tooltip,
-            which stands centred under the channel name (owner, 2026-09-28: centred on the whole
-            title it sat under the slash), so the channel name is its trigger and anchor. */}
-        <Tooltip open={tip} onOpenChange={setTip}>
-          <Link
-            href="/?pick"
-            className="flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-            onPointerEnter={() => setTip(true)}
-            onPointerLeave={() => setTip(false)}
-            onFocus={() => setTip(true)}
-            onBlur={() => setTip(false)}
-          >
-            {/* The black tile on paper, the white one on ink. */}
-            <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
-            <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
-            {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
-                then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
-            {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
-                steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
-            <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
-              {again ? "TheAtlas" : <Typed text="TheAtlas" />}{" "}
-              <span className="text-brand italic selection:bg-foreground selection:text-background">
-                {again ? "Queue" : <Typed text="Queue" startDelay={9 * 40} />}
-              </span>
+        {/* Two links (owner, 2026-09-29): the tile and the wordmark go to the dashboard's Queue tab;
+            the channel name is the way back to the selection page (D19, ?pick never redirects). */}
+        <Link
+          href={`/c/${slug}?tab=queue`}
+          className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            ui.setTab("queue");
+          }}
+        >
+          {/* The black tile on paper, the white one on ink. */}
+          <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
+          <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
+          {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
+              then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
+          {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
+              steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
+          <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
+            {again ? "TheAtlas" : <Typed text="TheAtlas" />}{" "}
+            <span className="text-brand italic selection:bg-foreground selection:text-background">
+              {again ? "Queue" : <Typed text="Queue" startDelay={9 * 40} />}
             </span>
-            {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went); D19 makes it
-                the way back to the selection page. On phones it stands in for the wordmark. */}
-            <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>
-              <Typed text="/" startDelay={15 * 40 + shift} />
-            </span>
-            {/* The link decides open and shut; the name's own hover would shut it on the way to the tile. */}
-            <TooltipTrigger asChild onPointerMove={(e) => e.preventDefault()} onPointerLeave={(e) => e.preventDefault()}>
-              <span className="min-w-0 truncate cap-center font-serif text-title max-xl:text-body">
-                <Typed text={channel} startDelay={channelAt} />
-              </span>
-            </TooltipTrigger>
-          </Link>
+          </span>
+        </Link>
+        {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went). On phones it
+            stands in for the wordmark. */}
+        <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>
+          <Typed text="/" startDelay={15 * 40 + shift} />
+        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href="/?pick"
+              className="min-w-0 truncate rounded-sm cap-center font-serif text-title outline-none focus-visible:ring-2 focus-visible:ring-ring/40 max-xl:text-body"
+            >
+              <Typed text={channel} startDelay={channelAt} />
+            </Link>
+          </TooltipTrigger>
           <TooltipContent>{t("select.back")}</TooltipContent>
         </Tooltip>
         {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab;

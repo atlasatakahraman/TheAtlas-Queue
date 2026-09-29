@@ -32,7 +32,7 @@ export function WatchView({ slug, initial }: { slug: string; initial: Live }) {
   if (snap.disabled) return <WatchOff name={snap.channel.name} />;
   return (
     <I18nProvider labels={snap.labels ?? undefined}>
-      <Page snap={snap} />
+      <Page slug={slug} snap={snap} />
     </I18nProvider>
   );
 }
@@ -69,7 +69,7 @@ export function Tools() {
   );
 }
 
-function Page({ snap }: { snap: Live }) {
+function Page({ slug, snap }: { slug: string; snap: Live }) {
   const { t } = useT();
   const on = (s: Live["sections"][number]) => snap.sections.includes(s);
   const playing = useMemo(() => snap.players.filter((p) => p.status === "playing"), [snap.players]);
@@ -91,6 +91,8 @@ function Page({ snap }: { snap: Live }) {
     <div className="flex min-h-dvh flex-col">
       <SlimBar
         crumb={snap.channel.name}
+        crumbHref="/?pick"
+        home={`/watch/${slug}`}
         after={
           snap.channel.live && (
             <span className="flex shrink-0 items-center gap-1.5 text-meta font-medium text-destructive">

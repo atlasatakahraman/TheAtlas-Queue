@@ -1127,7 +1127,9 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
   **Built (Stage 15):** as drawn; the commands ride in the snapshot (0033), and the skeleton
   draws the line.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
-  this stream's score, rosters), **Queue** (rows without a menu; the player card only if the
+  this stream's score, rosters; the headline is mirrored across the width, owner 2026-09-29:
+  *0 Team 1* on the left, *versus* in the middle, *Team 2 1* on the right, each score on the
+  outer side of its name), **Queue** (rows without a menu; the player card only if the
   streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results, each with the
   winners' names, and beside them **Most wins**, the all-time top 10, owner 2026-09-28),
   **Management** (off by default; names and kind only, **never reasons**).

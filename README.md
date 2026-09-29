@@ -1,143 +1,150 @@
 <div align="center">
 
-# TheAtlas — Queue
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/TheAtlasQueueB2048.png">
+  <img src="public/TheAtlasQueueW2048.png" alt="TheAtlas Queue" width="168">
+</picture>
 
-**Yayıncılar için Özel 5v5 Lobi & Sıra Yönetim Sistemi**
+<br>
 
-[![Next.js](https://img.shields.io/badge/Next.js-Latest-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Riot Games API](https://img.shields.io/badge/Riot_Games-API-eb0029?style=for-the-badge&logo=riotgames&logoColor=white)](https://developer.riotgames.com/)
-[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue?style=for-the-badge)](LICENSE)
+**The viewer queue for Kick streams.**<br>
+Chat joins, you draw the teams, Victory keeps the score, and everyone watches it happen.
 
-_Özel "Şamata" oyunları için tasarlanmış sade ve odaklı bir dashboard — chat'teki ilk `!sıra` komutundan takımların oluşturulmasına kadar lobi yönetimini tamamen üstlenir._
-
-[Hata Bildir](https://github.com/atlasatakahraman/atlasata-queue/issues) · [Özellik İste](https://github.com/atlasatakahraman/atlasata-queue/issues)
+[Open Queue](https://theatlas-queue.vercel.app) &nbsp;&nbsp; [Wiki](https://theatlas-queue.vercel.app/wiki) &nbsp;&nbsp; [Türkçe](README.tr.md)
 
 </div>
 
----
+<br>
 
-## Genel Bakış
+```text
+  mavi_yaka        !sıra Mavi#TR1
+  🤖 TheAtlas      @mavi_yaka joined the queue at #7.
+  gececi           !sıram
+  🤖 TheAtlas      @gececi, you're #3 in the queue.
+  mavi_yaka        !sıra
+  🤖 TheAtlas      @mavi_yaka, you're already in the queue.
+```
 
-AtlasAta Queue, özel 5v5 oturumları düzenleyen League of Legends yayıncıları için geliştirilmiş bir lobi yönetim aracıdır. Kick sohbetine doğrudan bağlanarak oyuncu sırasını otomatik olarak oluşturur, Riot Games API'sinden anlık rank ve profil verisi çeker; takım oluşturma, karıştırma ve yönetim işlemlerinin tamamını tek bir dashboard üzerinden sunar.
+That is the whole viewer side. There's no sign-up and no link to click. A viewer types one word in Kick chat, and in that moment they're in the queue on your dashboard, your public watch page and your stream overlay.
 
-Arayüz bilinçli olarak sade tutulmuştur. Üst çubukta bağlantı durumu ve oyuncu sayısı anlık olarak görünür; ana panel ise sırayı (bekleyen, oyunda, uzakta) ve aktif takımları sekmeli yapıda sunar. Gerekli her şey tek tıkla erişilebilir, gereksiz hiçbir şey ekranda yer almaz.
+## A night with Queue
 
----
+1. **Go live.** Queue is already listening to your Kick chat.
+2. **Chat joins.** `!sıra` puts a viewer at the end of the queue. `!sıra Name#TAG` also adds their Riot ID, so you see their solo queue rank.
+3. **Draw teams.** Press **Draw teams** (or `D`), and both teams fill from the waiting players. Fair play can put people who haven't played yet first, and it mixes teammates from game to game.
+4. **Play.** Reroll, pick single players, move people between teams. Every change can be undone.
+5. **Victory.** One press records the winner, updates the score and streaks, and does whatever you chose for next: a new draw, a shuffle, or everyone back in the queue.
+6. **Everyone follows.** Your watch page and OBS overlays update live and play the draw reveal on stream.
 
-## Özellikler
+## What's in it
 
-**Canlı Kick Chat Entegrasyonu**
-`!sıra OyuncuAdı#TAG` komutlarını gerçek zamanlı olarak ayrıştırır. Oyuncular sıraya otomatik eklenir; kopyala-yapıştır ya da manuel giriş gerekmez.
+**For the streamer**
 
-**Anlık Riot Games Senkronizasyonu**
-PUUID tabanlı Riot API çağrıları aracılığıyla her oyuncunun SoloQ/Flex rütbesini, hesap seviyesini, kazanma oranını ve profil ikonunu çeker. Tüm istekler Next.js API rotaları üzerinden güvenli biçimde proxylenir.
+- A dashboard made to sit beside a game for four hours. It has two warm, low-glare themes, *Mürekkep* (dark) and *Kâğıt* (light), a command palette, and keyboard shortcuts for everything that matters.
+- Joining rules: open or closed, a queue limit, subscribers only, a required Riot ID, and sitting out after a game.
+- Teams of 1 to 5 players, and five ways to reveal a pick: typed names, cards, a list, a wheel, or the result at once.
+- Games and stats: wins, losses, streaks, most wins and most respected, kept for as long as you choose.
+- Your own wording for the team names, the titles and the five chat commands, in English and Turkish.
+- Chat replies from Kick's bot, in your stream's language, turned on with one switch.
+- **Delete my data** in Settings removes your channel and everything in it.
 
-**Akıllı Takım Karıştırma**
-10 oyuncuyu iki 5 kişilik takıma adil şekilde böler. Alliance Breaker algoritması son sıralamalardan oluşan grupları takip eder ve aynı alt grupların üst üste oluşmasını engeller.
+**For moderators**
 
-**Duruma Duyarlı Kontroller**
-Butonlar lobi durumuna göre uyum sağlar. Henüz geçerli olmayan eylemler (örneğin 10 oyuncu hazır değilken karıştırma) sessizce devre dışı kalmak yerine açıklayıcı tooltip'lerle gösterilir.
+- Kick moderators get access on their own: their first chat message with the moderator badge lets them in, and they sign in with their own Kick account.
+- Warn, punish and ban. Respect is counted per viewer, and History shows who did what.
 
-**Sağ Tık Oyuncu Menüsü**
-Dashboard genelinde birleşik bağlam menüleri: Kick veya Riot ID'sini kopyala, oyuncuyu Uzakta (AFK) olarak işaretle, sıra durumları arasında taşı ya da tamamen kaldır.
+**For viewers**
 
-**Moderasyon Sistemi**
-Oyuncular için uyarı, ceza ve ban yönetimi sunar. İki uyarıya ulaşan oyunculara otomatik olarak 1 maçlık ceza uygulanır ve sıradan çıkarılır. Yönetici, sağ tık menüsünden doğrudan uyarı verebilir ya da detaylı moderasyon diyaloğu üzerinden özel ceza/ban süresi tanımlayabilir.
+- Five chat commands: join, leave, position, away and protected picks left. `!komutlar` lists them.
+- A public watch page for phones that shows the teams, the queue, the games and the management feed, live.
+- The subscriber perk protects a drawn subscriber from a reroll, a set number of times.
 
----
+The [Wiki](https://theatlas-queue.vercel.app/wiki) covers every screen, command and setting, in both languages.
 
-## Hızlı Başlangıç
+## How it works
 
-### Gereksinimler
+```mermaid
+sequenceDiagram
+    participant Chat as Kick chat
+    participant Queue as Queue (Next.js)
+    participant DB as Supabase
+    participant Screens as Dashboard, watch page, overlays
 
-- [Node.js](https://nodejs.org/en/) ≥ 18 veya [Bun](https://bun.sh/)
-- [Riot Games Geliştirici API Anahtarı](https://developer.riotgames.com/)
-- Kick OAuth 2.1 Client ID ve Secret
+    Chat->>Queue: signed webhook: chat.message.sent
+    Queue->>DB: ingest_chat() checks the rules and joins
+    DB-->>Screens: Realtime: the queue changed
+    Queue-->>Chat: TheAtlas bot replies, after Kick has its answer
+```
 
-### Kurulum
+- **Kick webhooks, not a socket.** Kick signs every chat event and posts it to `/api/kick/webhook`. Queue checks the signature and answers straight away, and sends its chat reply after that, so a slow reply never holds up a join.
+- **The rules live in Postgres.** Joining, drawing, Victory, moderation and Undo are SQL functions behind row-level security. The dashboard, moderators and chat all go through them, so they can't disagree.
+- **Everything is live.** Every screen subscribes to the channel it shows, so the overlay always matches what the streamer sees.
+- **Secrets stay on the server.** A streamer's Kick token for chat replies is only kept while replies are on. It's encrypted with AES-256-GCM, and revoked as soon as replies are turned off.
+
+| Layer | Built with |
+| --- | --- |
+| App | Next.js 16 (App Router), React 19, TypeScript 6 |
+| Interface | shadcn/ui on Radix, Tailwind CSS 4, Newsreader and Hanken Grotesk |
+| Sign-in | Auth.js 5 with Kick OAuth |
+| Data | Supabase: Postgres, row-level security, Realtime, pg_cron |
+| Runtime | Bun |
+
+## Run your own
+
+You need [Bun](https://bun.sh), a [Supabase](https://supabase.com) project, a Kick developer app, and a public HTTPS address that Kick can send webhooks to (a Vercel deploy works).
+
+**1. Install**
 
 ```bash
 git clone https://github.com/atlasatakahraman/TheAtlas-Queue.git
-cd atlasata-queue
+cd TheAtlas-Queue
 bun install
 ```
 
-### Ortam Değişkenleri
+**2. Supabase.** Apply the files in `supabase/migrations/` in order, from `0000` up. Then make a signing key for Queue's database sessions:
 
-Proje kök dizininde bir `.env.local` dosyası oluşturun:
-
-```env
-# Auth.js / NextAuth
-AUTH_SECRET="32-byte-rastgele-gizli-anahtar"
-AUTH_URL="http://localhost:3000/api/auth"
-
-# Kick OAuth
-KICK_CLIENT_ID="kick_client_id"
-KICK_CLIENT_SECRET="kick_client_secret"
-
-# Riot Games
-RIOT_API_KEY="RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+```bash
+bun --bun scripts/gen-signing-key.ts
 ```
 
-> `AUTH_SECRET` üretmek için: `openssl rand -base64 32`
+Import the key it prints in Supabase under *JWT Keys*.
 
-### Çalıştırma
+**3. Kick.** In your Kick developer settings, create an app with:
+
+- the redirect URL `https://<your-host>/api/auth/callback/kick`
+- the scopes `user:read`, `chat:write` and `events:subscribe`
+- webhooks turned on and pointed at `https://<your-host>/api/kick/webhook`
+
+**4. Environment.** Put these in `.env.local`, and in your host's settings:
+
+| Variable | What it is |
+| --- | --- |
+| `AUTH_SECRET` | The Auth.js secret: `openssl rand -base64 32` |
+| `AUTH_URL` | Your address, for example `http://localhost:3000` |
+| `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET` | From your Kick app |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The Supabase publishable key |
+| `SUPABASE_SECRET_KEY` | The Supabase secret key (server only) |
+| `SUPABASE_JWT_PRIVATE_JWK` | The key printed in step 2 |
+| `KICK_TOKEN_KEY` | 32 random bytes as base64: `openssl rand -base64 32` |
+| `RIOT_API_KEY` | A Riot developer key, for ranks |
+
+**5. Run**
 
 ```bash
 bun --bun run next:dev
 ```
 
-`http://localhost:3000` adresini açın, Kick hesabınızla giriş yapın; dashboard sıra komutlarını almaya hazır.
+Open `http://localhost:3000` and sign in with Kick. Welcome connects your chat in three steps.
 
----
+Before you deploy, `bun --bun run check:types`, `check:lint` and `next:build` must all pass. The build also checks its output for leaked secrets.
 
-## Mimari
+## Licence
 
-**Güvenli Riot API Proxy**
-Tüm Riot Games istekleri Next.js App Router'daki `/api/riot` handler'ları üzerinden iletilir. API anahtarınız hiçbir zaman istemci tarafına ulaşmaz.
+[AGPL-3.0-or-later](LICENSE). You can run, change and share Queue. If you run a changed version for other people over a network, you must offer them its source code too.
 
-**WebSocket Tabanlı Chat Alımı**
-Kick'in Pusher uyumlu WebSocket altyapısını kullanarak sohbet mesajlarını düşük gecikmeyle eş zamansız olarak işler.
-
-**Ayrıştırılmış Bileşen Modeli**
-`PlayerContextMenu` ve etkileşimli liste öğeleri tamamen bağımsızdır; sürükle-bırak durumu ile sağ tık bağlam durumu çakışma olmadan bir arada çalışır.
-
----
-
-## Teknoloji Yığını
-
-| Katman           | Teknoloji                    |
-| ---------------- | ---------------------------- |
-| Framework        | Next.js (Latest, App Router) |
-| UI Bileşenleri   | shadcn/ui                    |
-| Stil             | Tailwind CSS                 |
-| Kimlik Doğrulama | Auth.js (NextAuth v5)        |
-| Chat             | Kick WebSocket (Pusher)      |
-| Oyuncu Verisi    | Riot Games REST API          |
-| Çalışma Ortamı   | Bun                          |
-
----
-
-## Katkıda Bulunma
-
-Her türlü katkı memnuniyetle karşılanır.
-
-1. Repoyu forklayın
-2. Özellik dalı oluşturun: `git checkout -b ozellik/yeni-ozellik`
-3. Değişikliklerinizi kaydedin: `git commit -m 'Yeni özellik ekle'`
-4. Dalı gönderin: `git push origin ozellik/yeni-ozellik`
-5. Pull Request açın
-
----
-
-## Lisans
-
-GNU Affero Genel Kamu Lisansı v3.0 veya sonraki bir sürümü (`AGPL-3.0-or-later`) kapsamında dağıtılmaktadır. Ayrıntılar için [`LICENSE`](LICENSE) dosyasına bakın.
-
----
+<br>
 
 <div align="center">
-  <sub>League of Legends topluluğu için <a href="https://github.com/atlasatakahraman">atlasatakahraman</a> tarafından yapılmıştır</sub>
+<sub>Made by <a href="https://github.com/atlasatakahraman">atlasatakahraman</a> for the streams it runs on.</sub>
 </div>

@@ -29,6 +29,7 @@ export const tr: Record<LabelKey, string> = {
   "chat.position": "@{name}, sıradaki yerin #{position}.",
   "chat.perk": "@{name}, {uses} korumalı hakkın kaldı.",
   "chat.commands": "Komutlar: {list}. Fazlası: {url}",
+  "chat.watch": "Sırayı ve takımları canlı izle: {url}",
   "chat.reconnect": "Kick, Queue'nun sohbet yanıtlarını artık kabul etmiyor. Yanıtlara devam etmek için Kick'i yeniden bağla.",
   "chat.reconnect.action": "Yeniden bağla",
 
@@ -320,8 +321,9 @@ export const tr: Record<LabelKey, string> = {
   "settings.position_command": "Sıram",
   "settings.perk_command": "Kalan korumalı hak",
   "settings.away_command": "Uzakta",
+  "settings.watch_command": "İzleme sayfası",
   "settings.team_size": "Takım büyüklüğü",
-  "settings.commands.clash": "Her komut ! ve tek kelimedir; beşi de farklı olmalı.",
+  "settings.commands.clash": "Her komut ! ve tek kelimedir; altısı da farklı olmalı.",
   "settings.riot": "Riot",
   "settings.riot_enabled": "Dereceleri getir",
   "settings.riot_enabled.hint": "Her oyuncunun tek/çift derecesini gösterir.",

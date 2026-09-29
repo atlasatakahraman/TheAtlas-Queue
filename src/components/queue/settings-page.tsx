@@ -60,7 +60,7 @@ import { Numerals } from "@/components/numerals";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 const SECTIONS: WatchSection[] = ["teams", "queue", "games", "moderation", "riot_ids"];
-const COMMANDS = ["join_command", "leave_command", "position_command", "perk_command", "away_command"] as const;
+const COMMANDS = ["join_command", "leave_command", "position_command", "perk_command", "away_command", "watch_command"] as const;
 
 type Errors = Record<string, string>;
 

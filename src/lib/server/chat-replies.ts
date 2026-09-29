@@ -40,18 +40,36 @@ export async function answer(channelId: string, command: keyof Commands, r: Resu
   if (command === "perk" && r.result === "perk" && r.enabled) return say(channelId, "chat.perk", { name, uses: r.left ?? 0 });
 }
 
-// !komutlar / !commands: fixed in both languages, at most once per 30 s per channel.
+// !komutlar / !commands (fixed in both languages) and the watch command: each at most once per
+// 30 s per channel.
 // ponytail: per-instance throttle; a second instance may answer once more inside the 30 s.
-const listed = new Map<string, number>();
+const answered = new Map<string, number>();
+function throttled(key: string) {
+  if (Date.now() - (answered.get(key) ?? 0) < 30_000) return true;
+  answered.set(key, Date.now());
+  return false;
+}
 export const isCommandsAsk = (content: string) => /^!(komutlar|commands)$/iu.test(content.trim().split(/\s/u)[0] ?? "");
 
 export async function listCommands(channelId: string, commands: Commands) {
-  if (Date.now() - (listed.get(channelId) ?? 0) < 30_000) return;
-  listed.set(channelId, Date.now());
-  const { data } = await adminDb().from("settings").select("chat_replies, stream_locale, labels, perk_enabled").eq("channel_id", channelId).single();
-  const s = data as (Settings & { perk_enabled: boolean }) | null;
+  if (throttled(`${channelId}:commands`)) return;
+  const { data } = await adminDb().from("settings").select("chat_replies, stream_locale, labels, perk_enabled, watch_enabled").eq("channel_id", channelId).single();
+  const s = data as (Settings & { perk_enabled: boolean; watch_enabled: boolean }) | null;
   if (!s?.chat_replies) return;
-  const keys = ["join", "leave", "position", "away", ...(s.perk_enabled ? ["perk" as const] : [])] as const;
+  const keys = ["join", "leave", "position", "away", ...(s.perk_enabled ? ["perk" as const] : []), ...(s.watch_enabled ? ["watch" as const] : [])] as const;
   const list = keys.map((k) => `${translate(s.stream_locale, `settings.${k}_command`)} ${commands[k]}`).join(", ");
   await say(channelId, "chat.commands", { list, url: `${SITE}/wiki/chat-commands?lang=${s.stream_locale}` }, s);
+}
+
+// The watch command: the channel's /watch link, only while the watch page is on.
+export async function sendWatchLink(channelId: string) {
+  if (throttled(`${channelId}:watch`)) return;
+  const { data } = await adminDb()
+    .from("settings")
+    .select("chat_replies, stream_locale, labels, watch_enabled, channels(slug)")
+    .eq("channel_id", channelId)
+    .single();
+  const s = data as (Settings & { watch_enabled: boolean; channels: { slug: string } | null }) | null;
+  if (!s?.watch_enabled || !s.channels) return;
+  await say(channelId, "chat.watch", { url: `${SITE}/watch/${s.channels.slug}?lang=${s.stream_locale}` }, s);
 }

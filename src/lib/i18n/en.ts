@@ -30,6 +30,7 @@ export const en = {
   "chat.position": "@{name}, you're #{position} in the queue.",
   "chat.perk": "@{name}, you have {uses} protected picks left.",
   "chat.commands": "Commands: {list}. More: {url}",
+  "chat.watch": "Follow the queue and teams live: {url}",
   "chat.reconnect": "Kick stopped accepting Queue's chat replies. Reconnect Kick to resume them.",
   "chat.reconnect.action": "Reconnect",
 
@@ -328,8 +329,9 @@ export const en = {
   "settings.position_command": "Position",
   "settings.perk_command": "Protected picks left",
   "settings.away_command": "Away",
+  "settings.watch_command": "Watch page",
   "settings.team_size": "Team size",
-  "settings.commands.clash": "Each command is ! and one word, and all five must differ.",
+  "settings.commands.clash": "Each command is ! and one word, and all six must differ.",
   "settings.riot": "Riot",
   "settings.riot_enabled": "Look up ranks",
   "settings.riot_enabled.hint": "Shows each player's solo queue rank.",

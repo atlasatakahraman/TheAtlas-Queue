@@ -85,6 +85,11 @@ export const tr: Help = {
         body: [`\`${c.perk}\` yayıncı ayrıcalığı açtıysa kaç [korumalı hakkın](/wiki/perks) kaldığını sorar.`],
       },
       {
+        id: "watch",
+        title: "İzleme sayfası",
+        body: [`\`${c.watch}\`, yayıncı sohbet yanıtlarını açtıysa ve izleme sayfası herkese açıksa, sohbette kanalın [izleme sayfasının](/wiki/watch#watch-page) bağlantısıyla yanıt verir. En fazla 30 saniyede bir yanıt verir.`],
+      },
+      {
         id: "list",
         title: "Tüm komutlar",
         body: ["`!komutlar` ya da `!commands`, yayıncı sohbet yanıtlarını açtıysa kanalın komutlarını bu sayfanın bağlantısıyla sohbette sıralar. Bu ikisi her kanalda aynıdır ve en fazla 30 saniyede bir yanıt verir."],
@@ -93,7 +98,7 @@ export const tr: Help = {
         id: "custom",
         title: "Komutları değiştirmek",
         body: [
-          `Yayıncı kendi komutlarını [Ayarlar → Komutlar](/wiki/settings#commands) bölümünde belirler. Komut \`!\` ve boşluksuz 1 ile ${D.commandMax} karakterdir, beşi de birbirinden farklı olmalıdır. Bir kanalın kendi komutları izleme sayfasında yazar.`,
+          `Yayıncı kendi komutlarını [Ayarlar → Komutlar](/wiki/settings#commands) bölümünde belirler. Komut \`!\` ve boşluksuz 1 ile ${D.commandMax} karakterdir, altısı da birbirinden farklı olmalıdır. Bir kanalın kendi komutları izleme sayfasında yazar.`,
         ],
       },
     ],
@@ -279,7 +284,7 @@ export const tr: Help = {
     description: "Ayarlar'ın her bölümü ne yapar: komutlar, katılım, Riot, takımlar ve çekilişler, maçlar, ayrıcalıklar, izleme, overlay'ler, moderatörler, etiketler.",
     lead: "Ayarlar yalnızca yayıncınındır, üst çubuktaki dişliyle açılır. Anahtarlar hemen kaydolur; metin ve sayılar Kaydet'i bekler.",
     sections: [
-      { id: "commands", title: "Komutlar", body: ["Beş sohbet komutu. Bkz. [Sohbet komutları](/wiki/chat-commands)."] },
+      { id: "commands", title: "Komutlar", body: ["Altı sohbet komutu. Bkz. [Sohbet komutları](/wiki/chat-commands)."] },
       { id: "joining", title: "Katılım", body: ["Açık ya da kapalı, sıra sınırı, maç sonrası bekleme, yalnızca aboneler. Bkz. [Sohbetten kim katılabilir](/wiki/queue#joining)."] },
       { id: "riot", title: "Riot", body: [`Tek/Çift derecelerini getir (değiştirmediysen bölge ${s.riot_region.toUpperCase()}) ve katılmak için Riot ID gerekip gerekmediği.`] },
       { id: "teams", title: "Takımlar ve çekilişler", body: [`Takım büyüklüğü (${L.team_size[0]} ile ${L.team_size[1]} arası), adil oyun, çekiliş gösterimi ve yayın bitince sıranın temizlenip temizlenmeyeceği. Bkz. [Takımlar ve çekilişler](/wiki/teams).`] },

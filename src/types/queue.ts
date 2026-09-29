@@ -182,6 +182,7 @@ export type Settings = {
   position_command: string;
   perk_command: string;
   away_command: string;
+  watch_command: string;
   team_size: number;
   riot_enabled: boolean;
   require_riot_id: boolean;

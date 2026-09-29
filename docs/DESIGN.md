@@ -901,7 +901,10 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   line; any other refusal (full, badges, cooldown) stays a feed line only, so chat is not
   flooded while joining is shut. **Every reply's wording is the streamer's** (Labels, per
   language; migration 0038). `!sıram`: the position while waiting, nothing otherwise. `!hak`: uses
-  left while the perk is on. `!komutlar` and `!commands` (fixed, in either language): the
+  left while the perk is on, only for a viewer with one of the perk badges; anyone else reads
+  *@name, protected picks are for Subscribers and VIPs.* (the chosen badges, joined like the
+  badge picker's sentence, in the stream language), at most once per viewer per 30 s; staff get
+  no exception (owner, 2026-09-29, migration 0039). `!komutlar` and `!commands` (fixed, in either language): the
   channel's commands in one line and the wiki's commands page, at most once per 30 s per
   channel. **Watch** (owner's ask, 2026-09-29), the sixth command field in **Commands**, default
   `!izle`, all six distinct (migration 0034): the channel's `/watch` link in the stream language,
@@ -1618,7 +1621,7 @@ Subscribers and VIPs get 3 protected picks every 30 days, and check what is left
 Settings → Draws & perks: uses per rolling 30 days and the [badge picker](#badge-picker). On
 the dashboard the perk is visible, never hidden odds: the *Protected* tags, the protected-first
 order in the reveal, *Remove protection* in the row menu. Viewers check their own remaining uses
-with `!hak`.
+with `!hak`; a viewer without a perk badge is told who the perk is for, never a count.
 
 ### Buttons
 
@@ -1709,7 +1712,7 @@ The curated set, and nothing else. Everything outside it is translated but fixed
 | Actions | `action.add`, `action.draw`, `action.reroll`, `action.pick` |
 | Watch page | `watch.title`, `watch.subtitle`, `watch.disabled` |
 | Overlay | `overlay.queue.title`, `overlay.draw.title` |
-| Chat replies | every one (owner, 2026-09-29; migration 0038): `chat.joined`, `chat.joined.many`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.rejected.offline`, `chat.rejected.closed`, `chat.position`, `chat.perk`, `chat.commands`, `chat.watch`, `chat.rules`. Braced words (`{name}`, `{position}`, `{list}`, `{url}`, …) are filled in; one left out is simply not said |
+| Chat replies | every one (owner, 2026-09-29; migration 0038): `chat.joined`, `chat.joined.many`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.rejected.offline`, `chat.rejected.closed`, `chat.position`, `chat.perk`, `chat.perk.none`, `chat.commands`, `chat.watch`, `chat.rules`. Braced words (`{name}`, `{position}`, `{list}`, `{url}`, …) are filled in; one left out is simply not said |
 
 Team names are ordinary labels, so "Kurtlar" in Turkish and "Wolves" in English is two
 overrides, not a special field.

@@ -884,6 +884,13 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   on by default. When Kick reports the stream offline the queue and teams empty in one write;
   History says *Stream ended, queue cleared (12)* with Undo, and an open dashboard shows the
   same as a toast. Moderation stays.
+- **Chat replies** (Stage 16, D4): a switch at the end of **Commands**, off by default, *Queue
+  answers in your Kick chat*. Turning it on goes to Kick's consent once more, asking for
+  `chat:write` on top of `user:read` (the sign-in itself never asks for it); coming back, the
+  refresh token is stored encrypted (AES-256-GCM, `KICK_TOKEN_KEY`, in `kick_tokens`) and the
+  switch reads on. Declining at Kick leaves it off. Turning it off saves at once, like any switch.
+  When Kick later refuses the token, replies switch off and the dashboard says *Reconnect Kick to
+  resume chat replies* (spec § Errors).
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).

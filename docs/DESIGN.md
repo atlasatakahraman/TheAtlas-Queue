@@ -645,7 +645,7 @@ muted `/` and the **channel name** in Newsreader, typed on after the wordmark (o
 then *Moderating* as muted text for a moderator; on phones the channel stands in for the
 wordmark. Under 1280px the whole title steps down to the body size (owner, 2026-09-28: at
 1090px both were cut to *TheAtlas… / atlasataka…*; hiding the wordmark was refused, it is the
-page's title). The wordmark never truncates, only the channel does, and only on phones. **Two links** (owner, 2026-09-29): the tile and the wordmark go to the dashboard's first tab (Queue, from a game's page or Settings too); the channel name is D19's way back to the selection page (`/?pick`, its tooltip *Your channels*). Right: the [connection pill](#connection-health), the command palette button
+page's title). The wordmark never truncates, only the channel does, and only on phones. **Two links** (owner, 2026-09-29): the tile and the wordmark go to the dashboard's first tab (Queue, from a game's page or Settings too); the channel name is D19's way back to the selection page (`/?pick`, its tooltip *Your channels*). The wordmark's tooltip is *Go to the queue* (owner, 2026-09-29). Right: the [connection pill](#connection-health), the command palette button
 (a search icon, `aria-label`), the **Wiki** button (owner, 2026-09-29, Stage 16: `BookOpen` and the
 word *Wiki*, a ghost button, opening `/wiki` in the page's language in a new tab; it reads as a
 place, not a tool, so it keeps its word; under 1024px it folds into `⋯` with the others), the EN | TR switch, GitHub, the theme button, a settings gear
@@ -1113,7 +1113,7 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
 
 - The slim top bar of the error pages (tile, wordmark, `/ channel`; here the tile and the wordmark
   lead to this watch page's top and the channel to `/?pick`, as on the dashboard, owner
-  2026-09-29), then **Live** (`Radio` and
+  2026-09-29; tooltips *Back to the top* and *Your channels*), then **Live** (`Radio` and
   the word, in `--destructive`, never a dot) while the **stream** is live; EN | TR (which also
   writes `?lang` into the address, so a shared link opens in that language) and the theme.
 - **The commands strip** (Stage 15, D33, owner 2026-09-29: always shown, not a section): one

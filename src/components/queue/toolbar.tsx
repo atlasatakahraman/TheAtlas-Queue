@@ -6,6 +6,7 @@ import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
 import { type PickSource, useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
 import { cn } from "@/lib/utils";
+import { GOLD } from "@/components/numerals";
 import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import {
@@ -164,7 +165,7 @@ function JoinButton() {
         <Icon aria-hidden className={cn(!open && "text-warning")} />
         <span className={cn("max-md:sr-only", !open && "text-warning")}>{t(open ? "join.open" : "join.closed")}</span>
         {max > 0 && (
-          <span className={cn("tabular-nums", queued >= max ? "text-destructive" : "text-muted-foreground")}>
+          <span className={cn(GOLD, queued >= max && "text-destructive")}>
             {queued}/{max}
           </span>
         )}

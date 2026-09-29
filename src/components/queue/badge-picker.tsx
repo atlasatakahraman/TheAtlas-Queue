@@ -2,6 +2,7 @@
 import { Award, Check, Crown, Gem, Gift, type LucideIcon, Star } from "lucide-react";
 import { useId, useState } from "react";
 import { useT } from "@/components/i18n";
+import { Numerals } from "@/components/numerals";
 import { cn } from "@/lib/utils";
 
 // Kick's chat badges, drawn here (not Kick's artwork): one glyph and colour each (D32). The
@@ -80,7 +81,7 @@ export function BadgePicker({ label, value, onChange, effect, result, refusal }:
         })}
       </div>
       <p aria-live="polite" className={cn("text-meta", refused || picked.length === 0 ? "text-destructive" : "text-muted-foreground")} id={`${id}-refused`}>
-        {refused || picked.length === 0 ? (refusal ?? t("settings.perk_badges.refused")) : result(who)}
+        {refused || picked.length === 0 ? (refusal ?? t("settings.perk_badges.refused")) : <Numerals text={result(who)} />}
       </p>
     </div>
   );

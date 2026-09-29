@@ -1,9 +1,9 @@
 import "server-only";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Fragment } from "react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { HelpSearch, TopicSelect } from "@/components/help/help-nav";
+import { GOLD, Numerals } from "@/components/numerals";
 import { SETTINGS_ITEM, SETTINGS_LIST } from "@/components/queue/geometry";
 import { SlimBar } from "@/components/status-page";
 import { ThemeButton } from "@/components/theme-button";
@@ -21,19 +21,19 @@ async function langOf(searchParams: Props["searchParams"]): Promise<Lang> {
   return parseLang((await searchParams).lang) ?? (await requestLang());
 }
 
-// /help is Getting started; /help/<topic> the others; /help/getting-started is /help.
+// /wiki is Getting started; /wiki/<topic> the others; /wiki/getting-started is /wiki.
 async function topicOf(params: Props["params"]): Promise<Topic> {
   const { topic } = await params;
   if (!topic) return "getting-started";
   if (topic.length !== 1) notFound();
-  if (topic[0] === "getting-started") permanentRedirect("/help");
+  if (topic[0] === "getting-started") permanentRedirect("/wiki");
   if (!isTopic(topic[0])) notFound();
   return topic[0];
 }
 
 // A help link keeps the page's language; an anchor stays after it.
 const withLang = (href: string, lang: Lang) => {
-  if (!href.startsWith("/help")) return href;
+  if (!href.startsWith("/wiki")) return href;
   const [path, hash] = href.split("#");
   return `${path}?lang=${lang}${hash ? `#${hash}` : ""}`;
 };
@@ -144,12 +144,14 @@ function Body({ block, lang }: { block: Block; lang: Lang }) {
   );
 }
 
-// Light markup in the help text: `a key or command`, **strong**, *emphasis*, [a link](/path).
+// Light markup in the wiki text: `a key or command`, **strong**, *emphasis*, [a link](/path);
+// numbers in the rest are gold too.
 const TOKEN = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*\s][^*]*\*|\[[^\]]+\]\([^)\s]+\))/g;
 function rich(text: string, lang: Lang) {
   return text.split(TOKEN).map((p, i) => {
-    if (p.startsWith("`")) return <Kbd key={i} className="pointer-events-auto h-6 px-1.5 font-mono text-control text-foreground select-all">{p.slice(1, -1)}</Kbd>;
-    if (p.startsWith("**")) return <strong key={i} className="font-semibold text-foreground">{p.slice(2, -2)}</strong>;
+    // Commands and bold words read as the numbers do (owner, 2026-09-29); a command selects whole.
+    if (p.startsWith("`")) return <span key={i} className={cn(GOLD, "select-all")}>{p.slice(1, -1)}</span>;
+    if (p.startsWith("**")) return <strong key={i} className={GOLD}>{p.slice(2, -2)}</strong>;
     if (p.startsWith("*") && p.endsWith("*") && p.length > 2) return <em key={i}>{p.slice(1, -1)}</em>;
     const m = /^\[([^\]]+)\]\(([^)\s]+)\)$/.exec(p);
     if (m)
@@ -158,21 +160,8 @@ function rich(text: string, lang: Lang) {
           {m[1]}
         </Link>
       );
-    return numerals(p, i);
+    return <Numerals key={i} text={p} />;
   });
-}
-
-// Numbers in the running text are Newsreader in gold (owner, 2026-09-29), as the watch page's
-// wins: 100, ×1,5, %75, 30 days.
-const NUMBER = /(×?\d+(?:[.,]\d+)?%?|%\d+)/;
-function numerals(text: string, key: number) {
-  const parts = text.split(NUMBER);
-  if (parts.length === 1) return text;
-  return (
-    <Fragment key={key}>
-      {parts.map((p, i) => (i % 2 ? <span key={i} className="font-serif font-medium text-brand tabular-nums">{p}</span> : p))}
-    </Fragment>
-  );
 }
 
 // EN | TR as real links (DESIGN.md § Help), so a crawler reaches both and the page renders in the

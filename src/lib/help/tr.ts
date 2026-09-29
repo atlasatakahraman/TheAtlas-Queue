@@ -11,9 +11,9 @@ const x = (n: number) => `×${String(n).replace(".", ",")}`;
 
 export const tr: Help = {
   ui: {
-    title: "Yardım",
+    title: "Wiki",
     topics: "Konular",
-    search: "Yardımda ara",
+    search: "Wiki'de ara",
     none: "Eşleşen başlık yok.",
     onThisPage: "Bu sayfada",
   },
@@ -42,14 +42,14 @@ export const tr: Help = {
               "İstediğin gibi yeniden çek, karıştır ya da tek tek oyuncu çek. Her değişikliğin bir Geri al'ı vardır.",
             ],
           },
-          "İzleyiciler sırayı ve takımları takip edebilsin diye [izleme sayfanı](/help/watch) paylaş.",
+          "İzleyiciler sırayı ve takımları takip edebilsin diye [izleme sayfanı](/wiki/watch) paylaş.",
         ],
       },
       {
         id: "moderators",
         title: "Moderatörler",
         body: [
-          "Kick moderatörlerin erişimi kendiliğinden alır: moderatör rozetini taşıyan ilk sohbet mesajıyla, kendi Kick girişleriyle panele girerler. Birini önceden eklemek ya da birini engellemek için [Ayarlar → Moderatörler](/help/settings#moderators).",
+          "Kick moderatörlerin erişimi kendiliğinden alır: moderatör rozetini taşıyan ilk sohbet mesajıyla, kendi Kick girişleriyle panele girerler. Birini önceden eklemek ya da birini engellemek için [Ayarlar → Moderatörler](/wiki/settings#moderators).",
         ],
       },
     ],
@@ -81,13 +81,13 @@ export const tr: Help = {
       {
         id: "perk",
         title: "Kalan korumalı hak",
-        body: [`\`${c.perk}\` yayıncı ayrıcalığı açtıysa kaç [korumalı hakkın](/help/perks) kaldığını sorar.`],
+        body: [`\`${c.perk}\` yayıncı ayrıcalığı açtıysa kaç [korumalı hakkın](/wiki/perks) kaldığını sorar.`],
       },
       {
         id: "custom",
         title: "Komutları değiştirmek",
         body: [
-          `Yayıncı kendi komutlarını [Ayarlar → Komutlar](/help/settings#commands) bölümünde belirler. Komut \`!\` ve boşluksuz 1 ile ${D.commandMax} karakterdir, beşi de birbirinden farklı olmalıdır. Bir kanalın kendi komutları izleme sayfasında yazar.`,
+          `Yayıncı kendi komutlarını [Ayarlar → Komutlar](/wiki/settings#commands) bölümünde belirler. Komut \`!\` ve boşluksuz 1 ile ${D.commandMax} karakterdir, beşi de birbirinden farklı olmalıdır. Bir kanalın kendi komutları izleme sayfasında yazar.`,
         ],
       },
     ],
@@ -116,7 +116,7 @@ export const tr: Help = {
         id: "joining",
         title: "Sohbetten kim katılabilir",
         body: [
-          "Bu kurallar yalnızca sohbetteki katılma komutu için geçerlidir ve [Ayarlar → Katılım](/help/settings#joining) bölümünde ayarlanır.",
+          "Bu kurallar yalnızca sohbetteki katılma komutu için geçerlidir ve [Ayarlar → Katılım](/wiki/settings#joining) bölümünde ayarlanır.",
           {
             list: [
               "**Katılım açık**: kapatırsan sohbetten her katılma geri çevrilir. Araç çubuğundaki Katılım düğmesi aynısını tek dokunuşla, senin ve moderatörlerin için yapar.",
@@ -160,7 +160,7 @@ export const tr: Help = {
       {
         id: "reveal",
         title: "Çekiliş gösterimi",
-        body: ["Takım çekilişinde isimler takımlara yazılarak gelir. Tek çekim, [Ayarlar → Takımlar ve çekilişler](/help/settings#teams) bölümünde seçilen gösterimi oynatır: isimler yazılarak, kartlar, listeleme, çarkıfelek ya da sonucu hemen göster. İzleme sayfası ve overlay'ler yeni bir çekilişi geldiği an gösterir."],
+        body: ["Takım çekilişinde isimler takımlara yazılarak gelir. Tek çekim, [Ayarlar → Takımlar ve çekilişler](/wiki/settings#teams) bölümünde seçilen gösterimi oynatır: isimler yazılarak, kartlar, listeleme, çarkıfelek ya da sonucu hemen göster. İzleme sayfası ve overlay'ler yeni bir çekilişi geldiği an gösterir."],
       },
     ],
   },
@@ -172,7 +172,7 @@ export const tr: Help = {
       {
         id: "victory",
         title: "Kazandı",
-        body: ["Kazanan takımın kartında **Kazandı**'ya bas. [Ayarlar → Maçlar](/help/settings#games) bölümündeki **Kazandı'dan sonra** ardından ne olacağını seçer: yalnızca kaydet, karıştır, yeni çekiliş, herkes sıraya ya da kaybedenler sıraya. Geri al ikisini de geri alır."],
+        body: ["Kazanan takımın kartında **Kazandı**'ya bas. [Ayarlar → Maçlar](/wiki/settings#games) bölümündeki **Kazandı'dan sonra** ardından ne olacağını seçer: yalnızca kaydet, karıştır, yeni çekiliş, herkes sıraya ya da kaybedenler sıraya. Geri al ikisini de geri alır."],
       },
       {
         id: "stats",
@@ -254,7 +254,7 @@ export const tr: Help = {
         id: "watch-page",
         title: "İzleme sayfası",
         body: [
-          "[Ayarlar → İzleme sayfası](/help/settings#watch) bölümünde **Herkese açık izleme sayfası**'nı aç ve `/watch/kanalin` adresini paylaş. Önce sohbet komutlarını, sonra seçtiğin bölümleri gösterir: **Takımlar**, **Sıra**, **Maçlar** ve **Yönetim** (yalnızca isim ve tür, asla neden değil); Riot ID'ler yalnızca paylaşırsan görünür.",
+          "[Ayarlar → İzleme sayfası](/wiki/settings#watch) bölümünde **Herkese açık izleme sayfası**'nı aç ve `/watch/kanalin` adresini paylaş. Önce sohbet komutlarını, sonra seçtiğin bölümleri gösterir: **Takımlar**, **Sıra**, **Maçlar** ve **Yönetim** (yalnızca isim ve tür, asla neden değil); Riot ID'ler yalnızca paylaşırsan görünür.",
           "Canlı güncellenir ve çekiliş gösterimini oynatır. Varsayılan olarak kapalıdır.",
         ],
       },
@@ -262,7 +262,7 @@ export const tr: Help = {
         id: "overlays",
         title: "Overlay'ler",
         body: [
-          "Overlay, OBS için 1920×1080 bir tarayıcı kaynağıdır. [Ayarlar → Overlay'ler](/help/settings#overlays) bölümünde istediğin kadar yap; her birinin kendi parçaları (sıra, takımlar, skor, son sonuç, en çok kazananlar, en saygın oyuncular, çekiliş gösterimi), konumu, boyutu, panelleri ve dili olur.",
+          "Overlay, OBS için 1920×1080 bir tarayıcı kaynağıdır. [Ayarlar → Overlay'ler](/wiki/settings#overlays) bölümünde istediğin kadar yap; her birinin kendi parçaları (sıra, takımlar, skor, son sonuç, en çok kazananlar, en saygın oyuncular, çekiliş gösterimi), konumu, boyutu, panelleri ve dili olur.",
           "Overlay bağlantısına sahip olan herkes onu görür, bu yüzden yayında gösterme. **Yeni bağlantı** eskisini hemen geçersiz kılar.",
         ],
       },
@@ -273,15 +273,15 @@ export const tr: Help = {
     description: "Ayarlar'ın her bölümü ne yapar: komutlar, katılım, Riot, takımlar ve çekilişler, maçlar, ayrıcalıklar, izleme, overlay'ler, moderatörler, etiketler.",
     lead: "Ayarlar yalnızca yayıncınındır, üst çubuktaki dişliyle açılır. Anahtarlar hemen kaydolur; metin ve sayılar Kaydet'i bekler.",
     sections: [
-      { id: "commands", title: "Komutlar", body: ["Beş sohbet komutu. Bkz. [Sohbet komutları](/help/chat-commands)."] },
-      { id: "joining", title: "Katılım", body: ["Açık ya da kapalı, sıra sınırı, maç sonrası bekleme, yalnızca aboneler. Bkz. [Sohbetten kim katılabilir](/help/queue#joining)."] },
+      { id: "commands", title: "Komutlar", body: ["Beş sohbet komutu. Bkz. [Sohbet komutları](/wiki/chat-commands)."] },
+      { id: "joining", title: "Katılım", body: ["Açık ya da kapalı, sıra sınırı, maç sonrası bekleme, yalnızca aboneler. Bkz. [Sohbetten kim katılabilir](/wiki/queue#joining)."] },
       { id: "riot", title: "Riot", body: [`Tek/Çift derecelerini getir (değiştirmediysen bölge ${s.riot_region.toUpperCase()}) ve katılmak için Riot ID gerekip gerekmediği.`] },
-      { id: "teams", title: "Takımlar ve çekilişler", body: [`Takım büyüklüğü (${L.team_size[0]} ile ${L.team_size[1]} arası), adil oyun, çekiliş gösterimi ve yayın bitince sıranın temizlenip temizlenmeyeceği. Bkz. [Takımlar ve çekilişler](/help/teams).`] },
-      { id: "games", title: "Maçlar", body: ["Kazandı'dan sonra ne olacağı ve maçların ne kadar tutulacağı. Bkz. [Maçlar](/help/games)."] },
-      { id: "perks", title: "Ayrıcalıklar", body: ["Abone ayrıcalığı ve rozetleri. Bkz. [Ayrıcalıklar ve rozetler](/help/perks)."] },
-      { id: "watch", title: "İzleme sayfası", body: ["Herkese açık sayfa ve bölümleri. Bkz. [İzleme sayfası](/help/watch#watch-page)."] },
-      { id: "overlays", title: "Overlay'ler", body: ["OBS overlay'lerin. Bkz. [Overlay'ler](/help/watch#overlays)."] },
-      { id: "moderators", title: "Moderatörler", body: ["Erişimi olan herkes ve erişimin nereden geldiği; ekle, engelle ya da çıkar. Bkz. [Moderatörler](/help/moderation#moderators)."] },
+      { id: "teams", title: "Takımlar ve çekilişler", body: [`Takım büyüklüğü (${L.team_size[0]} ile ${L.team_size[1]} arası), adil oyun, çekiliş gösterimi ve yayın bitince sıranın temizlenip temizlenmeyeceği. Bkz. [Takımlar ve çekilişler](/wiki/teams).`] },
+      { id: "games", title: "Maçlar", body: ["Kazandı'dan sonra ne olacağı ve maçların ne kadar tutulacağı. Bkz. [Maçlar](/wiki/games)."] },
+      { id: "perks", title: "Ayrıcalıklar", body: ["Abone ayrıcalığı ve rozetleri. Bkz. [Ayrıcalıklar ve rozetler](/wiki/perks)."] },
+      { id: "watch", title: "İzleme sayfası", body: ["Herkese açık sayfa ve bölümleri. Bkz. [İzleme sayfası](/wiki/watch#watch-page)."] },
+      { id: "overlays", title: "Overlay'ler", body: ["OBS overlay'lerin. Bkz. [Overlay'ler](/wiki/watch#overlays)."] },
+      { id: "moderators", title: "Moderatörler", body: ["Erişimi olan herkes ve erişimin nereden geldiği; ekle, engelle ya da çıkar. Bkz. [Moderatörler](/wiki/moderation#moderators)."] },
       { id: "labels", title: "Etiketler ve dil", body: ["Takım adları ve başlıklar için her dilde kendi ifadelerin, ve overlay ile sohbet yanıtlarının kullandığı yayın dili."] },
     ],
   },

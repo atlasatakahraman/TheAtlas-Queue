@@ -19,4 +19,4 @@ export type Help = Record<Topic, Article> & { ui: { title: string; topics: strin
 export const HELP: Record<Lang, Help> = { en, tr };
 
 export const isTopic = (t: string | undefined): t is Topic => !!t && (TOPICS as readonly string[]).includes(t);
-export const topicPath = (t: Topic) => (t === "getting-started" ? "/help" : `/help/${t}`);
+export const topicPath = (t: Topic) => (t === "getting-started" ? "/wiki" : `/wiki/${t}`);

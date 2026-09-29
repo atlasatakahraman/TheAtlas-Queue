@@ -1,5 +1,5 @@
 "use client";
-import { CircleHelp, Ellipsis, LogOut, Search, Settings } from "lucide-react";
+import { BookOpen, Ellipsis, LogOut, Search, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -65,8 +65,8 @@ function AccountMenu() {
             {t("tab.settings")}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onSelect={() => window.open(`/help?lang=${lang}`, "_blank", "noopener")}>
-          <CircleHelp aria-hidden />
+        <DropdownMenuItem onSelect={() => window.open(`/wiki?lang=${lang}`, "_blank", "noopener")}>
+          <BookOpen aria-hidden />
           {t("help.open")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -95,7 +95,7 @@ function AccountMenu() {
 }
 
 // The top bar (August's header): the TheAtlas tile and wordmark; right, the connection pill,
-// search, EN | TR, GitHub, theme, settings and the account. Under 1024px the middle tools fold
+// search, the Wiki, EN | TR, GitHub, theme, settings and the account. Under 1024px the middle tools fold
 // into ⋯ and the pill, ⋯ and the account stay.
 // Module state: kept across client navigation, fresh on a reload (and never set on the server).
 let wordmarkTyped = false;
@@ -205,6 +205,13 @@ export function TopBar() {
               <Search aria-hidden />
             </Button>
           </Tip>
+          {/* A place, not a tool, so it keeps its word; a new tab keeps the dashboard (D33). */}
+          <Button variant="ghost" size="lg" asChild>
+            <a href={`/wiki?lang=${lang}`} target="_blank" rel="noopener">
+              <BookOpen aria-hidden />
+              {t("help.open")}
+            </a>
+          </Button>
           <LangSwitch />
           <Tip label={t("header.github")}>
             <Button variant="ghost" size="icon-lg" asChild>
@@ -230,6 +237,11 @@ export function TopBar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={() => ui.setPalette(true)}>{t("palette.open")}</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href={`/wiki?lang=${lang}`} target="_blank" rel="noopener">
+                {t("help.open")}
+              </a>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={lang === "en"} onSelect={() => setLang("en")}>
               {t("lang.name.en")}

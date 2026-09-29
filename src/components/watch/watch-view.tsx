@@ -221,7 +221,7 @@ function Commands({ commands }: { commands: NonNullable<Live["commands"]> }) {
         ) : null,
       )}
       <a
-        href={`/help/chat-commands?lang=${lang}`}
+        href={`/wiki/chat-commands?lang=${lang}`}
         className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/40 max-md:min-h-11"
       >
         <CircleHelp className="size-4" aria-hidden />

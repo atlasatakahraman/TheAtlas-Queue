@@ -10,9 +10,9 @@ const pct = (n: number) => `${n * 100}%`;
 
 export const en: Help = {
   ui: {
-    title: "Help",
+    title: "Wiki",
     topics: "Topics",
-    search: "Search help",
+    search: "Search the wiki",
     none: "No heading matches.",
     onThisPage: "On this page",
   },
@@ -41,14 +41,14 @@ export const en: Help = {
               "Draw again, reroll, or pick single players as you like. Every change has an Undo.",
             ],
           },
-          "Share your [watch page](/help/watch) so viewers can follow the queue and the teams.",
+          "Share your [watch page](/wiki/watch) so viewers can follow the queue and the teams.",
         ],
       },
       {
         id: "moderators",
         title: "Moderators",
         body: [
-          "Your Kick moderators get access on their own: the first chat message carrying the moderator badge lets them in, with their own Kick sign-in. You can also add someone ahead of time, or block anyone, in [Settings → Moderators](/help/settings#moderators).",
+          "Your Kick moderators get access on their own: the first chat message carrying the moderator badge lets them in, with their own Kick sign-in. You can also add someone ahead of time, or block anyone, in [Settings → Moderators](/wiki/settings#moderators).",
         ],
       },
     ],
@@ -80,13 +80,13 @@ export const en: Help = {
       {
         id: "perk",
         title: "Protected picks left",
-        body: [`\`${c.perk}\` asks how many [protected picks](/help/perks) you have left, when the streamer has the perk on.`],
+        body: [`\`${c.perk}\` asks how many [protected picks](/wiki/perks) you have left, when the streamer has the perk on.`],
       },
       {
         id: "custom",
         title: "Changing the commands",
         body: [
-          `The streamer sets their own in [Settings → Commands](/help/settings#commands). A command is \`!\` and 1 to ${D.commandMax} characters with no spaces, and all five must differ. A channel's own commands are shown on its watch page.`,
+          `The streamer sets their own in [Settings → Commands](/wiki/settings#commands). A command is \`!\` and 1 to ${D.commandMax} characters with no spaces, and all five must differ. A channel's own commands are shown on its watch page.`,
         ],
       },
     ],
@@ -115,7 +115,7 @@ export const en: Help = {
         id: "joining",
         title: "Who may join from chat",
         body: [
-          "These rules apply only to the chat join command, and are set in [Settings → Joining](/help/settings#joining).",
+          "These rules apply only to the chat join command, and are set in [Settings → Joining](/wiki/settings#joining).",
           {
             list: [
               "**Joining is open**: close it to turn every chat join away. The toolbar's Joining button does the same in one press, for you and your moderators.",
@@ -159,7 +159,7 @@ export const en: Help = {
       {
         id: "reveal",
         title: "The draw reveal",
-        body: ["A team draw types its names into the teams. A pick plays the reveal chosen in [Settings → Teams & draws](/help/settings#teams): names type in, cards, a list, a wheel, or the result at once. The watch page and overlays show a fresh draw as it lands."],
+        body: ["A team draw types its names into the teams. A pick plays the reveal chosen in [Settings → Teams & draws](/wiki/settings#teams): names type in, cards, a list, a wheel, or the result at once. The watch page and overlays show a fresh draw as it lands."],
       },
     ],
   },
@@ -171,7 +171,7 @@ export const en: Help = {
       {
         id: "victory",
         title: "Victory",
-        body: ["Press **Victory** on the winning team's card. **After Victory** in [Settings → Games](/help/settings#games) chooses what happens next: only record, shuffle, a new draw, everyone back to the queue, or the losers back. Undo takes back both."],
+        body: ["Press **Victory** on the winning team's card. **After Victory** in [Settings → Games](/wiki/settings#games) chooses what happens next: only record, shuffle, a new draw, everyone back to the queue, or the losers back. Undo takes back both."],
       },
       {
         id: "stats",
@@ -253,7 +253,7 @@ export const en: Help = {
         id: "watch-page",
         title: "The watch page",
         body: [
-          "Turn on the **Public watch page** in [Settings → Watch](/help/settings#watch) and share `/watch/yourname`. It shows your chat commands, then the sections you choose: **Teams**, **Queue**, **Games** and **Management** (names and kind only, never reasons), with Riot IDs only if you share them.",
+          "Turn on the **Public watch page** in [Settings → Watch](/wiki/settings#watch) and share `/watch/yourname`. It shows your chat commands, then the sections you choose: **Teams**, **Queue**, **Games** and **Management** (names and kind only, never reasons), with Riot IDs only if you share them.",
           "It updates live and plays the draw reveal. It is off by default.",
         ],
       },
@@ -261,7 +261,7 @@ export const en: Help = {
         id: "overlays",
         title: "Overlays",
         body: [
-          "An overlay is a browser source for OBS at 1920×1080. Make as many as you like in [Settings → Overlays](/help/settings#overlays), each with its own widgets (queue, teams, score, last result, most wins, most respected, the draw reveal), position, size, panels and language.",
+          "An overlay is a browser source for OBS at 1920×1080. Make as many as you like in [Settings → Overlays](/wiki/settings#overlays), each with its own widgets (queue, teams, score, last result, most wins, most respected, the draw reveal), position, size, panels and language.",
           "Anyone with an overlay's link sees it, so keep it off stream. **New link** retires the old one at once.",
         ],
       },
@@ -272,15 +272,15 @@ export const en: Help = {
     description: "What each Settings section does: commands, joining, Riot, teams and draws, games, perks, watch, overlays, moderators and labels.",
     lead: "Settings is the streamer's alone, opened from the gear in the top bar. Switches save at once; text and numbers wait for Save.",
     sections: [
-      { id: "commands", title: "Commands", body: ["The five chat commands. See [Chat commands](/help/chat-commands)."] },
-      { id: "joining", title: "Joining", body: ["Open or closed, a queue limit, sitting out after a game, subscribers only. See [Who may join from chat](/help/queue#joining)."] },
+      { id: "commands", title: "Commands", body: ["The five chat commands. See [Chat commands](/wiki/chat-commands)."] },
+      { id: "joining", title: "Joining", body: ["Open or closed, a queue limit, sitting out after a game, subscribers only. See [Who may join from chat](/wiki/queue#joining)."] },
       { id: "riot", title: "Riot", body: [`Look up solo queue ranks (region ${s.riot_region.toUpperCase()} unless you change it), and whether a join needs a Riot ID.`] },
-      { id: "teams", title: "Teams & draws", body: [`Team size (${L.team_size[0]} to ${L.team_size[1]}), fair play, the draw reveal, and whether the queue clears when the stream ends. See [Teams and draws](/help/teams).`] },
-      { id: "games", title: "Games", body: ["What Victory does next, and how long games are kept. See [Games](/help/games)."] },
-      { id: "perks", title: "Perks", body: ["The subscriber perk and its badges. See [Perks and badges](/help/perks)."] },
-      { id: "watch", title: "Watch page", body: ["The public page and its sections. See [The watch page](/help/watch#watch-page)."] },
-      { id: "overlays", title: "Overlays", body: ["Your OBS overlays. See [Overlays](/help/watch#overlays)."] },
-      { id: "moderators", title: "Moderators", body: ["Everyone with access and where it came from; add, block or remove. See [Moderators](/help/moderation#moderators)."] },
+      { id: "teams", title: "Teams & draws", body: [`Team size (${L.team_size[0]} to ${L.team_size[1]}), fair play, the draw reveal, and whether the queue clears when the stream ends. See [Teams and draws](/wiki/teams).`] },
+      { id: "games", title: "Games", body: ["What Victory does next, and how long games are kept. See [Games](/wiki/games)."] },
+      { id: "perks", title: "Perks", body: ["The subscriber perk and its badges. See [Perks and badges](/wiki/perks)."] },
+      { id: "watch", title: "Watch page", body: ["The public page and its sections. See [The watch page](/wiki/watch#watch-page)."] },
+      { id: "overlays", title: "Overlays", body: ["Your OBS overlays. See [Overlays](/wiki/watch#overlays)."] },
+      { id: "moderators", title: "Moderators", body: ["Everyone with access and where it came from; add, block or remove. See [Moderators](/wiki/moderation#moderators)."] },
       { id: "labels", title: "Labels & language", body: ["Your own wording for team names and titles, in each language, and the stream language the overlay and chat replies use."] },
     ],
   },

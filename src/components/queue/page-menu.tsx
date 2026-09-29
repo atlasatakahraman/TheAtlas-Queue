@@ -1,5 +1,5 @@
 "use client";
-import { ArrowUpDown, CircleHelp, Dices, ListOrdered, Moon, PlugZap, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
+import { ArrowUpDown, BookOpen, Dices, ListOrdered, Moon, PlugZap, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useT } from "@/components/i18n";
 import { useReconnect } from "@/components/queue/connection-pill";
@@ -143,8 +143,8 @@ function PageMenuContent() {
         <PaletteKeys />
       </ContextMenuItem>
       {/* In a new tab: the dashboard and its stream stay as they are (D33). */}
-      <ContextMenuItem onSelect={() => window.open(`/help?lang=${lang}`, "_blank", "noopener")}>
-        <CircleHelp aria-hidden />
+      <ContextMenuItem onSelect={() => window.open(`/wiki?lang=${lang}`, "_blank", "noopener")}>
+        <BookOpen aria-hidden />
         {t("help.open")}
       </ContextMenuItem>
       <ContextMenuItem onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>

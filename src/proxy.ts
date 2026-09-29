@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // The webhook proves itself with Kick's signature, the health route with its bearer.
-// /watch, /overlay and their APIs are public (spec § Security; an overlay's key is its secret); so
+// /watch, /overlay, the wiki and their APIs are public (spec § Security; an overlay's key is its secret); so
 // are the files crawlers and share previews read.
-const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/TheAtlas", "/api/kick/webhook", "/api/cron/", "/watch/", "/api/watch/", "/overlay/", "/api/overlay/", "/opengraph-image"];
+const PUBLIC_PREFIXES = ["/api/auth", "/_next", "/favicon", "/TheAtlas", "/api/kick/webhook", "/api/cron/", "/watch/", "/api/watch/", "/overlay/", "/api/overlay/", "/opengraph-image", "/wiki/"];
 // `/` is the home page and the sign-in page.
-const PUBLIC_EXACT = new Set(["/", "/robots.txt", "/sitemap.xml", "/manifest.webmanifest"]);
+const PUBLIC_EXACT = new Set(["/", "/wiki", "/robots.txt", "/sitemap.xml", "/manifest.webmanifest"]);
 
 function csp(nonce: string, framed: boolean) {
   const dev = process.env.NODE_ENV !== "production";

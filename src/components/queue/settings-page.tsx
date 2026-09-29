@@ -228,7 +228,7 @@ function CommandsSection() {
     <Section title={t("settings.commands")} onEnter={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         {COMMANDS.map((k) => (
-          <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]} help={`/help/chat-commands#${k.replace("_command", "")}`}>
+          <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]} help={`/wiki/chat-commands#${k.replace("_command", "")}`}>
             <Input
               id={k}
               className={cn(inputCls, "font-mono text-code")}
@@ -658,16 +658,16 @@ function LabelsSection() {
 
 // Each section's icon in its own colour (owner, 2026-09-28) and its help page (D33).
 const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; body: () => React.ReactNode; help: string }> = {
-  commands: { icon: Terminal, tone: "text-brand", body: CommandsSection, help: "/help/chat-commands" },
-  joining: { icon: DoorOpen, tone: "text-warning", body: JoiningSection, help: "/help/queue#joining" },
-  riot: { icon: Swords, tone: "text-team-2", body: RiotSection, help: "/help/settings#riot" },
-  teams: { icon: Users, tone: "text-team-1", body: TeamsSection, help: "/help/teams" },
-  games: { icon: Trophy, tone: "text-brand", body: GamesSection, help: "/help/games" },
-  perks: { icon: Star, tone: "text-brand", body: PerksSection, help: "/help/perks" },
-  watch: { icon: Eye, tone: "text-badge-founder", body: WatchSectionSettings, help: "/help/watch#watch-page" },
-  overlays: { icon: MonitorPlay, tone: "text-badge-og", body: OverlaysSection, help: "/help/watch#overlays" },
-  moderators: { icon: Shield, tone: "text-success", body: ModeratorsSection, help: "/help/moderation#moderators" },
-  labels: { icon: Languages, tone: "text-badge-vip", body: LabelsSection, help: "/help/settings#labels" },
+  commands: { icon: Terminal, tone: "text-brand", body: CommandsSection, help: "/wiki/chat-commands" },
+  joining: { icon: DoorOpen, tone: "text-warning", body: JoiningSection, help: "/wiki/queue#joining" },
+  riot: { icon: Swords, tone: "text-team-2", body: RiotSection, help: "/wiki/settings#riot" },
+  teams: { icon: Users, tone: "text-team-1", body: TeamsSection, help: "/wiki/teams" },
+  games: { icon: Trophy, tone: "text-brand", body: GamesSection, help: "/wiki/games" },
+  perks: { icon: Star, tone: "text-brand", body: PerksSection, help: "/wiki/perks" },
+  watch: { icon: Eye, tone: "text-badge-founder", body: WatchSectionSettings, help: "/wiki/watch#watch-page" },
+  overlays: { icon: MonitorPlay, tone: "text-badge-og", body: OverlaysSection, help: "/wiki/watch#overlays" },
+  moderators: { icon: Shield, tone: "text-success", body: ModeratorsSection, help: "/wiki/moderation#moderators" },
+  labels: { icon: Languages, tone: "text-badge-vip", body: LabelsSection, help: "/wiki/settings#labels" },
 };
 
 // The Settings page (D20, D30; DESIGN.md § Settings page): the section list beside one section,

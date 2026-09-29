@@ -54,7 +54,7 @@ export function Home({ callbackUrl }: { callbackUrl: string }) {
           <a className="underline-offset-4 hover:text-foreground hover:underline" href={SOURCE} rel="noopener">
             {t("source.link")}
           </a>
-          <a className="underline-offset-4 hover:text-foreground hover:underline" href={`/help?lang=${lang}`}>
+          <a className="underline-offset-4 hover:text-foreground hover:underline" href={`/wiki?lang=${lang}`}>
             {t("help.open")}
           </a>
         </span>

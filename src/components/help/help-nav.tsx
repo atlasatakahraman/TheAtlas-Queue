@@ -64,7 +64,7 @@ export function HelpSearch({ index, label, none }: { index: HelpHeading[]; label
 export function TopicSelect({ topics, current, label }: { topics: { value: string; title: string; href: string }[]; current: string; label: string }) {
   const router = useRouter();
   return (
-    <Select value={current} onValueChange={(v) => router.push(topics.find((t) => t.value === v)?.href ?? "/help")}>
+    <Select value={current} onValueChange={(v) => router.push(topics.find((t) => t.value === v)?.href ?? "/wiki")}>
       <SelectTrigger aria-label={label} className="h-11! w-full">
         {/* Given its text, so the server's HTML shows the topic before hydration. */}
         <SelectValue>{topics.find((t) => t.value === current)?.title}</SelectValue>

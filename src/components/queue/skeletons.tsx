@@ -27,7 +27,10 @@ export function TopBarSkeleton() {
         <span className="flex shrink-0 items-center gap-1">
           <Skeleton className={cn(BAR_CONTROL, "w-24 rounded-full lg:w-36")} />
           <span className="flex gap-1 max-lg:hidden">
-            {Array.from({ length: 5 }, (_, i) => (
+            {/* Search, the Wiki button (icon and word), then the icon tools. */}
+            <Skeleton className="size-9" />
+            <Skeleton className="h-9 w-[4.75rem]" />
+            {Array.from({ length: 4 }, (_, i) => (
               <Skeleton key={i} className="size-9" />
             ))}
           </span>

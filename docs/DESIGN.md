@@ -1035,6 +1035,9 @@ Joining
   lock so a live event arriving meanwhile wins. Any Kick failure refuses (fails closed); a missed
   *offline* event keeps joins open until the next event (as before). The gate is a parameter the
   old webhook never passes, so migration 0037 changes nothing until the code that uses it ships.
+  **A Kick note** (owner, 2026-09-29) closes the hint and the wiki bullet: Kick reports a stream
+  starting or ending on its own schedule, sometimes a few minutes late, so joins can open or close
+  a little after the stream does; the switch is the way out.
 - **Queue limit** (0–500, 0 = none): counts everyone in the queue who is not playing. A full
   queue turns `!join` away; the streamer can still add.
 - **Sit out after a game** (0–20 games): a player recorded in a game (Victory, D27) can join

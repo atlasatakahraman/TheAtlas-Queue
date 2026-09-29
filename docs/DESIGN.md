@@ -898,7 +898,12 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   while joining is shut. `!sıram`: the position while waiting, nothing otherwise. `!hak`: uses
   left while the perk is on. `!komutlar` and `!commands` (fixed, in either language): the
   channel's commands in one line and the wiki's commands page, at most once per 30 s per
-  channel. A reply never delays the webhook (it is sent after the response).
+  channel. **Watch** (owner's ask, 2026-09-29), the sixth command field in **Commands**, default
+  `!izle`, all six distinct (migration 0034): the channel's `/watch` link in the stream language,
+  only while the watch page is on (silent when it is off, since there is nothing to open), at
+  most once per 30 s per channel; its text is a label the streamer can reword. It needs replies
+  on, like every answer, and is listed by `!komutlar` while the watch page is on. A reply never
+  delays the webhook (it is sent after the response).
   **Off** revokes the token at Kick and deletes it. **Kick refuses the token**: it is deleted, the
   switch stays on, and the dashboard shows a lasting toast *Reconnect Kick to resume chat
   replies* with **Reconnect** (the same consent) until it works again.

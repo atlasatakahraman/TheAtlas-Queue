@@ -1007,6 +1007,9 @@ Joining
 ┌──────────────────────────────────────────────────────────────┐
 │ Joining is open                                          [●] │
 │   Viewers join with !sıra.                                   │
+│ Only while live                                          [●] │
+│   Offline, chat joins wait for the stream. You and your mods │
+│   can still join.                                            │
 │ Queue limit            [ 20 ]   0 means no limit             │
 │ Sit out after a game   [ 1  ]   games                        │
 │ Subscribers only                                         [ ] │
@@ -1017,6 +1020,21 @@ Joining
 
 - **Joining is open**: a switch, saves at once; its line names the join command. Also on the
   toolbar (below), since it is flipped mid-stream.
+- **Only while live** (owner, 2026-09-29; on by default, existing channels too): a switch, saves
+  at once. On, a chat `!join` while the stream is offline is turned away (*stream is offline* in
+  the feed) and chat hears one line, *The queue opens when the stream goes live.* (TR *Sıra yayın
+  açılınca açılır.*), at most once per 30 s per channel. The streamer and moderators pass (Kick's
+  signed badges, as Subscribers only); leave, position, away and adding by hand are untouched;
+  the dashboard being open plays no part. *Live* is `live_since`, set by Kick's
+  `livestream.status.updated`. **Fast path, no extra cost:** the check rides inside the one
+  `ingest_chat` call every command already makes. **Offline path only:** that call returns
+  *offline* before writing anything; the webhook asks Kick's channel API (app token, 1.5 s cap,
+  its answer cached 30 s per channel either way), and when Kick says live it records the missed
+  start through `set_live` and the join goes through once; otherwise a second call records the
+  refusal (dedupe, the 10 s cooldown, the feed line), re-checking `live_since` under the channel
+  lock so a live event arriving meanwhile wins. Any Kick failure refuses (fails closed); a missed
+  *offline* event keeps joins open until the next event (as before). The gate is a parameter the
+  old webhook never passes, so migration 0037 changes nothing until the code that uses it ships.
 - **Queue limit** (0–500, 0 = none): counts everyone in the queue who is not playing. A full
   queue turns `!join` away; the streamer can still add.
 - **Sit out after a game** (0–20 games): a player recorded in a game (Victory, D27) can join
@@ -1685,7 +1703,7 @@ The curated set, and nothing else. Everything outside it is translated but fixed
 | Actions | `action.add`, `action.draw`, `action.reroll`, `action.pick` |
 | Watch page | `watch.title`, `watch.subtitle`, `watch.disabled` |
 | Overlay | `overlay.queue.title`, `overlay.draw.title` |
-| Chat replies | `chat.joined`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.position`, `chat.perk` |
+| Chat replies | `chat.joined`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.rejected.offline`, `chat.position`, `chat.perk` |
 
 Team names are ordinary labels, so "Kurtlar" in Turkish and "Wolves" in English is two
 overrides, not a special field.

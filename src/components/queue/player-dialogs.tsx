@@ -233,10 +233,11 @@ function EditPlayerForm() {
 
   async function submit() {
     const n = name.trim();
-    const r = riot.trim().replace(/\s+/g, " ");
+    // While Require Riot ID is off the field is hidden and the saved Riot ID is kept as it is.
+    const r = required ? riot.trim().replace(/\s+/g, " ") : (p.riot_id ?? "");
     const next: Errors = {};
     if (!NAME.test(n)) next.name = t("player.name.invalid");
-    if ((required && !r) || (r && !RIOT_ID.test(r))) next.riot = t("error.queue.riot_required");
+    if (required && (!r || !RIOT_ID.test(r))) next.riot = t("error.queue.riot_required");
     setErrors(next);
     if (next.name || next.riot) return;
     setBusy(true);
@@ -271,7 +272,7 @@ function EditPlayerForm() {
         />
         <FieldError id="edit-name-error">{errors.name}</FieldError>
       </div>
-      <RiotField value={riot} onChange={setRiot} error={errors.riot} required={required} />
+      {required && <RiotField value={riot} onChange={setRiot} error={errors.riot} required />}
       <FieldError id="edit-form-error">{errors.form}</FieldError>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" size="lg" className="max-md:h-11" onClick={() => ui.setEditing(null)}>

@@ -138,7 +138,7 @@ export const tr: Help = {
               "**Katılım açık**: kapatırsan sohbetten her katılma geri çevrilir. Araç çubuğundaki Katılım düğmesi aynısını tek dokunuşla, senin ve moderatörlerin için yapar.",
               `**Sıra sınırı**: oyunda olmayan en fazla bu kadar oyuncu, 1 ile ${L.queue_max[1]} arası. ${L.queue_max[0]} sınır yok demektir.`,
               `**Maç sonrası bekleme**: yeni oynamış bir oyuncu sohbetten yeniden katılmadan önce bu kadar kayıtlı maç bekler, en fazla ${L.join_cooldown[1]}. ${L.join_cooldown[0]} kapalıdır.`,
-              "**Yalnızca yayındayken**: varsayılan olarak açık. Yayın kapalıyken sohbetten katılmalar yayın açılana kadar geri çevrilir. Sen ve moderatörlerin yine katılabilir, elle eklemek her zaman çalışır.",
+              "**Yalnızca yayındayken**: varsayılan olarak açık. Yayın kapalıyken sohbetten katılmalar yayın açılana kadar geri çevrilir. Sen ve moderatörlerin yine katılabilir, elle eklemek her zaman çalışır. Kick yayının başladığını ya da bittiğini kendi zamanlamasıyla, bazen birkaç dakika geç bildirir; bu yüzden katılım yayından biraz sonra açılıp kapanabilir. Engel olursa anahtarı kapat.",
               "**Yalnızca aboneler**: yalnızca seçtiğin rozete sahip izleyiciler katılabilir. Sen ve moderatörlerin her zaman geçersiniz.",
             ],
           },

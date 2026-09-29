@@ -379,7 +379,7 @@ export const en = {
   "settings.join_subs_only": "Subscribers only",
   "settings.join_subs_only.hint": "You and your moderators always pass.",
   "settings.join_live_only": "Only while live",
-  "settings.join_live_only.hint": "Offline, chat joins wait for the stream. You and your moderators can still join.",
+  "settings.join_live_only.hint": "Offline, chat joins wait for the stream. You and your moderators can still join. Kick reports a stream starting or ending on its own schedule, sometimes a few minutes late, so joining can open or close a little after you do.",
   "settings.join_badges": "Badges that may join",
   "settings.join_badges.on": "{who} can join from chat",
   "settings.join_badges.off": "{who} are turned away",

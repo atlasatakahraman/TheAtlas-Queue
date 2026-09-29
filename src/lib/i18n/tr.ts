@@ -371,7 +371,7 @@ export const tr: Record<LabelKey, string> = {
   "settings.join_subs_only": "Yalnızca aboneler",
   "settings.join_subs_only.hint": "Sen ve moderatörlerin her zaman katılabilir.",
   "settings.join_live_only": "Yalnızca yayındayken",
-  "settings.join_live_only.hint": "Yayın kapalıyken sohbetten katılım yayını bekler. Sen ve moderatörlerin yine katılabilir.",
+  "settings.join_live_only.hint": "Yayın kapalıyken sohbetten katılım yayını bekler. Sen ve moderatörlerin yine katılabilir. Kick yayının başladığını ya da bittiğini kendi zamanlamasıyla, bazen birkaç dakika geç bildirir; bu yüzden katılım senden biraz sonra açılıp kapanabilir.",
   "settings.join_badges": "Katılabilen rozetler",
   "settings.join_badges.on": "{who} sohbetten katılabilir",
   "settings.join_badges.off": "{who} geri çevrilir",

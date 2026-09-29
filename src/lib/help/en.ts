@@ -137,7 +137,7 @@ export const en: Help = {
               "**Joining is open**: close it to turn every chat join away. The toolbar's Joining button does the same in one press, for you and your moderators.",
               `**Queue limit**: at most this many players who are not in a game, from 1 to ${L.queue_max[1]}. ${L.queue_max[0]} means no limit.`,
               `**Sit out after a game**: a player who just played waits this many recorded games before joining from chat again, up to ${L.join_cooldown[1]}. ${L.join_cooldown[0]} is off.`,
-              "**Only while live**: on by default. While the stream is offline, chat joins are turned away until it goes live. You and your moderators can still join, and adding by hand always works.",
+              "**Only while live**: on by default. While the stream is offline, chat joins are turned away until it goes live. You and your moderators can still join, and adding by hand always works. Kick reports a stream starting or ending on its own schedule, sometimes a few minutes late, so joining can open or close a little after the stream does. Turn the switch off if that gets in the way.",
               "**Subscribers only**: only viewers with a chosen badge can join. You and your moderators always pass.",
             ],
           },

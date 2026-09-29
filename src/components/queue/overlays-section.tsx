@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
+import { Numerals } from "@/components/numerals";
 import { Field, inputCls, SaveRow, Section, triggerCls } from "@/components/queue/settings-page";
 import { useAct, useCanWrite, useErrorText, useQueue } from "@/components/queue/store";
 import { Tip } from "@/components/tip";
@@ -315,6 +316,7 @@ function Builder({ overlay, back }: { overlay: Overlay; back: () => void }) {
           {t("settings.overlays.copy")}
         </Button>
       </div>
+      <p className="-mt-2 text-meta text-muted-foreground"><Numerals text={t("settings.overlays.obs")} /></p>
       <Field id="overlay-name" label={t("settings.overlays.name")} error={errors.name}>
         <Input
           id="overlay-name"

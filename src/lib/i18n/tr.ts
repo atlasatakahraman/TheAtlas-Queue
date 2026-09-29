@@ -388,6 +388,7 @@ export const tr: Record<LabelKey, string> = {
   "settings.overlays.none": "Henüz overlay yok. OBS için bir tane ekle.",
   "settings.overlays.gone": "Bu overlay silindi.",
   "settings.overlays.copy": "Bağlantıyı kopyala",
+  "settings.overlays.obs": "OBS'te Tarayıcı kaynağı olarak ekle, genişlik 1920, yükseklik 1080. 1280×720 bir tuvalde bu sayıları koru ve Ekrana sığdır'ı kullan (Ctrl+F).",
   "settings.overlays.rotate": "Yeni bağlantı",
   "settings.overlays.rotate.title": "{name} için yeni bağlantı oluşturulsun mu?",
   "settings.overlays.rotate.body": "Eski bağlantı hemen çalışmaz olur ve geri gelmez. Devam etmek için overlay'in adını yaz, sonra yeni bağlantıyı OBS'e yapıştır.",

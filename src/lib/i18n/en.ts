@@ -396,6 +396,7 @@ export const en = {
   "settings.overlays.none": "No overlays yet. Add one for OBS.",
   "settings.overlays.gone": "That overlay was deleted.",
   "settings.overlays.copy": "Copy link",
+  "settings.overlays.obs": "In OBS, add it as a Browser source, width 1920, height 1080. On a 1280×720 canvas keep those numbers and use Fit to screen (Ctrl+F).",
   "settings.overlays.rotate": "New link",
   "settings.overlays.rotate.title": "Give {name} a new link?",
   "settings.overlays.rotate.body": "The old link stops working at once and cannot come back. Type the overlay's name to go on, then paste the new link into OBS.",

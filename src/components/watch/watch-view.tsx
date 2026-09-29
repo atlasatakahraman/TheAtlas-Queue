@@ -71,6 +71,11 @@ export function Tools() {
 
 function Page({ slug, snap }: { slug: string; snap: Live }) {
   const { t } = useT();
+  // EN | TR switches in the browser (D17), so the tab title follows it here, as the dashboard's does.
+  const tabTitle = t("watch.tab_title", { channel: snap.channel.name });
+  useEffect(() => {
+    document.title = `${tabTitle} · TheAtlas Queue`;
+  }, [tabTitle]);
   const on = (s: Live["sections"][number]) => snap.sections.includes(s);
   const playing = useMemo(() => snap.players.filter((p) => p.status === "playing"), [snap.players]);
   const waiting = snap.players.filter((p) => p.status === "waiting");

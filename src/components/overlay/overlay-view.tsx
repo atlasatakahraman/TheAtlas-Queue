@@ -146,12 +146,10 @@ function Score({ snap }: { snap: OverlaySnapshot }) {
   if (!snap.score) return null;
   return (
     <Panel>
-      {/* As the watch headline: the names beside vs, each score at its outer edge (owner, 2026-09-29). */}
+      {/* The scores alone, each in its team's colour (owner, 2026-09-29); the names are the Teams widget's. */}
       <p className="flex items-baseline gap-5 font-serif text-overlay-headline">
         <span className="font-medium text-(--o-t1) tabular-nums">{snap.score.t1}</span>
-        <span className={tone(1)}>{t("team.1")}</span>
         <span className="text-[1.5rem] text-(--o-muted) italic">{t("match.vs")}</span>
-        <span className={tone(2)}>{t("team.2")}</span>
         <span className="font-medium text-(--o-t2) tabular-nums">{snap.score.t2}</span>
       </p>
     </Panel>

@@ -44,8 +44,8 @@ That is the whole viewer side. There's no sign-up and no link to click. A viewer
 - Joining rules: open or closed, a queue limit, subscribers only, a required Riot ID, and sitting out after a game.
 - Teams of 1 to 5 players, and five ways to reveal a pick: typed names, cards, a list, a wheel, or the result at once.
 - Games and stats: wins, losses, streaks, most wins and most respected, kept for as long as you choose.
-- Your own wording for the team names, the titles and the five chat commands, in English and Turkish.
-- Chat replies from Kick's bot, in your stream's language, turned on with one switch.
+- Your own wording for the team names, the titles and the six chat commands, in English and Turkish.
+- Chat replies from Kick's bot, in your stream's language, turned on with one switch. Answers are gathered for a few seconds and sent together, so a rush of joins doesn't flood your chat.
 - **Delete my data** in Settings removes your channel and everything in it.
 
 **For moderators**
@@ -55,7 +55,7 @@ That is the whole viewer side. There's no sign-up and no link to click. A viewer
 
 **For viewers**
 
-- Five chat commands: join, leave, position, away and protected picks left. `!komutlar` lists them.
+- Six chat commands: join, leave, position, away, protected picks left, and `!izle` for the watch page link. `!komutlar` lists them.
 - A public watch page for phones that shows the teams, the queue, the games and the management feed, live.
 - The subscriber perk protects a drawn subscriber from a reroll, a set number of times.
 

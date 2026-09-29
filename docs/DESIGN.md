@@ -904,6 +904,12 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   most once per 30 s per channel; its text is a label the streamer can reword. It needs replies
   on, like every answer, and is listed by `!komutlar` while the watch page is on. A reply never
   delays the webhook (it is sent after the response).
+  **Rules** (owner's ask, 2026-09-29), the seventh command field, default `!kurallar`, all seven
+  distinct (migration 0036): *Rules: …* and the streamer's own text, written once under the
+  command fields (a textarea, up to 1000 characters, in their own words, not translated; line
+  breaks become spaces in chat, and a text over Kick's 500 is split at a space). Empty, the
+  command is silent and not listed. At most once per 30 s per channel; batched like the rest;
+  `!komutlar` lists it while there is text. No switch: the empty text is the off.
   **Answer `!komutlar`** (owner, 2026-09-29): a switch under Chat replies, on by default; off,
   `!komutlar` and `!commands` stay silent. Both links stay (the wiki's in `!komutlar`, the
   watch page's in the watch command): a streamer whose mod bot deletes links allows *TheAtlas*
@@ -1115,6 +1121,9 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
   and *Perk* `!hak` only while the perk is on: the channel's own commands, each in `Kbd`, its
   name muted before it, set apart by space (no dots), wrapping on a phone; *How it works* at the end links to
   `/wiki/chat-commands`. Not shown when the page is off.
+  **Rules** (owner, 2026-09-29): the streamer's rules text under the strip, a small serif
+  *Rules* heading and the text as written (line breaks kept, muted body size, prose width),
+  only when the text is not empty; it rides in the snapshot (0036). Not a switchable section.
   **Built (Stage 15):** as drawn; the commands ride in the snapshot (0033), and the skeleton
   draws the line.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,

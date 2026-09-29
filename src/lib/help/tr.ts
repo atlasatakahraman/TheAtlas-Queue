@@ -177,7 +177,7 @@ export const tr: Help = {
       {
         id: "pick",
         title: "Oyuncu çekmek",
-        body: ["**Çek** ×1, ×2, ×3 ya da ×5 kaynağından o kadar oyuncuyu rastgele alır: **Bekleyenler**, **Takımlar** ya da **Tüm sıra**. Yasaklı ve cezalı oyuncular dışarıda kalır; kaynağın dolduramayacağı sayı gizlenir."],
+        body: ["**Çek** ×1, ×2, ×3, ×4 ya da ×5 kaynağından o kadar oyuncuyu rastgele alır: **Bekleyenler**, **Takımlar** ya da **Tüm sıra**. Yasaklı ve cezalı oyuncular dışarıda kalır; kaynağın dolduramayacağı sayı gizlenir."],
       },
       {
         id: "fair-play",

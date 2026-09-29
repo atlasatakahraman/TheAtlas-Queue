@@ -176,7 +176,7 @@ export const en: Help = {
       {
         id: "pick",
         title: "Picking players",
-        body: ["**Pick** ×1, ×2, ×3 or ×5 takes that many players at random from its source: **Waiting**, **Teams** or **Whole queue**. Banned and punished players are left out, and a size the source cannot fill is hidden."],
+        body: ["**Pick** ×1, ×2, ×3, ×4 or ×5 takes that many players at random from its source: **Waiting**, **Teams** or **Whole queue**. Banned and punished players are left out, and a size the source cannot fill is hidden."],
       },
       {
         id: "fair-play",

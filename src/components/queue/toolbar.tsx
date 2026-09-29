@@ -30,7 +30,7 @@ export function Keys({ children }: { children: string }) {
   );
 }
 
-// The toolbar on every tab (August's action row): Add · Pick ×1 ×2 ×3 ×5 from waiting, the teams or
+// The toolbar on every tab (August's action row): Add · Pick ×1 ×2 ×3 ×4 ×5 from waiting, the teams or
 // the whole queue · Shuffle ▾ · Clear queue · Joining, at the right end. Under 768px the labels go
 // and the icons stay.
 export function Toolbar() {

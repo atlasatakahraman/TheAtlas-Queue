@@ -891,6 +891,25 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   switch reads on. Declining at Kick leaves it off. Turning it off saves at once, like any switch.
   When Kick later refuses the token, replies switch off and the dashboard says *Reconnect Kick to
   resume chat replies* (spec § Errors).
+  **What it answers** (Stage 16): in the stream language (Labels), with the streamer's own label
+  text when set, posted by Kick as the app's bot (*TheAtlas*, with Kick's bot mark; owner's test,
+  2026-09-29). A join: *joined at #n*; a refusal for a ban or a duplicate: its own line; any
+  other refusal (closed, full, badges, cooldown) stays a feed line only, so chat is not flooded
+  while joining is shut. `!sıram`: the position while waiting, nothing otherwise. `!hak`: uses
+  left while the perk is on. `!komutlar` and `!commands` (fixed, in either language): the
+  channel's commands in one line and the wiki's commands page, at most once per 30 s per
+  channel. A reply never delays the webhook (it is sent after the response).
+  **Off** revokes the token at Kick and deletes it. **Kick refuses the token**: it is deleted, the
+  switch stays on, and the dashboard shows a lasting toast *Reconnect Kick to resume chat
+  replies* with **Reconnect** (the same consent) until it works again.
+- **Your data** (Stage 16), last in the list, `Database` in `--destructive`: one line on what is
+  kept (the channel, its settings, queue, teams, games and records, moderation, overlays, history,
+  the chat replies token) and a link to the wiki's privacy page. **Delete my data**, destructive,
+  opens an `AlertDialog`: *Delete {channel} and everything in it?*, what goes, that it cannot be
+  undone, and a field *Type {channel} to go on*; the button wakes only when the name matches.
+  It removes the Kick event subscriptions, revokes the chat token, deletes the channel (every table
+  cascades from it) and goes to the selection page. Your sign-in stays: signing in again starts
+  a fresh channel. A moderator never sees the section.
 - Phones: the section list becomes the page; a section opens as its own screen with ← back.
 - States: loading (list + one card of skeleton fields), save error under the field, offline
   (fields disabled, the reason in a tooltip).
@@ -1043,8 +1062,8 @@ list is a `Select` above the article. States: an unknown topic is a 404; no load
   Settings section's `?` and each command field (to its command's anchor).
 - Metadata: title *Wiki: {topic}*, a description per topic, canonical with its `?lang`,
   `alternates.languages`; indexed and in the sitemap (eleven URLs).
-- *Delete my data* is written into the privacy page with Stage 16, when it exists; until then the
-  page says what is stored and for how long.
+- *Delete my data* is written into the privacy page with Stage 16 (*Deleting your data*: what goes,
+  where the button is, that it cannot be undone).
 - **Built (Stage 15).** As drawn, except: the article title is `text-headline` and section heads
   `text-title` (the scale has no `text-heading`); the page reads `?lang` from its own search
   params, since a link prefetch skips the proxy and would fall back to the cookie's language;

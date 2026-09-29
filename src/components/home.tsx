@@ -13,7 +13,7 @@ const SOURCE = "https://github.com/atlasatakahraman/TheAtlas-Queue";
 // DESIGN.md § Home: the only marketing surface, deliberately small, and the sign-in page.
 // Stage 5 adds its metadata, Open Graph image and structured data.
 export function Home({ callbackUrl }: { callbackUrl: string }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   // Each point carries its own icon (no bullet dots, owner 2026-09-27).
   const points = [["home.point.chat", MessageSquare], ["home.point.fair", Scale], ["home.point.safe", Server]] as const;
   return (
@@ -53,6 +53,9 @@ export function Home({ callbackUrl }: { callbackUrl: string }) {
           TheAtlas Queue
           <a className="underline-offset-4 hover:text-foreground hover:underline" href={SOURCE} rel="noopener">
             {t("source.link")}
+          </a>
+          <a className="underline-offset-4 hover:text-foreground hover:underline" href={`/help?lang=${lang}`}>
+            {t("help.open")}
           </a>
         </span>
         <span className="flex items-center gap-1">

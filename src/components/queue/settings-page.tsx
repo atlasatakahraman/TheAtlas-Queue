@@ -2,6 +2,7 @@
 import {
   ArrowLeft,
   Ban,
+  CircleHelp,
   DoorOpen,
   Eye,
   Languages,
@@ -20,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/i18n";
 import { BadgePicker } from "@/components/queue/badge-picker";
 import { OverlaysSection } from "@/components/queue/overlays-section";
@@ -100,6 +101,28 @@ function useSection<K extends keyof Settings>(keys: readonly K[]) {
   return { draft, set, put, dirty: changed.length > 0, save, state, errors };
 }
 
+// The open section's help page (D33), handed to its Section by the page so no section body names it.
+const SectionHelp = createContext<string | null>(null);
+
+// A `?` to a help page, in a new tab so a draft or a stream in the dashboard is left as it is.
+export function HelpLink({ href, label }: { href: string; label: string }) {
+  const { lang } = useT();
+  const [path, hash] = href.split("#");
+  return (
+    <Tip label={label}>
+      <a
+        href={`${path}?lang=${lang}${hash ? `#${hash}` : ""}`}
+        target="_blank"
+        rel="noopener"
+        aria-label={label}
+        className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 max-md:-my-2.5 max-md:size-11"
+      >
+        <CircleHelp className="size-4" aria-hidden />
+      </a>
+    </Tip>
+  );
+}
+
 export function Section({ title, hint, children, onEnter }: {
   title: string;
   hint?: string;
@@ -108,6 +131,8 @@ export function Section({ title, hint, children, onEnter }: {
   onEnter?: () => void;
 }) {
   const ui = useUi();
+  const { t } = useT();
+  const help = useContext(SectionHelp);
   const e = enter(ui.entering, 3);
   return (
     <section
@@ -115,7 +140,10 @@ export function Section({ title, hint, children, onEnter }: {
       className={cn(SECTION, e.className)}
     >
       <div className="flex flex-col gap-1">
-        <h2 className="font-serif text-team">{title}</h2>
+        <h2 className="flex items-center gap-2 font-serif text-team">
+          {title}
+          {help && <HelpLink href={help} label={t("help.about", { title })} />}
+        </h2>
         {/* Only where the section has a rule its controls do not show (D21: subtitles went). */}
         {hint && <p className="text-meta text-muted-foreground">{hint}</p>}
       </div>
@@ -133,10 +161,18 @@ export function Section({ title, hint, children, onEnter }: {
   );
 }
 
-export function Field({ id, label, hint, error, children }: { id?: string; label: string; hint?: string; error?: string; children: React.ReactNode }) {
+export function Field({ id, label, hint, error, help, children }: { id?: string; label: string; hint?: string; error?: string; help?: string; children: React.ReactNode }) {
+  const { t } = useT();
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      {help ? (
+        <span className="flex items-center gap-1">
+          <Label htmlFor={id}>{label}</Label>
+          <HelpLink href={help} label={t("help.about", { title: label })} />
+        </span>
+      ) : (
+        <Label htmlFor={id}>{label}</Label>
+      )}
       {children}
       {hint && <p className="text-meta text-muted-foreground">{hint}</p>}
       {error && <p className="text-meta text-destructive selection:bg-destructive selection:text-background">{error}</p>}
@@ -192,7 +228,7 @@ function CommandsSection() {
     <Section title={t("settings.commands")} onEnter={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         {COMMANDS.map((k) => (
-          <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]}>
+          <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]} help={`/help/chat-commands#${k.replace("_command", "")}`}>
             <Input
               id={k}
               className={cn(inputCls, "font-mono text-code")}
@@ -620,18 +656,18 @@ function LabelsSection() {
 }
 
 
-// Each section's icon in its own colour (owner, 2026-09-28).
-const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; body: () => React.ReactNode }> = {
-  commands: { icon: Terminal, tone: "text-brand", body: CommandsSection },
-  joining: { icon: DoorOpen, tone: "text-warning", body: JoiningSection },
-  riot: { icon: Swords, tone: "text-team-2", body: RiotSection },
-  teams: { icon: Users, tone: "text-team-1", body: TeamsSection },
-  games: { icon: Trophy, tone: "text-brand", body: GamesSection },
-  perks: { icon: Star, tone: "text-brand", body: PerksSection },
-  watch: { icon: Eye, tone: "text-badge-founder", body: WatchSectionSettings },
-  overlays: { icon: MonitorPlay, tone: "text-badge-og", body: OverlaysSection },
-  moderators: { icon: Shield, tone: "text-success", body: ModeratorsSection },
-  labels: { icon: Languages, tone: "text-badge-vip", body: LabelsSection },
+// Each section's icon in its own colour (owner, 2026-09-28) and its help page (D33).
+const SECTION_META: Record<SettingsSection, { icon: LucideIcon; tone: string; body: () => React.ReactNode; help: string }> = {
+  commands: { icon: Terminal, tone: "text-brand", body: CommandsSection, help: "/help/chat-commands" },
+  joining: { icon: DoorOpen, tone: "text-warning", body: JoiningSection, help: "/help/queue#joining" },
+  riot: { icon: Swords, tone: "text-team-2", body: RiotSection, help: "/help/settings#riot" },
+  teams: { icon: Users, tone: "text-team-1", body: TeamsSection, help: "/help/teams" },
+  games: { icon: Trophy, tone: "text-brand", body: GamesSection, help: "/help/games" },
+  perks: { icon: Star, tone: "text-brand", body: PerksSection, help: "/help/perks" },
+  watch: { icon: Eye, tone: "text-badge-founder", body: WatchSectionSettings, help: "/help/watch#watch-page" },
+  overlays: { icon: MonitorPlay, tone: "text-badge-og", body: OverlaysSection, help: "/help/watch#overlays" },
+  moderators: { icon: Shield, tone: "text-success", body: ModeratorsSection, help: "/help/moderation#moderators" },
+  labels: { icon: Languages, tone: "text-badge-vip", body: LabelsSection, help: "/help/settings#labels" },
 };
 
 // The Settings page (D20, D30; DESIGN.md § Settings page): the section list beside one section,
@@ -704,7 +740,9 @@ export function SettingsPage() {
           })}
         </nav>
         <div className={cn(!open && "max-lg:hidden")}>
-          <Body key={shown} />
+          <SectionHelp.Provider value={SECTION_META[shown].help}>
+            <Body key={shown} />
+          </SectionHelp.Provider>
         </div>
       </div>
     </div>

@@ -741,6 +741,8 @@ export const tr: Record<LabelKey, string> = {
   "watch.live": "Canlı",
   "watch.commands": "Sohbet komutları",
   "watch.how": "Nasıl çalışır",
+  "help.open": "Yardım",
+  "help.about": "Yardım: {title}",
   "watch.empty": "Henüz bir şey yok",
   "watch.games.empty": "Henüz maç yok",
   "watch.board": "En çok kazananlar",

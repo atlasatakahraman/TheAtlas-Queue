@@ -1,5 +1,5 @@
 "use client";
-import { ArrowUpDown, Dices, ListOrdered, Moon, PlugZap, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
+import { ArrowUpDown, CircleHelp, Dices, ListOrdered, Moon, PlugZap, RotateCw, Search, Sun, Swords, Trash2, UserPlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useT } from "@/components/i18n";
 import { useReconnect } from "@/components/queue/connection-pill";
@@ -68,7 +68,7 @@ export function PageMenu({ children }: { children: React.ReactNode }) {
 }
 
 function PageMenuContent() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const ui = useUi();
   const canWrite = useCanWrite();
   const players = useQueue((v) => v.players);
@@ -141,6 +141,11 @@ function PageMenuContent() {
         <Search aria-hidden />
         {t("palette.open")}
         <PaletteKeys />
+      </ContextMenuItem>
+      {/* In a new tab: the dashboard and its stream stay as they are (D33). */}
+      <ContextMenuItem onSelect={() => window.open(`/help?lang=${lang}`, "_blank", "noopener")}>
+        <CircleHelp aria-hidden />
+        {t("help.open")}
       </ContextMenuItem>
       <ContextMenuItem onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
         {resolvedTheme === "dark" ? <Sun aria-hidden /> : <Moon aria-hidden />}

@@ -1,5 +1,5 @@
 "use client";
-import { Ellipsis, LogOut, Search, Settings } from "lucide-react";
+import { CircleHelp, Ellipsis, LogOut, Search, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -41,7 +41,7 @@ function GitHubMark() {
 }
 
 function AccountMenu() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const ui = useUi();
   const role = useQueue((v) => v.role);
   const prefs = usePrefs();
@@ -65,6 +65,10 @@ function AccountMenu() {
             {t("tab.settings")}
           </DropdownMenuItem>
         )}
+        <DropdownMenuItem onSelect={() => window.open(`/help?lang=${lang}`, "_blank", "noopener")}>
+          <CircleHelp aria-hidden />
+          {t("help.open")}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {/* This browser's preferences; the menu stays open while they are flipped. */}
         <DropdownMenuCheckboxItem

@@ -753,6 +753,8 @@ export const en = {
   "watch.live": "Live",
   "watch.commands": "Chat commands",
   "watch.how": "How it works",
+  "help.open": "Help",
+  "help.about": "Help: {title}",
   "watch.empty": "Nothing here yet",
   "watch.games.empty": "No games yet",
   "watch.board": "Most wins",

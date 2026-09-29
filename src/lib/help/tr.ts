@@ -161,7 +161,17 @@ export const tr: Help = {
         title: "Takım çekmek",
         body: [
           "**Takımları çek** (`D`) iki takımı bekleyenlerden rastgele doldurur. **Yeniden çek** aynı oyunculardan yeniden çeker, korumalı olanları yerinde bırakır. **Mevcut takımları karıştır** zaten takımda olanları karıştırır.",
-          "Çekilişler aynı takım arkadaşlarını yeniden bir araya getirmekten kaçınır; bir maçtan sonra aynı dört oyuncu çekilirse farklı bölünür.",
+          "Çekilişler aynı takım arkadaşlarını yeniden bir araya getirmekten kaçınır; bir maçtan sonra aynı dört oyuncu çekilirse farklı bölünür. Bkz. [Takımlar nasıl bölünür](/wiki/teams#split).",
+        ],
+      },
+      {
+        id: "split",
+        title: "Takımlar nasıl bölünür",
+        body: [
+          "Takım çekmek, yeniden çekmek ve karıştırmak aynı kişileri yeniden aynı takıma koymamaya çalışır. Queue **kayıtlı maçlarında**, yani **Kazandı** ile bitirdiklerinde, kimlerin aynı takımda olduğunu hatırlar ve oyuncuları eski takım arkadaşları olabildiğince az bir araya gelecek şekilde böler. Birkaç bölünüş eşit derecede iyiyse aralarından biri rastgele seçilir.",
+          "Yeni maçlar daha çok sayılır: beş maç önceki bir maç en yenisinin yarısı kadar sayılır ve yalnızca son 50 maçın okunur. Geri aldığın ya da kaldırdığın bir maç artık sayılmaz; [Maçlar ne kadar tutulur](/wiki/games#retention) süresi dolup silinen maçlar da öyle.",
+          "**Kayıtlı maç yoksa bölünüş düpedüz rastgeledir.** Kazandı'ya hiç basmazsan Queue'nun hatırlayacağı bir şey olmaz ve aynı takım arkadaşları yeniden karşılaşabilir. Her maçtan sonra Kazandı'ya bas; çeşitlilik bir sonraki çekilişten başlar.",
+          "Bu yalnızca kimin hangi takıma gideceğini belirler, sıradan kimin çekileceğini asla: o [Adil oyun](/wiki/teams#fair-play)'dur. Bir beceri dengesi değildir; dereceler ve kazanma oranları rol oynamaz ve bu hesap hiçbir yerde gösterilmez.",
         ],
       },
       {
@@ -172,7 +182,7 @@ export const tr: Help = {
       {
         id: "fair-play",
         title: "Adil oyun",
-        body: ["**Oynamamış oyunculara öncelik ver** henüz maçı olmayanları önce çeker. Onlar *ilk oyun* etiketini taşır."],
+        body: ["**Oynamamış oyunculara öncelik ver** henüz maçı olmayanları önce çeker. Onlar *ilk oyun* etiketini taşır.", "Bir oyuncunun takıma her girişini sayar, maçı Kazandı ile kaydetsen de kaydetmesen de; bu yüzden hiç maç geçmişi olmadan da çalışır."],
       },
       {
         id: "reveal",

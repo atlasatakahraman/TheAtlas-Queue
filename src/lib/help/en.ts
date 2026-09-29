@@ -160,7 +160,17 @@ export const en: Help = {
         title: "Drawing teams",
         body: [
           "**Draw teams** (`D`) fills both teams at random from the waiting players. **Reroll** draws again from the same players, keeping anyone protected. **Shuffle current teams** mixes the players already in teams.",
-          "Draws avoid putting the same teammates together again, so the same four players drawn after a game are split differently.",
+          "Draws avoid putting the same teammates together again, so the same four players drawn after a game are split differently. See [How teams are split](/wiki/teams#split).",
+        ],
+      },
+      {
+        id: "split",
+        title: "How teams are split",
+        body: [
+          "A draw, a reroll and a shuffle all try not to put the same people on one team again. Queue remembers who shared a team in your **recorded games**, the ones you finished with **Victory**, and splits the players so as few old teammates as possible end up together. When several splits are equally good, one of them is picked at random.",
+          "Recent games count the most: a game five games back counts half as much as the newest one, and only your last 50 games are read. A game you undo or remove stops counting, and so do games deleted after [How long games are kept](/wiki/games#retention).",
+          "**Without recorded games the split is simply random.** If you never press Victory, Queue has nothing to remember, and the same teammates can meet again. Press Victory after each game and the variety starts from the next draw.",
+          "It only decides who goes to which team, never who is drawn from the queue: that is [Fair play](/wiki/teams#fair-play). It is not a skill balance, so ranks and win rates play no part, and the tally is never shown anywhere.",
         ],
       },
       {
@@ -171,7 +181,7 @@ export const en: Help = {
       {
         id: "fair-play",
         title: "Fair play",
-        body: ["**Prioritise players who haven't played** draws players with no game yet first. They carry a *First game* tag."],
+        body: ["**Prioritise players who haven't played** draws players with no game yet first. They carry a *First game* tag.", "It counts every time a player goes into a team, whether or not you record the game with Victory, so it works without any game history."],
       },
       {
         id: "reveal",

@@ -48,4 +48,7 @@ export const DEFAULTS = {
     repeat: [1, 1, 1.5, 2, 2.5],
     decay: [[30, 0.25], [14, 0.5], [7, 0.75]],
   },
+  // How long private.retention() keeps things: an Undo from History, History itself, a looked-up
+  // rank, and a moderator's access from a chat badge not seen since.
+  retention: { undoMinutes: 10, historyDays: 30, rankDays: 7, badgeDays: 30 },
 } as const;

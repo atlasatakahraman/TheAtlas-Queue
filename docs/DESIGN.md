@@ -1173,8 +1173,9 @@ reloads the source often, and a page that animates on every reload looks broken 
 - **Built (Stage 13).** Widgets stack in a column at their anchor 48px in (side by side along the
   top and bottom edges), scaled by the size. Titles 24px in the muted ink, names
   `text-overlay-name`, the score `text-overlay-headline`; the score widget is the scores
-  alone (owner, 2026-09-29), *0 vs 1*, each in its team's colour, Team 1 on the left; the names
-  are the Teams widget's. Teams, queue (*N more waiting* past its
+  alone (owner, 2026-09-29), *0 vs 1*, each in its team's colour, Team 1 on the left, on a panel as
+  narrow as the scores (the lists' 22rem minimum does not apply); the names are the Teams
+  widget's. Teams, queue (*N more waiting* past its
   rows), last result and both boards hide when empty; the score always shows. The reveal plays
   once per overlay (an OBS reload does not replay it), never for a draw over 30 seconds old, and
   fades out 20 seconds after it arrived. A light theme (Kâğıt panels at 92%) is the builder's

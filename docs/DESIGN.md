@@ -999,6 +999,44 @@ overlays, settings, keyboard, privacy and *Delete my data*. A search box filters
 page. Facts (default commands, limits) render from `DEFAULTS`, never retyped. Phones: the topic
 list is a `Select` above the article. States: an unknown topic is a 404; no loading (static).
 
+```
+[TheAtlas Queue / Help]                                             EN | TR  ◐
+┌ [🔍 Search help        ] ┐   Chat commands
+│ Getting started          │   Viewers join and leave the queue from Kick chat…
+│ Chat commands          ▎ │
+│ Queue                    │   Join  ·  anchor #join
+│ Teams and draws          │   `!sıra` or `!sıra Name#TAG` …
+│ …                        │
+└──────────────────────────┘
+```
+
+- **URLs** (owner, 2026-09-29): `/help` is *Getting started*; each other topic is
+  `/help/<topic>` with English slugs in both languages (`chat-commands`, `queue`, `teams`,
+  `games`, `moderation`, `perks`, `watch`, `settings`, `keyboard`, `privacy`), and every heading
+  has a stable English anchor, so a link from Settings works in either language. The language is
+  `?lang`, as on home and `/watch`; EN | TR are **links** to the other language's URL, so a
+  crawler reaches both.
+- **Rendered per request, not prerendered.** The nonce CSP renders every page per request (the
+  root layout reads the nonce); Help makes no data calls, so it is as fast as a static page
+  would be.
+- The article is server-rendered; only the search box and the phone `Select` are client code.
+  The text lives in a server-only module, **not** in `en.ts` / `tr.ts`: both dictionaries ship to
+  every browser (D17), and the help would weigh on every page.
+- **Search** lists the headings of every topic that match what is typed (the heading titles
+  only, a few KB), each a link to its anchor; Enter opens the first; Esc clears.
+- The topic list: `text-control`, muted, the active topic `--foreground` with the tabs' 2px gold
+  underline on its label (as the Settings section list). Headings are Newsreader (`text-title`
+  for the article, `text-heading` for sections), each with a hover `#` link to itself.
+- A command or key is drawn in shadcn `Kbd` inside running text (the one place a key chip
+  appears outside a menu: it is the subject of the sentence, not a hint).
+- **Entry points** (owner, 2026-09-29): the dashboard's page menu and account menu (*Help*,
+  `CircleHelp`), a *Help* link in the home page's footer, the `/watch` commands strip, and each
+  Settings section's `?` and each command field (to its command's anchor).
+- Metadata: title *Help: {topic}*, a description per topic, canonical with its `?lang`,
+  `alternates.languages`; indexed and in the sitemap (eleven URLs).
+- *Delete my data* is written into the privacy page with Stage 16, when it exists; until then the
+  page says what is stored and for how long.
+
 ### `/watch/<channel>`
 
 Read-only, public, and built **mobile-first**, because viewers open it from a phone.
@@ -1006,6 +1044,11 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
 - The slim top bar of the error pages (tile, wordmark, `/ channel`), then **Live** (`Radio` and
   the word, in `--destructive`, never a dot) while the **stream** is live; EN | TR (which also
   writes `?lang` into the address, so a shared link opens in that language) and the theme.
+- **The commands strip** (Stage 15, D33, owner 2026-09-29: always shown, not a section): one
+  line under the top bar, *Join* `!sıra`  *Leave* `!çık`  *Position* `!sıram`  *Away* `!afk`,
+  and *Perk* `!hak` only while the perk is on: the channel's own commands, each in `Kbd`, its
+  name muted before it, set apart by space (no dots), wrapping on a phone; *How it works* at the end links to
+  `/help/chat-commands`. Not shown when the page is off.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
   this stream's score, rosters), **Queue** (rows without a menu; the player card only if the
   streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results, each with the
@@ -1596,6 +1639,7 @@ language.
 | `/watch/<channel>` | "{Channel}'s queue" | "Live queue and team draws for {Channel}'s stream on Kick." |
 | `/overlay/<channel>` | "Overlay" | — (not indexed) |
 | `/welcome` | "Welcome" | — (not indexed) |
+| `/help`, `/help/<topic>` | "Help: {topic}" | The topic's own line, per language (Stage 15) |
 
 ### Every page
 
@@ -1613,8 +1657,8 @@ language.
 
 ### Indexing
 
-- **Indexed:** the home page and every *enabled* `/watch/<channel>`. `sitemap.ts` lists exactly
-  those, with `lastModified`.
+- **Indexed:** the home page, every *enabled* `/watch/<channel>` and the help pages (Stage 15).
+  `sitemap.ts` lists exactly those, with `lastModified`.
 - **Not indexed:** the signed-in dashboard, `/welcome`, `/overlay/*`, a disabled `/watch`, and
   every error page, via `robots: { index: false, follow: false }`.
 - `robots.ts` disallows `/api/` and points to the sitemap; off production (a preview, a laptop)

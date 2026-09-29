@@ -666,7 +666,7 @@ export const tr: Record<LabelKey, string> = {
   "why.draw_landing": "Kuranın oturmasını bekle",
   "done.copied": "{text} kopyalandı",
   "card.manual": "Manuel",
-  "credit": "{name} tarafından {heart} ile yapıldı",
+  "credit": "{name} tarafından yapıldı",
   "confirm.riot_on.title": "Riot ID'si olmayan oyuncular çıkarılsın mı?",
   "confirm.riot_on.body": "{n} oyuncu yalnızca Kick adıyla katıldı. Riot ID zorunlu olunca sıradan ve takımlardan çıkarılırlar. Bu geri alınamaz.",
   "confirm.riot_on.action": "Çıkar ve zorunlu yap",

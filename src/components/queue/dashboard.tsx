@@ -1,5 +1,6 @@
 "use client";
-import { Heart, HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords, Trophy } from "lucide-react";
+import { HistoryIcon, ListOrdered, Settings2, ShieldAlert, Swords, Trophy } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
@@ -9,6 +10,7 @@ import { Masthead } from "@/components/queue/masthead";
 import { ModerationTab } from "@/components/queue/moderation-tab";
 import { NotMember } from "@/components/queue/not-member";
 import { PageMenu } from "@/components/queue/page-menu";
+import { RespectBadge } from "@/components/queue/player-row";
 import { Hotkeys, Palette } from "@/components/queue/palette";
 import { AddPlayerDialog, EditPlayerDialog } from "@/components/queue/player-dialogs";
 import { QueueTab } from "@/components/queue/queue-tab";
@@ -34,30 +36,25 @@ import { BAR, BAR_IN, COLS_COOKIE, MAIN, TAB, TAB_TRACK } from "@/components/que
 
 type Account = { name: string; image: string | null };
 
-// The credit August carried, as a signed colophon (owner, 2026-09-29; its hover easter egg stays
-// removed, spec D14): the sentence muted, the name a signature, the heart beating on hover.
-function Credit({ text }: { text: string }) {
+// The credit August carried, as the maker's own queue row in miniature (owner, 2026-09-29; its
+// hover easter egg stays removed, spec D14): the tile for an avatar, the name, full respect.
+function Credit() {
+  const { t } = useT();
+  const [before, after = ""] = t("credit").split("{name}");
   return (
-    <footer className="group mt-auto flex items-baseline justify-center gap-1.5 pt-6 text-caption text-muted-foreground/70 select-none">
-      {text.split(/(\{heart\}|\{name\})/).map((part, i) =>
-        part === "{heart}" ? (
-          <span key={i} className="self-center">
-            <Heart aria-hidden className="size-3 fill-destructive text-destructive group-focus-within:animate-[heartbeat_900ms_ease-out] group-hover:animate-[heartbeat_900ms_ease-out]" />
-            <span className="sr-only">♥</span>
-          </span>
-        ) : part === "{name}" ? (
-          <a
-            key={i}
-            href="https://github.com/atlasatakahraman"
-            rel="noopener"
-            className="rounded-sm font-serif text-body text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
-          >
-            <span className="italic">Atlas Ata</span> <span className="tracking-[0.06em] [font-variant-caps:all-small-caps]">KAHRAMAN</span>
-          </a>
-        ) : (
-          part.trim() && <span key={i}>{part.trim()}</span>
-        ),
-      )}
+    <footer className="mt-auto flex items-center justify-center gap-2 pt-6 text-meta text-muted-foreground select-none">
+      {before.trim() && <span>{before.trim()}</span>}
+      <a
+        href="https://github.com/atlasatakahraman"
+        rel="noopener"
+        className="flex items-center gap-2 rounded-full font-medium text-foreground/80 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+      >
+        <Image src="/TheAtlasB2048.png" alt="" width={20} height={20} className="size-5 rounded-full border border-row-edge dark:hidden" />
+        <Image src="/TheAtlasW2048.png" alt="" width={20} height={20} className="hidden size-5 rounded-full border border-row-edge dark:block" />
+        Atlas Ata KAHRAMAN
+      </a>
+      <RespectBadge name="" fixed={100} />
+      {after.trim() && <span>{after.trim()}</span>}
     </footer>
   );
 }
@@ -279,7 +276,7 @@ function Shell({ initialTab, account, game, settings }: { initialTab: Tab; accou
           </TabsContent>
         </Tabs>
         )}
-        <Credit text={t("credit")} />
+        <Credit />
       </div>
       </PageMenu>
 

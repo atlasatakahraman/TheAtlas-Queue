@@ -358,21 +358,6 @@
   }
 }
 
-/* The credit's heart, once per hover or focus: two pulses, like a beat. */
-@keyframes heartbeat {
-  0%,
-  45%,
-  100% {
-    scale: 1;
-  }
-  15% {
-    scale: 1.3;
-  }
-  30% {
-    scale: 1.12;
-  }
-}
-
 /* Typewriter (copied from TheAtlas packages/@ui theme.css; fix upstream and re-copy). */
 @keyframes theatlas-type-in {
   from {

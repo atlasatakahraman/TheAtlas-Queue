@@ -679,14 +679,13 @@ with one line saying the queue is safe on the server (it is: Postgres holds it, 
 refetches `get_state`). `global-error.tsx` covers a failure of the root layout itself, in both
 languages, without the providers.
 
-**Footer.** *Made with ♥ by Atlas Ata KAHRAMAN* (TR *Atlas Ata KAHRAMAN tarafından ♥ ile
-yapıldı*), centred; the heart is lucide `Heart`, filled in `--destructive` (owner, 2026-09-28).
-A signed colophon (owner, 2026-09-29: redesign it): the words stay a muted caption in sentence
-case, the name is the signature, *Atlas Ata* in Newsreader italic and **KAHRAMAN** in
-letter-spaced small caps (a surname set the book way), one size up, a link to the author's
-GitHub profile that turns to the foreground on hover. Hovering or focusing the credit beats the
-heart once (two pulses, 900ms; off with Animations). August's hover easter egg stays removed
-(spec D14).
+**Footer.** The credit as the maker's own queue row, in miniature (owner, 2026-09-29: the
+signed colophon was too far from the page): *Made by* (TR *… tarafından yapıldı*), then the TheAtlas
+tile as the avatar (20px, round, `row-edge` border, black on Kâğıt, white on Mürekkep), the name
+*Atlas Ata KAHRAMAN* as a player name (Hanken, medium, a link to the author's GitHub profile) and
+the row's own [respect tag](#moderation), **100 ♥** in `--success` with its *Respect 100* tooltip:
+the maker keeps full respect. Muted meta size, centred, one line; nothing moves. August's hover
+easter egg stays removed (spec D14).
 
 **Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
 2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs, 48px high with 18px

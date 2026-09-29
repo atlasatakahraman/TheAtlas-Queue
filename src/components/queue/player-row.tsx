@@ -352,11 +352,9 @@ function RowMenu({ player, kit, open, onOpenChange }: { player: Player; kit: "co
 }
 
 // Respect (spec § Respect score): 100 is a clean record.
-export function RespectBadge({ name, fixed }: { name: string; fixed?: number }) {
+export function RespectBadge({ name }: { name: string }) {
   const { t } = useT();
-  // `fixed`: a score from outside the queue (the credit's maker keeps 100).
-  const stored = useQueue((v) => v.respect[name.toLowerCase()]);
-  const score = fixed ?? stored ?? 100;
+  const score = useQueue((v) => v.respect[name.toLowerCase()]) ?? 100;
   return (
     <Tooltip>
       <TooltipTrigger asChild>

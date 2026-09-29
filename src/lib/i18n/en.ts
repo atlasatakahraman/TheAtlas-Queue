@@ -678,7 +678,7 @@ export const en = {
   "why.draw_landing": "Wait for the draw to land",
   "done.copied": "Copied {text}",
   "card.manual": "Manual",
-  "credit": "Made by {name}",
+  "credit": "Made by {name} with {respect}",
   "confirm.riot_on.title": "Remove players without a Riot ID?",
   "confirm.riot_on.body": "{n} players joined with a Kick name only. Requiring Riot IDs removes them from the queue and the teams. This cannot be undone.",
   "confirm.riot_on.action": "Remove and require",

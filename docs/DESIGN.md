@@ -679,13 +679,13 @@ with one line saying the queue is safe on the server (it is: Postgres holds it, 
 refetches `get_state`). `global-error.tsx` covers a failure of the root layout itself, in both
 languages, without the providers.
 
-**Footer.** The credit as the maker's own queue row, in miniature (owner, 2026-09-29: the
-signed colophon was too far from the page): *Made by* (TR *… tarafından yapıldı*), then the TheAtlas
-tile as the avatar (20px, round, `row-edge` border, black on Kâğıt, white on Mürekkep), the name
-*Atlas Ata KAHRAMAN* as a player name (Hanken, medium, a link to the author's GitHub profile) and
-the row's own [respect tag](#moderation), **100 ♥** in `--success` with its *Respect 100* tooltip:
-the maker keeps full respect. Muted meta size, centred, one line; nothing moves. August's hover
-easter egg stays removed (spec D14).
+**Footer.** The credit, one muted line in the meta size, centred (owner, 2026-09-29): *Made by
+**Atlas Ata KAHRAMAN** with **100 ♥*** (TR ***Atlas Ata KAHRAMAN** tarafından **100 ♥** ile
+yapıldı*). The name and the row's own [respect tag](#moderation) are the two gold pieces, both in
+Newsreader at the body size: the name a link to the author's GitHub profile, the tag the heart
+and a full score of 100 with its *Respect 100* tooltip (the maker keeps full respect). A plain
+word always stands between them (*with*, *tarafından*), so the two gold serifs never run
+together. No avatar; nothing moves. August's hover easter egg stays removed (spec D14).
 
 **Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
 2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs, 48px high with 18px

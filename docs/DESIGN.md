@@ -685,7 +685,8 @@ yapıldı*). The name and the row's own [respect tag](#moderation) are the two g
 Newsreader at the body size: the name a link to the author's GitHub profile, the tag the heart
 and a full score of 100 with its *Respect 100* tooltip (the maker keeps full respect). A plain
 word always stands between them (*with*, *tarafından*), so the two gold serifs never run
-together. No avatar; nothing moves. August's hover easter egg stays removed (spec D14).
+together. No avatar; nothing moves. Centred on the window: with the page's scrollbar gutter
+empty (a short page), the line shifts right by half of it; on a narrow phone it wraps, centred. August's hover easter egg stays removed (spec D14).
 
 **Tabs.** shadcn `Tabs` (the `line` variant, its own underline hidden) restyled (owner,
 2026-09-24): a full-width muted track (card on Mürekkep) of equal tabs, 48px high with 18px

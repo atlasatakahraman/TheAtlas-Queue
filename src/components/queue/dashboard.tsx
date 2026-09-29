@@ -40,8 +40,20 @@ type Account = { name: string; image: string | null };
 // the name and full respect in gold serif, a plain word between them in either language.
 function Credit() {
   const { t } = useT();
+  // The page keeps the scrollbar's room (scrollbar-gutter: stable). With no scrollbar in it the
+  // room is empty, so the line moves right by half of it to sit on the window's centre.
+  const [shift, setShift] = useState(0);
+  useEffect(() => {
+    const d = document.documentElement;
+    const ro = new ResizeObserver(() => setShift(d.scrollHeight > d.clientHeight ? 0 : (innerWidth - d.clientWidth) / 2));
+    ro.observe(document.body);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <footer className="mt-auto flex items-baseline justify-center gap-1.5 pt-6 text-meta text-muted-foreground select-none">
+    <footer
+      style={{ translate: `${shift}px` }}
+      className="mt-auto flex flex-wrap items-baseline justify-center gap-x-1.5 gap-y-1 pt-6 text-center text-meta text-muted-foreground select-none"
+    >
       {t("credit").split(/(\{name\}|\{respect\})/).map((part, i) =>
         part === "{name}" ? (
           <a

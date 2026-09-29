@@ -6,6 +6,10 @@ import { LANG_COOKIE, langFromHeader, parseLang, type Lang } from "@/lib/i18n";
 // (DESIGN.md § Metadata and SEO), wherever the page is served from.
 export const SITE = "https://theatlas-queue.vercel.app";
 
+// Where this deployment is served (AUTH_URL: production, the preview alias, or a laptop). Links
+// sent out of the app, as chat replies, open the copy that sent them; canonicals stay on SITE.
+export const HERE = process.env.AUTH_URL ? new URL(process.env.AUTH_URL).origin : SITE;
+
 // Only production is indexed: a preview or a laptop is a copy (robots.ts).
 export const indexable = process.env.VERCEL_ENV === "production";
 

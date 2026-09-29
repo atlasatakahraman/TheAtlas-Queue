@@ -3,7 +3,7 @@ import { type LabelKey, type Labels, type Lang, translate } from "@/lib/i18n";
 import type { Commands } from "@/lib/kick-command";
 import { adminDb } from "@/lib/server/admin-db";
 import { sendChat } from "@/lib/server/kick-tokens";
-import { SITE } from "@/lib/server/site";
+import { HERE } from "@/lib/server/site";
 
 // Chat replies (DESIGN.md § Settings → Chat replies): run after the webhook has answered Kick, in
 // the stream language with the streamer's own labels, only while replies are on.
@@ -106,7 +106,7 @@ export async function listCommands(channelId: string, commands: Commands) {
   if (!s?.chat_replies || !s.commands_list) return;
   const keys = ["join", "leave", "position", "away", ...(s.perk_enabled ? ["perk" as const] : []), ...(s.watch_enabled ? ["watch" as const] : [])] as const;
   const list = keys.map((k) => `${translate(s.stream_locale, `settings.${k}_command`)} ${commands[k]}`).join(", ");
-  await say(channelId, "chat.commands", { list, url: `${SITE}/wiki/chat-commands?lang=${s.stream_locale}` }, s);
+  await say(channelId, "chat.commands", { list, url: `${HERE}/wiki/chat-commands?lang=${s.stream_locale}` }, s);
 }
 
 // The watch command: the channel's /watch link, only while the watch page is on.
@@ -119,5 +119,5 @@ export async function sendWatchLink(channelId: string) {
     .single();
   const s = data as (Settings & { watch_enabled: boolean; channels: { slug: string } | null }) | null;
   if (!s?.watch_enabled || !s.channels) return;
-  await say(channelId, "chat.watch", { url: `${SITE}/watch/${s.channels.slug}?lang=${s.stream_locale}` }, s);
+  await say(channelId, "chat.watch", { url: `${HERE}/watch/${s.channels.slug}?lang=${s.stream_locale}` }, s);
 }

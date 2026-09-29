@@ -1624,7 +1624,15 @@ Subscribers and VIPs get 3 protected picks every 30 days, and check what is left
 
 Settings → Draws & perks: uses per rolling 30 days and the [badge picker](#badge-picker). On
 the dashboard the perk is visible, never hidden odds: the *Protected* tags, the protected-first
-order in the reveal, *Remove protection* in the row menu. Viewers check their own remaining uses
+order in the reveal, *Remove protection* in the row menu.
+
+**Reroll and when a use is spent** (owner, 2026-09-29, migration 0040): a fresh draw protects
+each drawn player with a perk badge and a use left, and spends nothing. **Reroll re-splits the
+same drawn players**, the protected keeping their team (as Shuffle current teams does); nobody
+new comes in from the queue. A use is spent the first time a Reroll or a Shuffle keeps a
+protected player in place, once per draw however many times it is repeated; no reroll, no use
+spent. Undo of that reroll gives the use back; *Remove protection* gives back the use of this
+draw, if one was spent. Viewers check their own remaining uses
 with `!hak`; a viewer without a perk badge is told who the perk is for, never a count.
 
 ### Buttons

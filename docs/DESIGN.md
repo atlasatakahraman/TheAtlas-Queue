@@ -1170,7 +1170,9 @@ reloads the source often, and a page that animates on every reload looks broken 
 - Language: the overlay's own setting, defaulting to the *stream language* chat replies use.
 - **Built (Stage 13).** Widgets stack in a column at their anchor 48px in (side by side along the
   top and bottom edges), scaled by the size. Titles 24px in the muted ink, names
-  `text-overlay-name`, the score `text-overlay-headline`. Teams, queue (*N more waiting* past its
+  `text-overlay-name`, the score `text-overlay-headline`; the score widget reads like the
+  watch headline (owner, 2026-09-29): the names beside *vs* in the middle, each score at its outer
+  edge, *0 Team 1 vs Team 2 1*. Teams, queue (*N more waiting* past its
   rows), last result and both boards hide when empty; the score always shows. The reveal plays
   once per overlay (an OBS reload does not replay it), never for a draw over 30 seconds old, and
   fades out 20 seconds after it arrived. A light theme (Kâğıt panels at 92%) is the builder's

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LangSwitch } from "@/components/lang-switch";
 import { ThemeButton } from "@/components/theme-button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Not found and errors (DESIGN.md § Not found and errors): the big numeral under a slim top bar.
 // No hooks, so the server's not-found page and the client error boundaries share it.
@@ -9,10 +10,12 @@ import { ThemeButton } from "@/components/theme-button";
 // The slim top bar: the tile and the wordmark (a link to `home`, `/` by default), the crumb, and
 // the tools on the right. /watch shares it with its Live mark after the crumb, its own EN | TR,
 // home at its own top and the crumb a link to the selection page (owner, 2026-09-29).
-export function SlimBar({ crumb, crumbHref, home = "/", after, tools }: {
+export function SlimBar({ crumb, crumbHref, crumbTip, home = "/", homeTip, after, tools }: {
   crumb?: string;
   crumbHref?: string;
+  crumbTip?: string;
   home?: string;
+  homeTip?: string;
   after?: React.ReactNode;
   tools?: React.ReactNode;
 }) {
@@ -20,25 +23,29 @@ export function SlimBar({ crumb, crumbHref, home = "/", after, tools }: {
     <header className="border-b border-border bg-card">
       <div className="mx-auto flex h-[3.75rem] w-full max-w-[1440px] items-center justify-between gap-3 px-8 max-md:px-4">
         <span className="flex min-w-0 items-center gap-3">
-          <Link href={home} className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
-            <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} className="size-9 rounded-lg dark:hidden" />
-            <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} className="hidden size-9 rounded-lg dark:block" />
-            <span className="cap-center font-serif text-title max-md:text-body max-sm:hidden">
-              TheAtlas <span className="text-brand italic">Queue</span>
-            </span>
-          </Link>
+          <Tip text={homeTip}>
+            <Link href={home} className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+              <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} className="size-9 rounded-lg dark:hidden" />
+              <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} className="hidden size-9 rounded-lg dark:block" />
+              <span className="cap-center font-serif text-title max-md:text-body max-sm:hidden">
+                TheAtlas <span className="text-brand italic">Queue</span>
+              </span>
+            </Link>
+          </Tip>
           {crumb && (
             <>
               <span aria-hidden className="cap-center font-serif text-title text-muted-foreground max-md:text-body max-sm:hidden">
                 /
               </span>
               {crumbHref ? (
-                <Link
-                  href={crumbHref}
-                  className="min-w-0 truncate rounded-sm cap-center font-serif text-title outline-none focus-visible:ring-2 focus-visible:ring-ring/40 max-md:text-body"
-                >
-                  {crumb}
-                </Link>
+                <Tip text={crumbTip}>
+                  <Link
+                    href={crumbHref}
+                    className="min-w-0 truncate rounded-sm cap-center font-serif text-title outline-none focus-visible:ring-2 focus-visible:ring-ring/40 max-md:text-body"
+                  >
+                    {crumb}
+                  </Link>
+                </Tip>
               ) : (
                 <span className="min-w-0 truncate cap-center font-serif text-title max-md:text-body">{crumb}</span>
               )}
@@ -56,6 +63,17 @@ export function SlimBar({ crumb, crumbHref, home = "/", after, tools }: {
         </span>
       </div>
     </header>
+  );
+}
+
+// A link's tooltip, when it has one.
+function Tip({ text, children }: { text?: string; children: React.ReactElement }) {
+  if (!text) return children;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent>{text}</TooltipContent>
+    </Tooltip>
   );
 }
 

@@ -92,7 +92,9 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
       <SlimBar
         crumb={snap.channel.name}
         crumbHref="/?pick"
+        crumbTip={t("select.back")}
         home={`/watch/${slug}`}
+        homeTip={t("watch.to_top")}
         after={
           snap.channel.live && (
             <span className="flex shrink-0 items-center gap-1.5 text-meta font-medium text-destructive">

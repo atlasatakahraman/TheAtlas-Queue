@@ -131,29 +131,34 @@ export function TopBar() {
       <span className="flex min-w-0 items-center gap-3 select-none">
         {/* Two links (owner, 2026-09-29): the tile and the wordmark go to the dashboard's Queue tab;
             the channel name is the way back to the selection page (D19, ?pick never redirects). */}
-        <Link
-          href={`/c/${slug}?tab=queue`}
-          className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-          onClick={(e) => {
-            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-            e.preventDefault();
-            ui.setTab("queue");
-          }}
-        >
-          {/* The black tile on paper, the white one on ink. */}
-          <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
-          <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
-          {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
-              then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
-          {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
-              steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
-          <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
-            {again ? "TheAtlas" : <Typed text="TheAtlas" />}{" "}
-            <span className="text-brand italic selection:bg-foreground selection:text-background">
-              {again ? "Queue" : <Typed text="Queue" startDelay={9 * 40} />}
-            </span>
-          </span>
-        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/c/${slug}?tab=queue`}
+              className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                ui.setTab("queue");
+              }}
+            >
+              {/* The black tile on paper, the white one on ink. */}
+              <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
+              <Image src="/TheAtlasW2048.png" alt="" width={36} height={36} priority className="hidden size-9 rounded-lg dark:block" />
+              {/* The page's title now (owner, 2026-09-23): typed in, Queue one 40ms beat after TheAtlas,
+                  then the slash and the channel, one line typed left to right (owner, 2026-09-27). */}
+              {/* On phones the tile alone. The wordmark never truncates; under 1280px the whole title
+                  steps down to the body size so the channel after it fits (owner, 2026-09-28). */}
+              <span className="shrink-0 whitespace-nowrap cap-center font-serif text-title max-xl:text-body max-sm:hidden">
+                {again ? "TheAtlas" : <Typed text="TheAtlas" />}{" "}
+                <span className="text-brand italic selection:bg-foreground selection:text-background">
+                  {again ? "Queue" : <Typed text="Queue" startDelay={9 * 40} />}
+                </span>
+              </span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>{t("header.home")}</TooltipContent>
+        </Tooltip>
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went). On phones it
             stands in for the wordmark. */}
         <span className="cap-center font-serif text-title text-muted-foreground max-xl:text-body max-sm:hidden" aria-hidden>

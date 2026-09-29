@@ -27,6 +27,7 @@ import {
   SHADE,
   TAB,
   TAB_TRACK,
+  PICK_SIZES,
   TABLE_HEAD,
   tableCols,
   TEAMS_BAR,
@@ -63,7 +64,7 @@ export default async function DashboardLoading() {
     t: (key, vars) => translate(lang, key, undefined, vars),
     cols: COLS.find((x) => x === c) ?? "plain",
     today: new Intl.RelativeTimeFormat(lang, { numeric: "auto" }).format(0, "day"),
-    picks: Math.min(3, Math.max(1, Number(jar.get(PICKS_COOKIE)?.value) || 3)),
+    picks: Math.min(PICK_SIZES.length, Math.max(1, Number(jar.get(PICKS_COOKIE)?.value) || PICK_SIZES.length)),
   };
   const Body = BODIES[tab];
   return (
@@ -117,7 +118,7 @@ function Toolbar({ t, picks }: { t: T; picks: number }) {
           <Dices className="invisible size-4" />
           <span className="max-md:sr-only">{t("pick.label")}</span>
         </span>
-        {[1, 2, 3].slice(0, picks).map((n) => (
+        {PICK_SIZES.slice(0, picks).map((n) => (
           <Button key={n} variant="ghost" size="lg" tabIndex={-1} className={cn("rounded-none px-2.5 tabular-nums max-md:h-11", SHADE, "animate-none bg-transparent")}>
             ×{n}
           </Button>

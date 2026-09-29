@@ -657,7 +657,7 @@ bar names the channel, the tab count says who waits (Live / Offline joined the t
 and left it in Stage 10). An `sr-only` `h1` keeps the heading; the streamer's subtitle (`brand.subtitle`) shows
 when set. Right: **the toolbar**, the same on every tab.
 
-**Toolbar.** Add player · **Pick ×1 ×2 ×3** with its source (*Waiting*, *Teams*, *Whole
+**Toolbar.** Add player · **Pick ×1 ×2 ×3 ×5** (×5 owner, 2026-09-29) with its source (*Waiting*, *Teams*, *Whole
 queue*; remembered per browser, and every pick control uses it) · **Shuffle ▾** (Draw teams `D`, Reroll `R`, Shuffle current
 teams, Clear teams) · **Clear queue** (destructive ghost). Everything in it has an Undo toast.
 Under 768px the labels become `sr-only` and the icons stay.

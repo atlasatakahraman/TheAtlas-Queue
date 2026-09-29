@@ -65,7 +65,9 @@ export const TABLE_HEAD = "grid h-[1.375rem] items-center gap-x-3 border border-
 export const COLS_COOKIE = "queue.cols";
 export type Cols = "ranks" | "ids" | "plain";
 export const COLS = ["ranks", "ids", "plain"] as const;
-// How many of Pick's ×1 ×2 ×3 the toolbar shows (a ×n larger than the pool is hidden), likewise.
+// Pick's sizes (×5 added by the owner, 2026-09-29) and how many of them the toolbar shows (a ×n
+// larger than the pool is hidden), likewise.
+export const PICK_SIZES = [1, 2, 3, 5];
 export const PICKS_COOKIE = "queue.picks";
 
 // Teams: the cards side by side from 1024px; a card's header line; a slot; the actions bar.

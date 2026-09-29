@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import type { ChangeEvent, DrawEntry, Player } from "@/types/queue";
 import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
 import { Avg, EMPTY_SLOT, EmptySlotBody, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
-import { SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
+import { PICK_SIZES, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
 
 export { REVEAL };
 
@@ -84,7 +84,6 @@ export function useDrawActions() {
 }
 
 const PICK_SOURCES = ["waiting", "teams", "all"] as const;
-const PICK_SIZES = [1, 2, 3];
 
 // Pick's source (per browser, one for every pick control) and the ×n it can fill. The pool counts
 // as pick_players does: the source's statuses, less anyone under a live ban or punishment. A ×n

@@ -992,7 +992,7 @@ Joining
 
 #### Help `/help` (Stage 15, D33)
 
-A public wiki, prerendered per language. Top bar with the wordmark; left, the topic list (sticky,
+A public wiki, one page per topic in each language. Top bar with the wordmark; left, the topic list (sticky,
 14rem); right, the article (max 42rem, `text-body`, Newsreader headings): getting started, chat
 commands, queue, teams and draws, games, moderation and respect, perks and badges, watch and
 overlays, settings, keyboard, privacy and *Delete my data*. A search box filters headings on the
@@ -1036,6 +1036,13 @@ list is a `Select` above the article. States: an unknown topic is a 404; no load
   `alternates.languages`; indexed and in the sitemap (eleven URLs).
 - *Delete my data* is written into the privacy page with Stage 16, when it exists; until then the
   page says what is stored and for how long.
+- **Built (Stage 15).** As drawn, except: the article title is `text-headline` and section heads
+  `text-title` (the scale has no `text-heading`); the page reads `?lang` from its own search
+  params, since a link prefetch skips the proxy and would fall back to the cookie's language;
+  Help links from Settings and the menus open a new tab, so a draft or a live dashboard stays;
+  numbers in the running text are Newsreader in `--brand` (owner, 2026-09-29). The facts come
+  from `src/lib/defaults.ts`; `scripts/defaults-assert.ts` prints a rolled-back SQL assert that
+  fails when a column default, a limit, the command length, respect or `retention()` drifts.
 
 ### `/watch/<channel>`
 
@@ -1049,6 +1056,8 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
   and *Perk* `!hak` only while the perk is on: the channel's own commands, each in `Kbd`, its
   name muted before it, set apart by space (no dots), wrapping on a phone; *How it works* at the end links to
   `/help/chat-commands`. Not shown when the page is off.
+  **Built (Stage 15):** as drawn; the commands ride in the snapshot (0033), and the skeleton
+  draws the line.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
   this stream's score, rosters), **Queue** (rows without a menu; the player card only if the
   streamer shares Riot IDs), **Games** (opt-in, Stage 10: the last 10 results, each with the

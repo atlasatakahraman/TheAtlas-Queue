@@ -751,6 +751,8 @@ export const en = {
   "games.empty.stream": "No games this stream yet. Press Victory on the winning team.",
   "settings.watch.games": "Games",
   "watch.live": "Live",
+  "watch.commands": "Chat commands",
+  "watch.how": "How it works",
   "watch.empty": "Nothing here yet",
   "watch.games.empty": "No games yet",
   "watch.board": "Most wins",

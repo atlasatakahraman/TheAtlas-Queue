@@ -739,6 +739,8 @@ export const tr: Record<LabelKey, string> = {
   "games.empty.stream": "Bu yayında henüz maç yok. Kazanan takımda Kazandı'ya bas.",
   "settings.watch.games": "Maçlar",
   "watch.live": "Canlı",
+  "watch.commands": "Sohbet komutları",
+  "watch.how": "Nasıl çalışır",
   "watch.empty": "Henüz bir şey yok",
   "watch.games.empty": "Henüz maç yok",
   "watch.board": "En çok kazananlar",

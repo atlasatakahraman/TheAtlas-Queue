@@ -166,6 +166,8 @@ export type WatchSnapshot =
       games: WatchGame[] | null;
       board: { name: string; wins: number; losses: number }[] | null;
       moderation: { kick_username: string; kind: Sanction["kind"] }[] | null;
+      // The channel's chat commands (0033), perk only while it is on; absent from a payload cached before it.
+      commands?: { join: string; leave: string; position: string; away: string; perk?: string };
     };
 
 // How a draw shows itself (D22): a team draw lands by Typewriter unless "none"; a pick plays

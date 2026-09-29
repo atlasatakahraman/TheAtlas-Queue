@@ -1,11 +1,12 @@
 "use client";
-import { Ban, Radio, ShieldCheck, Trophy, TriangleAlert, Gavel } from "lucide-react";
+import { Ban, CircleHelp, Radio, ShieldCheck, Trophy, TriangleAlert, Gavel } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { rememberPlace, rememberWatched } from "@/components/queue/tabs";
 import { I18nProvider, useSetLang, useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Typed } from "@/components/prefs";
 import { ThemeButton } from "@/components/theme-button";
+import { Kbd } from "@/components/ui/kbd";
 import { useNow } from "@/components/use-now";
 import { MAIN, ROW, ROW_ROSTER, TEAMS_GRID } from "@/components/queue/geometry";
 import { REVEAL, revealDuration, revealOrder } from "@/components/queue/reveal-order";
@@ -106,6 +107,7 @@ function Page({ snap }: { snap: Live }) {
             <Typed text={t("watch.title", { channel: snap.channel.name })} />
           </h1>
           <p className="animate-enter text-muted-foreground" style={{ animationDelay: "70ms" }}>{t("watch.subtitle")}</p>
+          {snap.commands && <Commands commands={snap.commands} />}
         </header>
         {!shown.some(Boolean) && <p className="text-muted-foreground">{t("watch.empty")}</p>}
         {shown[0] && (
@@ -198,6 +200,33 @@ function Page({ snap }: { snap: Live }) {
           </a>
         </span>
       </footer>
+    </div>
+  );
+}
+
+// The channel's own chat commands (D33, owner 2026-09-29: always shown), each selectable so a
+// viewer can copy it, and the way to the help page that explains them.
+const COMMANDS = ["join", "leave", "position", "away", "perk"] as const;
+function Commands({ commands }: { commands: NonNullable<Live["commands"]> }) {
+  const { t, lang } = useT();
+  return (
+    <div className="animate-enter mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-control" style={{ animationDelay: "115ms" }}>
+      <h2 className="sr-only">{t("watch.commands")}</h2>
+      {COMMANDS.map((k) =>
+        commands[k] ? (
+          <span key={k} className="flex items-center gap-2">
+            <span className="text-muted-foreground">{t(`settings.${k}_command`)}</span>
+            <Kbd className="pointer-events-auto h-6 px-1.5 font-mono text-control text-foreground select-all">{commands[k]}</Kbd>
+          </span>
+        ) : null,
+      )}
+      <a
+        href={`/help/chat-commands?lang=${lang}`}
+        className="flex items-center gap-1.5 text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/40 max-md:min-h-11"
+      >
+        <CircleHelp className="size-4" aria-hidden />
+        {t("watch.how")}
+      </a>
     </div>
   );
 }

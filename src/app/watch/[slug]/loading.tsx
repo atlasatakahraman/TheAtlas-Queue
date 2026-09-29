@@ -11,6 +11,8 @@ export default function Loading() {
         <div className="flex flex-col gap-1">
           <span className={cn(SHADE, "h-10 w-72 rounded-lg max-md:h-8")} />
           <span className={cn(SHADE, "h-6 w-56 rounded-md")} />
+          {/* The commands strip (D33). */}
+          <span className={cn(SHADE, "mt-2 h-6 w-full max-w-xl rounded-md max-md:h-11")} />
         </div>
         <div className={TEAMS_GRID}>
           {[0, 1].map((i) => (

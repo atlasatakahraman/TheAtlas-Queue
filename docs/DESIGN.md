@@ -600,7 +600,7 @@ number field saves its section; the welcome page's join command saves step 2; in
 | `/overlay/<key>` (Stage 13) | OBS browser source | No | Always Mürekkep panels on transparent | The overlay's own language setting |
 | `/` signed in (Stage 12) | Streamers, moderators | No | Saved choice | Saved choice |
 | `/c/<channel>/settings` (Stage 12) | Streamer | No | Saved choice | Saved choice |
-| `/help` (Stage 15) | Anyone | **Yes** | System, with toggle | `?lang=`, else browser, else `en` |
+| `/wiki` (Stage 15; `/help` until Stage 16) | Anyone | **Yes** | System, with toggle | `?lang=`, else browser, else `en` |
 
 ### Home (`/`, signed out)
 
@@ -646,7 +646,9 @@ then *Moderating* as muted text for a moderator; on phones the channel stands in
 wordmark. Under 1280px the whole title steps down to the body size (owner, 2026-09-28: at
 1090px both were cut to *TheAtlas… / atlasataka…*; hiding the wordmark was refused, it is the
 page's title). The wordmark never truncates, only the channel does, and only on phones, and D19 makes it the way back to the selection page. Right: the [connection pill](#connection-health), the command palette button
-(a search icon, `aria-label`), the EN | TR switch, GitHub, the theme button, a settings gear
+(a search icon, `aria-label`), the **Wiki** button (owner, 2026-09-29, Stage 16: `BookOpen` and the
+word *Wiki*, a ghost button, opening `/wiki` in the page's language in a new tab; it reads as a
+place, not a tool, so it keeps its word; under 1024px it folds into `⋯` with the others), the EN | TR switch, GitHub, the theme button, a settings gear
 (streamer only; **Settings is not a tab** but its own page, which this gear, the account menu, `⋯`
 and the palette open) and the **account menu** (avatar, and the name from 1280px; Settings, **Sign out**). Under
 1024px the middle tools fold into `⋯` and the pill takes its short form; the pill and the account
@@ -990,7 +992,7 @@ Joining
   full*, *no badge that may join*, *sitting out after a game*. Sitting out counts by the Kick name
   a game recorded, as game history does.
 
-#### Help `/help` (Stage 15, D33)
+#### Wiki `/wiki` (Stage 15, D33)
 
 A public wiki, one page per topic in each language. Top bar with the wordmark; left, the topic list (sticky,
 14rem); right, the article (max 42rem, `text-body`, Newsreader headings): getting started, chat
@@ -1000,8 +1002,8 @@ page. Facts (default commands, limits) render from `DEFAULTS`, never retyped. Ph
 list is a `Select` above the article. States: an unknown topic is a 404; no loading (static).
 
 ```
-[TheAtlas Queue / Help]                                             EN | TR  ◐
-┌ [🔍 Search help        ] ┐   Chat commands
+[TheAtlas Queue / Wiki]                                             EN | TR  ◐
+┌ [🔍 Search the wiki    ] ┐   Chat commands
 │ Getting started          │   Viewers join and leave the queue from Kick chat…
 │ Chat commands          ▎ │
 │ Queue                    │   Join  ·  anchor #join
@@ -1010,8 +1012,8 @@ list is a `Select` above the article. States: an unknown topic is a 404; no load
 └──────────────────────────┘
 ```
 
-- **URLs** (owner, 2026-09-29): `/help` is *Getting started*; each other topic is
-  `/help/<topic>` with English slugs in both languages (`chat-commands`, `queue`, `teams`,
+- **URLs** (owner, 2026-09-29): `/wiki` is *Getting started*; each other topic is
+  `/wiki/<topic>` with English slugs in both languages (`chat-commands`, `queue`, `teams`,
   `games`, `moderation`, `perks`, `watch`, `settings`, `keyboard`, `privacy`), and every heading
   has a stable English anchor, so a link from Settings works in either language. The language is
   `?lang`, as on home and `/watch`; EN | TR are **links** to the other language's URL, so a
@@ -1029,10 +1031,10 @@ list is a `Select` above the article. States: an unknown topic is a 404; no load
   for the article, `text-heading` for sections), each with a hover `#` link to itself.
 - A command or key is drawn in shadcn `Kbd` inside running text (the one place a key chip
   appears outside a menu: it is the subject of the sentence, not a hint).
-- **Entry points** (owner, 2026-09-29): the dashboard's page menu and account menu (*Help*,
-  `CircleHelp`), a *Help* link in the home page's footer, the `/watch` commands strip, and each
+- **Entry points** (owner, 2026-09-29): the top bar's **Wiki** button (Stage 16), the dashboard's page menu and account menu (*Wiki*,
+  `BookOpen`), a *Wiki* link in the home page's footer, the `/watch` commands strip, and each
   Settings section's `?` and each command field (to its command's anchor).
-- Metadata: title *Help: {topic}*, a description per topic, canonical with its `?lang`,
+- Metadata: title *Wiki: {topic}*, a description per topic, canonical with its `?lang`,
   `alternates.languages`; indexed and in the sitemap (eleven URLs).
 - *Delete my data* is written into the privacy page with Stage 16, when it exists; until then the
   page says what is stored and for how long.
@@ -1043,6 +1045,18 @@ list is a `Select` above the article. States: an unknown topic is a 404; no load
   numbers in the running text are Newsreader in `--brand` (owner, 2026-09-29). The facts come
   from `src/lib/defaults.ts`; `scripts/defaults-assert.ts` prints a rolled-back SQL assert that
   fails when a column default, a limit, the command length, respect or `retention()` drifts.
+- **Renamed Wiki (owner, 2026-09-29, Stage 16).** Every visible name says *Wiki* (en and tr),
+  the pages moved to `/wiki` (the address was never in production, so no redirect), and `/wiki`
+  and `/wiki/…` are public in the proxy (Stage 15 left `/help` behind the sign-in redirect, so
+  signed-out readers and crawlers were sent home).
+- **Gold serif highlights (owner, 2026-09-29, Stage 16).** What the wiki's text highlights reads
+  like its numbers, Newsreader medium in `--brand`: the **bold** words, and the commands and keys
+  (no chip, Newsreader rather than mono; a command still selects whole on click). This replaces
+  the `Kbd` chips in running text drawn above. The key table (`keyboard`) keeps its `Kbd`
+  chips: it is a table of keys, not running text. Outside the wiki the same treatment takes the
+  numbers in the Settings hints, the badge picker's sentence and the toolbar's Joining count
+  (`5/20`; `--destructive` when full). One `Numerals` component draws it everywhere. *Revertable:*
+  the owner may take the app half back if it does not look right; the wiki half stays.
 
 ### `/watch/<channel>`
 
@@ -1055,7 +1069,7 @@ Read-only, public, and built **mobile-first**, because viewers open it from a ph
   line under the top bar, *Join* `!sıra`  *Leave* `!çık`  *Position* `!sıram`  *Away* `!afk`,
   and *Perk* `!hak` only while the perk is on: the channel's own commands, each in `Kbd`, its
   name muted before it, set apart by space (no dots), wrapping on a phone; *How it works* at the end links to
-  `/help/chat-commands`. Not shown when the page is off.
+  `/wiki/chat-commands`. Not shown when the page is off.
   **Built (Stage 15):** as drawn; the commands ride in the snapshot (0033), and the skeleton
   draws the line.
 - Sections, in order, each switchable by the streamer: **Teams** (when a draw exists: headline,
@@ -1648,7 +1662,7 @@ language.
 | `/watch/<channel>` | "{Channel}'s queue" | "Live queue and team draws for {Channel}'s stream on Kick." |
 | `/overlay/<channel>` | "Overlay" | — (not indexed) |
 | `/welcome` | "Welcome" | — (not indexed) |
-| `/help`, `/help/<topic>` | "Help: {topic}" | The topic's own line, per language (Stage 15) |
+| `/wiki`, `/wiki/<topic>` | "Wiki: {topic}" | The topic's own line, per language (Stage 15) |
 
 ### Every page
 

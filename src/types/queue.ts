@@ -168,6 +168,8 @@ export type WatchSnapshot =
       moderation: { kick_username: string; kind: Sanction["kind"] }[] | null;
       // The channel's chat commands (0033), perk only while it is on; absent from a payload cached before it.
       commands?: { join: string; leave: string; position: string; away: string; perk?: string };
+      // The streamer's rules text (0036), only when not empty.
+      rules?: string;
     };
 
 // How a draw shows itself (D22): a team draw lands by Typewriter unless "none"; a pick plays
@@ -183,6 +185,9 @@ export type Settings = {
   perk_command: string;
   away_command: string;
   watch_command: string;
+  rules_command: string;
+  // The streamer's rules (0036): sent by the rules command, shown on /watch; empty is off.
+  rules: string;
   commands_list: boolean;
   team_size: number;
   riot_enabled: boolean;

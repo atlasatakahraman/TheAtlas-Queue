@@ -44,7 +44,7 @@ Sohbet katılır, takımları sen çekersin, Kazandı skoru tutar, herkes canlı
 - Katılım kuralları: açık ya da kapalı, sıra sınırı, yalnızca aboneler, zorunlu Riot ID ve maçtan sonra bekleme.
 - 1 ile 5 kişilik takımlar ve bir seçimi göstermenin beş yolu: yazılan isimler, kartlar, liste, çark ya da sonuç hemen.
 - Maçlar ve istatistikler: galibiyet, mağlubiyet, seriler, en çok kazanan ve en saygılı, istediğin süre boyunca saklanır.
-- Takım adları, başlıklar ve altı sohbet komutu için kendi kelimelerin, Türkçe ve İngilizce.
+- Takım adları, başlıklar ve yedi sohbet komutu için kendi kelimelerin, Türkçe ve İngilizce.
 - Kick botundan, yayınının dilinde sohbet yanıtları, tek bir anahtarla açılır. Yanıtlar birkaç saniye toplanıp birlikte gider, böylece katılım yağmuru sohbeti doldurmaz.
 - Ayarlar'daki **Verilerimi sil** kanalını ve içindeki her şeyi siler.
 
@@ -55,7 +55,7 @@ Sohbet katılır, takımları sen çekersin, Kazandı skoru tutar, herkes canlı
 
 **İzleyiciler için**
 
-- Altı sohbet komutu: katıl, ayrıl, sıram, uzakta, kalan korumalı hak ve izleme sayfası bağlantısı için `!izle`. `!komutlar` hepsini sıralar.
+- Yedi sohbet komutu: katıl, ayrıl, sıram, uzakta, kalan korumalı hak, izleme sayfası bağlantısı için `!izle` ve yayıncının kuralları için `!kurallar`. `!komutlar` hepsini sıralar.
 - Telefonlar için herkese açık bir izleme sayfası: takımlar, sıra, maçlar ve yönetim akışı, canlı.
 - Abone ayrıcalığı, çekilen bir aboneyi belirli sayıda yeniden çekmeye karşı korur.
 

@@ -111,6 +111,12 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
           <p className="animate-enter text-muted-foreground" style={{ animationDelay: "70ms" }}>{t("watch.subtitle")}</p>
           {snap.commands && <Commands commands={snap.commands} />}
         </header>
+        {snap.rules && (
+          <section className="animate-enter flex max-w-prose flex-col gap-2" style={{ animationDelay: "160ms" }} aria-labelledby="w-rules">
+            <SectionHead id="w-rules" title={t("watch.rules")} />
+            <p className="break-words whitespace-pre-line text-muted-foreground">{snap.rules}</p>
+          </section>
+        )}
         {!shown.some(Boolean) && <p className="text-muted-foreground">{t("watch.empty")}</p>}
         {shown[0] && (
           <section {...sec(enter(), "flex flex-col gap-4")} aria-labelledby="w-teams">

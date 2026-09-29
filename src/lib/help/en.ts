@@ -89,6 +89,11 @@ export const en: Help = {
         body: [`\`${c.watch}\` answers in chat with a link to the channel's [watch page](/wiki/watch#watch-page), when the streamer has chat replies on and the watch page is public. It answers at most once every 30 seconds.`],
       },
       {
+        id: "rules",
+        title: "Rules",
+        body: [`\`${c.rules}\` answers in chat with the streamer's rules, as they wrote them in [Settings → Commands](/wiki/settings#commands), when chat replies are on. With no rules written it stays silent. The rules also show on the channel's watch page. It answers at most once every 30 seconds.`],
+      },
+      {
         id: "list",
         title: "All commands",
         body: ["`!commands` or `!komutlar` lists the channel's commands in chat with a link to this page, when the streamer has chat replies and **Answer !komutlar** on. These two are the same on every channel and answer at most once every 30 seconds. If the channel's mod bot deletes links, the streamer allows TheAtlas in it."],
@@ -97,7 +102,7 @@ export const en: Help = {
         id: "custom",
         title: "Changing the commands",
         body: [
-          `The streamer sets their own in [Settings → Commands](/wiki/settings#commands). A command is \`!\` and 1 to ${D.commandMax} characters with no spaces, and all six must differ. A channel's own commands are shown on its watch page.`,
+          `The streamer sets their own in [Settings → Commands](/wiki/settings#commands). A command is \`!\` and 1 to ${D.commandMax} characters with no spaces, and all seven must differ. A channel's own commands are shown on its watch page.`,
         ],
       },
     ],
@@ -283,7 +288,7 @@ export const en: Help = {
     description: "What each Settings section does: commands, joining, Riot, teams and draws, games, perks, watch, overlays, moderators and labels.",
     lead: "Settings is the streamer's alone, opened from the gear in the top bar. Switches save at once; text and numbers wait for Save.",
     sections: [
-      { id: "commands", title: "Commands", body: ["The six chat commands. See [Chat commands](/wiki/chat-commands)."] },
+      { id: "commands", title: "Commands", body: ["The seven chat commands and your rules. See [Chat commands](/wiki/chat-commands)."] },
       { id: "joining", title: "Joining", body: ["Open or closed, a queue limit, sitting out after a game, subscribers only. See [Who may join from chat](/wiki/queue#joining)."] },
       { id: "riot", title: "Riot", body: [`Look up solo queue ranks (region ${s.riot_region.toUpperCase()} unless you change it), and whether a join needs a Riot ID.`] },
       { id: "teams", title: "Teams & draws", body: [`Team size (${L.team_size[0]} to ${L.team_size[1]}), fair play, the draw reveal, and whether the queue clears when the stream ends. See [Teams and draws](/wiki/teams).`] },

@@ -54,7 +54,7 @@ async function flush(channelId: string, b: Batch) {
   if (list.length) pieces.push(t("chat.joined.many", { list: list.join(", ") }));
   for (const l of b.lines) if (l.key !== "chat.joined") pieces.push(t(l.key, l.vars));
   const messages: string[] = [];
-  for (const p of pieces.map((p) => p.slice(0, MAX))) {
+  for (const p of pieces.flatMap(split)) {
     const last = messages.length - 1;
     if (last >= 0 && messages[last].length + 1 + p.length <= MAX) messages[last] += ` ${p}`;
     else messages.push(p);
@@ -101,10 +101,10 @@ export const isCommandsAsk = (content: string) => /^!(komutlar|commands)$/iu.tes
 
 export async function listCommands(channelId: string, commands: Commands) {
   if (throttled(`${channelId}:commands`)) return;
-  const { data } = await adminDb().from("settings").select("chat_replies, stream_locale, labels, perk_enabled, watch_enabled, commands_list").eq("channel_id", channelId).single();
-  const s = data as (Settings & { perk_enabled: boolean; watch_enabled: boolean; commands_list: boolean }) | null;
+  const { data } = await adminDb().from("settings").select("chat_replies, stream_locale, labels, perk_enabled, watch_enabled, commands_list, rules").eq("channel_id", channelId).single();
+  const s = data as (Settings & { perk_enabled: boolean; watch_enabled: boolean; commands_list: boolean; rules: string }) | null;
   if (!s?.chat_replies || !s.commands_list) return;
-  const keys = ["join", "leave", "position", "away", ...(s.perk_enabled ? ["perk" as const] : []), ...(s.watch_enabled ? ["watch" as const] : [])] as const;
+  const keys = ["join", "leave", "position", "away", ...(s.perk_enabled ? ["perk" as const] : []), ...(s.watch_enabled ? ["watch" as const] : []), ...(s.rules.trim() ? ["rules" as const] : [])] as const;
   const list = keys.map((k) => `${translate(s.stream_locale, `settings.${k}_command`)} ${commands[k]}`).join(", ");
   await say(channelId, "chat.commands", { list, url: `${HERE}/wiki/chat-commands?lang=${s.stream_locale}` }, s);
 }
@@ -120,4 +120,26 @@ export async function sendWatchLink(channelId: string) {
   const s = data as (Settings & { watch_enabled: boolean; channels: { slug: string } | null }) | null;
   if (!s?.watch_enabled || !s.channels) return;
   await say(channelId, "chat.watch", { url: `${HERE}/watch/${s.channels.slug}?lang=${s.stream_locale}` }, s);
+}
+
+// The rules command (0036): the streamer's own text on one line, silent while it is empty.
+export async function sendRules(channelId: string) {
+  if (throttled(`${channelId}:rules`)) return;
+  const { data } = await adminDb().from("settings").select("chat_replies, stream_locale, labels, rules").eq("channel_id", channelId).single();
+  const s = data as (Settings & { rules: string }) | null;
+  const text = s?.rules.replace(/\s+/gu, " ").trim();
+  if (!s || !text) return;
+  await say(channelId, "chat.rules", { text }, s);
+}
+
+// A piece over Kick's limit (a long rules text) goes out in parts, cut at a space.
+function split(p: string): string[] {
+  const out: string[] = [];
+  while (p.length > MAX) {
+    const cut = p.lastIndexOf(" ", MAX);
+    const at = cut > 0 ? cut : MAX;
+    out.push(p.slice(0, at));
+    p = p.slice(at).trimStart();
+  }
+  return [...out, p];
 }

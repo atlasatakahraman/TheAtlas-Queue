@@ -3,7 +3,7 @@
 // turns this into the SQL assert that fails when the columns, their checks or private.respect
 // say otherwise, so the help cannot drift from the database.
 export const DEFAULTS = {
-  commands: { join: "!sıra", leave: "!çık", position: "!sıram", perk: "!hak", away: "!afk", watch: "!izle" },
+  commands: { join: "!sıra", leave: "!çık", position: "!sıram", perk: "!hak", away: "!afk", watch: "!izle", rules: "!kurallar" },
   // A command is ! and 1 to this many characters, no spaces.
   commandMax: 24,
   settings: {

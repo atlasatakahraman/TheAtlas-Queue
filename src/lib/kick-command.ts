@@ -1,6 +1,6 @@
 // Chat command parser (spec § Flows → Join). Pure, so the webhook and any check can run it.
 
-export type Commands = { join: string; leave: string; position: string; perk: string; away: string; watch: string };
+export type Commands = { join: string; leave: string; position: string; perk: string; away: string; watch: string; rules: string };
 export type ChatCommand = { command: keyof Commands; riotId: string | null };
 
 // Same rule as the players.riot_id check. The u flag makes {3,16} count code points, as

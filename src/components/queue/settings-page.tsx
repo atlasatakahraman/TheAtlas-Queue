@@ -43,6 +43,7 @@ import { enter, useUi } from "@/components/queue/ui";
 import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -60,7 +61,7 @@ import { Numerals } from "@/components/numerals";
 
 const REGIONS = ["tr1", "euw1", "eun1", "me1", "ru", "na1", "br1", "la1", "la2", "oc1", "kr", "jp1", "ph2", "sg2", "th2", "tw2", "vn2"];
 const SECTIONS: WatchSection[] = ["teams", "queue", "games", "moderation", "riot_ids"];
-const COMMANDS = ["join_command", "leave_command", "position_command", "perk_command", "away_command", "watch_command"] as const;
+const COMMANDS = ["join_command", "leave_command", "position_command", "perk_command", "away_command", "watch_command", "rules_command"] as const;
 
 type Errors = Record<string, string>;
 
@@ -236,7 +237,7 @@ export const triggerCls = "h-9! w-full max-md:h-11!";
 
 function CommandsSection() {
   const { t } = useT();
-  const s = useSection(COMMANDS);
+  const s = useSection([...COMMANDS, "rules"] as const);
   const r = useSection(["chat_replies", "commands_list"] as const);
   const { stopChatReplies } = useServerActions();
   const channelId = useQueue((v) => v.channel.id);
@@ -257,6 +258,9 @@ function CommandsSection() {
         ))}
       </div>
       {s.errors.commands && <p className="text-meta text-destructive">{t("settings.commands.clash")}</p>}
+      <Field id="rules" label={t("settings.rules")} hint={t("settings.rules.hint")} error={s.errors.rules} help="/wiki/chat-commands#rules">
+        <Textarea id="rules" className="min-h-24" maxLength={1000} value={s.draft.rules} onChange={(e) => s.set("rules", e.target.value)} />
+      </Field>
       <SaveRow s={s} />
       {/* On goes through Kick's consent for chat:write (the sign-in never asks for it); coming back
           the token is stored and replies read on. Off saves at once. */}

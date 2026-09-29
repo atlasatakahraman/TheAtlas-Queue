@@ -904,6 +904,18 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   most once per 30 s per channel; its text is a label the streamer can reword. It needs replies
   on, like every answer, and is listed by `!komutlar` while the watch page is on. A reply never
   delays the webhook (it is sent after the response).
+  **Answer `!komutlar`** (owner, 2026-09-29): a switch under Chat replies, on by default; off,
+  `!komutlar` and `!commands` stay silent. Both links stay (the wiki's in `!komutlar`, the
+  watch page's in the watch command): a streamer whose mod bot deletes links allows *TheAtlas*
+  in it, and the wiki says so.
+  **Batched** (owner, 2026-09-29): every answer for a channel waits up to 5 s and goes out with
+  the others as one message, split at Kick's 500 characters. Several joins read *Joined the
+  queue: @a #3, @b #4* (its own label); one join still reads *joined at #n*. So a join rush at
+  the start of a stream is a few messages, not forty.
+  **One token refresh at a time** (migration 0035): the access token is kept encrypted beside the
+  refresh token and reused until a minute before it expires; a refresh claims a 15 s lease
+  first, and a reply that finds the lease taken waits for the new token instead of refreshing
+  (Kick rotates the refresh token, so two refreshes at once would lose it).
   **Off** revokes the token at Kick and deletes it. **Kick refuses the token**: it is deleted, the
   switch stays on, and the dashboard shows a lasting toast *Reconnect Kick to resume chat
   replies* with **Reconnect** (the same consent) until it works again.

@@ -63,8 +63,8 @@ export const en: Help = {
         title: "Join",
         body: [
           `\`${c.join}\` puts you at the end of the queue. \`${c.join} Name#TAG\` also gives your Riot ID, so the streamer sees your rank.`,
-          "A join can be turned away: you are banned or punished, already in the queue, joining is closed, the queue is full, you lack a badge the streamer asks for, you are sitting out after a game, or a Riot ID is required and you gave none. The streamer sees why in their feed.",
-          "With chat replies on, Queue answers a join in chat with your place, and says so when you are banned or already in. Answers wait a few seconds and go out together, so many joins at once read as one line: *Joined the queue: @a #3, @b #4*. Other refusals stay in the streamer's feed, so chat is not flooded while joining is closed.",
+          "A join can be turned away: you are banned or punished, already in the queue, joining is closed, the stream is offline, the queue is full, you lack a badge the streamer asks for, you are sitting out after a game, or a Riot ID is required and you gave none. The streamer sees why in their feed.",
+          "With chat replies on, Queue answers a join in chat with your place, and says so when you are banned or already in. While the stream is offline it says once that the queue opens when the stream goes live. Answers wait a few seconds and go out together, so many joins at once read as one line: *Joined the queue: @a #3, @b #4*. Other refusals stay in the streamer's feed, so chat is not flooded while joining is closed.",
         ],
       },
       { id: "leave", title: "Leave", body: [`\`${c.leave}\` takes you out of the queue.`] },
@@ -137,6 +137,7 @@ export const en: Help = {
               "**Joining is open**: close it to turn every chat join away. The toolbar's Joining button does the same in one press, for you and your moderators.",
               `**Queue limit**: at most this many players who are not in a game, from 1 to ${L.queue_max[1]}. ${L.queue_max[0]} means no limit.`,
               `**Sit out after a game**: a player who just played waits this many recorded games before joining from chat again, up to ${L.join_cooldown[1]}. ${L.join_cooldown[0]} is off.`,
+              "**Only while live**: on by default. While the stream is offline, chat joins are turned away until it goes live. You and your moderators can still join, and adding by hand always works.",
               "**Subscribers only**: only viewers with a chosen badge can join. You and your moderators always pass.",
             ],
           },

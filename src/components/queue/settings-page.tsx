@@ -295,7 +295,7 @@ function JoiningSection() {
   const canWrite = useCanWrite();
   const open = useQueue((v) => v.settings.join_open);
   const cmd = useQueue((v) => v.settings.join_command);
-  const s = useSection(["queue_max", "join_cooldown", "join_subs_only", "join_badges"] as const);
+  const s = useSection(["queue_max", "join_cooldown", "join_subs_only", "join_badges", "join_live_only"] as const);
   return (
     <Section title={t("settings.joining")} onEnter={() => void s.save()}>
       <SwitchField
@@ -305,6 +305,13 @@ function JoiningSection() {
         checked={open}
         disabled={!canWrite}
         onChange={(v) => void act("set_join_open", { p_open: v })}
+      />
+      <SwitchField
+        id="join_live_only"
+        label={t("settings.join_live_only")}
+        hint={t("settings.join_live_only.hint")}
+        checked={s.draft.join_live_only}
+        onChange={(v) => void s.put("join_live_only", v)}
       />
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         <Field id="queue_max" label={t("settings.queue_max")} hint={t("settings.queue_max.hint")} error={s.errors.queue_max}>

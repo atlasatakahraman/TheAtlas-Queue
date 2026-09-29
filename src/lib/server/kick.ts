@@ -87,6 +87,28 @@ export async function kickChannel(broadcasterId: number): Promise<{ slug: string
   return slug ? { slug } : null;
 }
 
+// Kick's own word on a live stream, asked only when a join would be refused as offline (a missed
+// livestream.status.updated). Null when offline or on any failure (the join is refused: fails
+// closed). The answer, either way, is kept 30 s per channel so an offline !join rush costs one call.
+// ponytail: per-instance cache, one entry per channel that saw an offline join.
+type Live = { startedAt: string | null; title: string | null } | null;
+const lives = new Map<number, { at: number; live: Live }>();
+export async function kickLive(broadcasterId: number): Promise<Live> {
+  const hit = lives.get(broadcasterId);
+  if (hit && Date.now() - hit.at < 30_000) return hit.live;
+  let live: Live = null;
+  try {
+    const res = await kick(`${API}/channels?broadcaster_user_id=${broadcasterId}`, { signal: AbortSignal.timeout(1500) });
+    const c = ((await res.json()) as { data?: { stream?: { is_live?: boolean; start_time?: string }; stream_title?: string }[] }).data?.[0];
+    if (c?.stream?.is_live === true) {
+      const start = c.stream.start_time;
+      live = { startedAt: start && !Number.isNaN(Date.parse(start)) ? start : null, title: typeof c.stream_title === "string" ? c.stream_title : null };
+    }
+  } catch {}
+  lives.set(broadcasterId, { at: Date.now(), live });
+  return live;
+}
+
 // Creates whichever of the two event subscriptions the channel lacks. Returns null when both
 // exist, else a short error for channels.subscription_error.
 // ponytail: one filtered list call per channel; one unfiltered call if channel counts grow.

@@ -29,6 +29,7 @@ export const DEFAULTS = {
     join_cooldown: 0,
     join_subs_only: false,
     join_badges: ["subscriber"],
+    join_live_only: true,
   },
   limits: {
     team_size: [1, 5],

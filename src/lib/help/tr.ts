@@ -64,8 +64,8 @@ export const tr: Help = {
         title: "Katıl",
         body: [
           `\`${c.join}\` seni sıranın sonuna ekler. \`${c.join} Ad#TAG\` Riot ID'ni de verir, böylece yayıncı dereceni görür.`,
-          "Bir katılma geri çevrilebilir: yasaklı ya da cezalısındır, zaten sıradasındır, katılım kapalıdır, sıra doludur, yayıncının istediği rozet sende yoktur, maç sonrası bekliyorsundur ya da Riot ID zorunludur ve vermemişsindir. Yayıncı nedenini akışında görür.",
-          "Sohbet yanıtları açıksa Queue katılmayı sohbette yerinle yanıtlar, yasaklıysan ya da zaten sıradaysan bunu söyler. Yanıtlar birkaç saniye bekler ve birlikte gider, böylece aynı anda gelen katılımlar tek satır olur: *Sıraya katıldı: @a #3, @b #4*. Diğer retler yayıncının akışında kalır, böylece katılım kapalıyken sohbet dolmaz.",
+          "Bir katılma geri çevrilebilir: yasaklı ya da cezalısındır, zaten sıradasındır, katılım kapalıdır, yayın kapalıdır, sıra doludur, yayıncının istediği rozet sende yoktur, maç sonrası bekliyorsundur ya da Riot ID zorunludur ve vermemişsindir. Yayıncı nedenini akışında görür.",
+          "Sohbet yanıtları açıksa Queue katılmayı sohbette yerinle yanıtlar, yasaklıysan ya da zaten sıradaysan bunu söyler. Yayın kapalıyken sıranın yayın açılınca açılacağını bir kez söyler. Yanıtlar birkaç saniye bekler ve birlikte gider, böylece aynı anda gelen katılımlar tek satır olur: *Sıraya katıldı: @a #3, @b #4*. Diğer retler yayıncının akışında kalır, böylece katılım kapalıyken sohbet dolmaz.",
         ],
       },
       { id: "leave", title: "Ayrıl", body: [`\`${c.leave}\` seni sıradan çıkarır.`] },
@@ -138,6 +138,7 @@ export const tr: Help = {
               "**Katılım açık**: kapatırsan sohbetten her katılma geri çevrilir. Araç çubuğundaki Katılım düğmesi aynısını tek dokunuşla, senin ve moderatörlerin için yapar.",
               `**Sıra sınırı**: oyunda olmayan en fazla bu kadar oyuncu, 1 ile ${L.queue_max[1]} arası. ${L.queue_max[0]} sınır yok demektir.`,
               `**Maç sonrası bekleme**: yeni oynamış bir oyuncu sohbetten yeniden katılmadan önce bu kadar kayıtlı maç bekler, en fazla ${L.join_cooldown[1]}. ${L.join_cooldown[0]} kapalıdır.`,
+              "**Yalnızca yayındayken**: varsayılan olarak açık. Yayın kapalıyken sohbetten katılmalar yayın açılana kadar geri çevrilir. Sen ve moderatörlerin yine katılabilir, elle eklemek her zaman çalışır.",
               "**Yalnızca aboneler**: yalnızca seçtiğin rozete sahip izleyiciler katılabilir. Sen ve moderatörlerin her zaman geçersiniz.",
             ],
           },

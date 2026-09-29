@@ -3,7 +3,7 @@ import { parseCommand, type Commands } from "@/lib/kick-command";
 import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
 import { answer, isCommandsAsk, listCommands, sendRules, sendWatchLink } from "@/lib/server/chat-replies";
-import { verifyWebhook } from "@/lib/server/kick";
+import { kickLive, verifyWebhook } from "@/lib/server/kick";
 
 // Kick → Postgres (spec § Security → Webhook). 401 bad signature or stale timestamp; 200 for
 // anything ignored, including an unknown channel; 500 on a database error, so Kick redelivers
@@ -75,10 +75,26 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
     after(() => sendRules(ctx.channel_id));
     return "rules";
   }
-  const { data, error } = await adminDb().rpc("ingest_chat", {
-    p_broadcaster: broadcaster, p_message_id: messageId, p_command: cmd.command, p_riot_id: cmd.riotId,
-    p_sender_id: s.user_id, p_sender_name: s.username, p_badges: badges,
-  });
+  const ingest = (gate: "check" | "confirmed") =>
+    adminDb().rpc("ingest_chat", {
+      p_broadcaster: broadcaster, p_message_id: messageId, p_command: cmd.command, p_riot_id: cmd.riotId,
+      p_sender_id: s.user_id, p_sender_name: s.username, p_badges: badges, p_live_gate: gate,
+    });
+  let { data, error } = await ingest("check");
+  // Only while live (DESIGN.md § Settings → Joining): the database said offline without writing.
+  // Kick decides: live means a missed start, recorded before the join goes through once; offline,
+  // silence or an error records the refusal, re-checked under the channel lock.
+  if (!error && (data as { result?: string } | null)?.result === "offline") {
+    const live = await kickLive(broadcaster!);
+    if (live) {
+      const { error: e } = await adminDb().rpc("set_live", {
+        p_broadcaster: broadcaster, p_live: true, p_started_at: live.startedAt, p_title: live.title,
+      });
+      if (e) console.error(JSON.stringify({ route: "kick/webhook", step: "heal_live", error: e.code }));
+    }
+    ({ data, error } = await ingest(live ? "check" : "confirmed"));
+    if (!error && (data as { result?: string } | null)?.result === "offline") ({ data, error } = await ingest("confirmed"));
+  }
   if (error) throw new Error(`ingest_chat ${error.message}`);
   const result = data as { result: string; reason?: string; rank_needed?: boolean } | null;
   // The chat reply, when replies are on, after Kick has its 200.

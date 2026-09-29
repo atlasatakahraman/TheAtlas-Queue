@@ -84,6 +84,9 @@ export async function answer(channelId: string, command: keyof Commands, r: Resu
   }
   if (command === "join" && r.result === "rejected" && (r.reason === "queue.banned" || r.reason === "queue.duplicate"))
     return say(channelId, r.reason === "queue.banned" ? "chat.rejected.banned" : "chat.rejected.duplicate", { name });
+  // Offline refusals (only while live): one line for the whole chat, not one per viewer.
+  if (command === "join" && r.result === "rejected" && r.reason === "queue.offline")
+    return throttled(`${channelId}:offline`) ? undefined : say(channelId, "chat.rejected.offline", {});
   if (command === "position" && r.position) return say(channelId, "chat.position", { name, position: r.position });
   if (command === "perk" && r.result === "perk" && r.enabled) return say(channelId, "chat.perk", { name, uses: r.left ?? 0 });
 }

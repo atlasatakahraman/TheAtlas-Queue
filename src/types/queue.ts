@@ -212,6 +212,7 @@ export type Settings = {
   join_cooldown: number;
   join_subs_only: boolean;
   join_badges: string[];
+  join_live_only: boolean;
   labels: Partial<Record<Lang, Record<string, string>>>;
   updated_at: string;
 };

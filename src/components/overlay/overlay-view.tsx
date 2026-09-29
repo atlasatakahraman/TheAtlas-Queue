@@ -145,7 +145,7 @@ function Score({ snap }: { snap: OverlaySnapshot }) {
   const { t } = useT();
   if (!snap.score) return null;
   return (
-    <Panel>
+    <Panel className="min-w-0 w-fit">
       {/* The scores alone, each in its team's colour (owner, 2026-09-29); the names are the Teams widget's. */}
       <p className="flex items-baseline gap-5 font-serif text-overlay-headline">
         <span className="font-medium text-(--o-t1) tabular-nums">{snap.score.t1}</span>

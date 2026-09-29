@@ -187,7 +187,8 @@ export function HistoryTab() {
         </div>
       </div>
       <div style={e4.style} className={cn("flex flex-col gap-4", e4.className)}>
-        {days[0].rows.length === 0 ? (
+        {/* A filter with nothing in it leaves no days once the clock is set. */}
+        {!days[0]?.rows.length ? (
           <p className="py-10 text-muted-foreground">{t("mod.activity.empty")}</p>
         ) : (
           days.map(({ day, rows }, i) => (

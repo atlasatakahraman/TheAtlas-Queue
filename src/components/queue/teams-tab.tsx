@@ -29,7 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import { useStored } from "@/components/use-client-state";
 import { isError, type QueueView } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
-import type { ChangeEvent, DrawEntry, Player } from "@/types/queue";
+import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
 import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
 import { Avg, EMPTY_SLOT, EmptySlotBody, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
 import { PICK_SIZES, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
@@ -52,13 +52,13 @@ export function useDrawActions() {
     draw: () => act("draw_teams", { p_base: base(), p_reroll: false }, { done: "done.draw" }).then(stale),
     reroll: () => act("draw_teams", { p_base: base(), p_reroll: true }, { done: "done.reroll" }).then(stale),
     shuffle: () => act("shuffle_teams", { p_base: base() }, { done: "done.shuffle_teams" }).then(stale),
-    pick: (n: number, source: PickSource = "waiting") =>
-      // A pick moves nobody; the only thing Undo gives back is a protection it used (owner,
-      // 2026-09-27), and those players are the only rows it changes.
-      act("pick_players", { p_n: n, p_source: source, p_base: base() }, {
+    pick: (n: number, source: PickSource = "waiting", again = false) =>
+      // A pick moves nobody; Undo gives back the protected picks it used, and those Pick again
+      // refunded (0042).
+      act("pick_players", { p_n: n, p_source: source, p_base: base(), p_again: again }, {
         done: `done.pick.${source}`,
         vars: { n },
-        undoable: (r) => r.rows.some((row) => row._t === "players"),
+        undoable: (r) => again || r.rows.some((row) => row._t === "draws" && ((row as unknown as Draw).result?.saved?.length ?? 0) > 0),
       }).then(stale),
     // The clears ask first (owner, 2026-09-27), wherever they are pressed from.
     clearTeams: async () => {

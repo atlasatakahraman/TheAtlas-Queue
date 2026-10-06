@@ -231,6 +231,7 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
         ? a.payload.open ? "act.join_opened" : "act.join_closed"
         : `act.${a.action}`;
   const text = isLabelKey(key) ? t(key as LabelKey, { n: String(a.payload.count ?? a.payload.n ?? "") }) : t("act.other", { action: a.action });
+  const savedText = a.action === "pick_from_teams" && Number(a.payload.saved) > 0 ? t("act.saved", { n: String(a.payload.saved) }) : "";
   const name = "font-medium text-foreground";
   const team = toTeam === 2 ? "text-team-2" : "text-team-1";
   return (
@@ -247,7 +248,7 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
       <Icon aria-hidden className={cn("size-4 translate-y-0.5 self-start", toTeam ? team : tone, a.undone_at && "opacity-50")} />
       <span className={cn("min-w-0 break-words text-muted-foreground", a.undone_at && "line-through decoration-muted-foreground/60")}>
         <Rich
-          text={text}
+          text={text + savedText}
           parts={{
             actor: <span className={name}>{a.actor ?? t("common.chat")}</span>,
             target: <span className={name}>{a.target}</span>,

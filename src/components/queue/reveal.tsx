@@ -5,14 +5,15 @@ import { useT } from "@/components/i18n";
 import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
 import { usePlayerActions, useTeamRoom } from "@/components/queue/player-row";
-import { STAGED, Stage, type Staged } from "@/components/queue/pick-stages";
+import { NearMissName, poolWith, type Save, STAGED, Stage, type Staged } from "@/components/queue/pick-stages";
+import { REVEAL } from "@/components/queue/reveal-order";
 import { ResponsiveDialog } from "@/components/queue/responsive-dialog";
-import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
+import { useAct, useCanWrite, useQueue, useServerActions, useStore } from "@/components/queue/store";
 import { LandingName, pickPool, revealOrder, useDrawActions, usePick, useRevealMotion } from "@/components/queue/teams-tab";
 import { useMotion } from "@/components/prefs";
 import { useUi } from "@/components/queue/ui";
 import { cn } from "@/lib/utils";
-import type { DrawEntry, Player } from "@/types/queue";
+import type { Draw, DrawEntry, DrawSave, Player } from "@/types/queue";
 
 // A fresh draw from anyone (DESIGN.md § The draw reveal): a team draw brings the Teams tab
 // forward, where the rosters land; a pick opens its dialog. Without motion both are simply shown.
@@ -45,14 +46,25 @@ function PickDialog() {
   const shown = pick ?? last;
   return (
     <ResponsiveDialog open={!!pick} onOpenChange={(o) => !o && store.clearReveal()} title={t("pick.title")}>
-      {shown && <PickBody key={shown.id} picked={shown.result.picked ?? []} />}
+      {shown && <PickBody key={shown.id} draw={shown} />}
     </ResponsiveDialog>
   );
 }
 
 // One pick: with Cards, List or Wheel each name plays its reveal in turn (D22, DESIGN.md § The
 // draw reveal), joining the list when it stops; otherwise the names land as the team draw's do.
-function PickBody({ picked }: { picked: DrawEntry[] }) {
+function PickBody({ draw }: { draw: Draw }) {
+  const picked = useMemo(() => draw.result.picked ?? [], [draw]);
+  const saved = useMemo(() => draw.result.saved ?? [], [draw]);
+  // The reveal's slots (P8): each picked name — a near miss first where a stand-in took a
+  // protected player's place — then the saves nobody could stand in for.
+  const slots = useMemo(
+    () => [
+      ...picked.map((e) => ({ entry: e as DrawEntry | null, save: saved.find((s) => s.standin_id === e.id) })),
+      ...saved.filter((s) => !s.standin_id).map((s) => ({ entry: null, save: s as DrawSave | undefined })),
+    ],
+    [picked, saved],
+  );
   const { t } = useT();
   const act = useAct();
   const store = useStore();
@@ -65,24 +77,36 @@ function PickBody({ picked }: { picked: DrawEntry[] }) {
   const staged = motion && STAGED.includes(setting) ? (setting as Staged) : null;
   const { source } = usePick();
   const { pick: pickAgain } = useDrawActions();
+  const { announceSaves } = useServerActions();
+  const channelId = useQueue((v) => v.channel.id);
   // The pool the reveal runs over: this browser's pick source as the pick found it, the picked
-  // names included. ponytail: a draw row does not record its source, so another member's pick
-  // from a different source shows this browser's pool; where it stops is still the server's.
+  // and saved names included. ponytail: a draw row does not record its source, so another
+  // member's pick from a different source shows this browser's pool; where it stops is still the
+  // server's.
   const [pool] = useState(() => {
     const view = store.get();
-    const ids = new Set(picked.map((e) => e.id));
-    const rest = pickPool(view, source).filter((p) => !ids.has(p.id));
-    return [...rest, ...picked.flatMap((e) => view.players.find((p) => p.id === e.id) ?? [])];
+    const named = new Set([...picked.map((e) => e.id), ...saved.map((s) => s.id)]);
+    const rest = pickPool(view, source).filter((p) => !named.has(p.id));
+    return [...rest, ...[...named].flatMap((id) => view.players.find((p) => p.id === id) ?? [])];
   });
-  const [step, setStep] = useState(staged ? 0 : picked.length);
-  const playing = step < picked.length;
+  const [step, setStep] = useState(staged ? 0 : slots.length);
+  const playing = step < slots.length;
   const order = useMemo(() => revealOrder([picked]), [picked]);
   // The picked players as they are now: a row acted on shows its new state, a removed one goes.
   const live = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
-  const shown = order.slice(0, step);
+  const taken = new Set(slots.slice(0, step).flatMap((s) => (s.entry ? [s.entry.id] : [])));
+  const shown = order.filter((o) => taken.has(o.entry.id));
   const here = shown.flatMap((o) => live.get(o.entry.id) ?? []);
   const again = useRef<HTMLButtonElement>(null);
   const next = useCallback(() => setStep((n) => n + 1), []);
+  const saveOf = (s: DrawSave | undefined, entry: DrawEntry | null): Save | undefined => {
+    const prot = s && pool.find((p) => p.id === s.id);
+    return prot ? { protectedPlayer: prot, standin: (entry && pool.find((p) => p.id === entry.id)) ?? null } : undefined;
+  };
+  // The kept-on-team chat line once the reveal is over (P9), so chat never spoils the wheel.
+  useEffect(() => {
+    if (!playing && saved.length) void announceSaves(channelId, draw.id);
+  }, [playing, saved.length, announceSaves, channelId, draw.id]);
 
   // Enter or Space skips a reveal that is playing (August); once it has stopped, focus sits on
   // Pick again, so the same keys pick again.
@@ -91,11 +115,11 @@ function PickBody({ picked }: { picked: DrawEntry[] }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Enter" && e.key !== " ") return;
       e.preventDefault();
-      setStep(picked.length);
+      setStep(slots.length);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [playing, picked.length]);
+  }, [playing, slots.length]);
 
   // All to Team N (owner, 2026-09-27): one write, one Undo; those already there stay. It closes
   // the dialog, the pick being done (owner, 2026-09-28); a single name's move keeps it open.
@@ -113,21 +137,28 @@ function PickBody({ picked }: { picked: DrawEntry[] }) {
       },
     };
   };
-  const taken = new Set(picked.slice(0, step).map((e) => e.id));
   return (
     <>
       {playing && staged && (
-        <Stage key={step} style={staged} pool={pool.filter((p) => !taken.has(p.id))} winner={picked[step].id} onDone={next} />
+        <Stage key={step} style={staged} pool={poolWith(pool.filter((p) => !taken.has(p.id)))}
+          winner={slots[step].entry?.id ?? null} save={saveOf(slots[step].save, slots[step].entry)} onDone={next} />
       )}
-      {shown.length > 0 && (
+      {/* A save nobody could stand in for still plays its near miss when the pick named nobody. */}
+      {(shown.length > 0 || (!staged && typing && saved.some((s) => !s.standin_id))) && (
         <div className="flex flex-col gap-1.5">
           {shown.map((o) => {
             const p = live.get(o.entry.id);
-            return (
-              <LandingName key={o.entry.id} entry={o.entry} at={typing ? o.at : 0} typed={!staged}>
-                {p ? <PickedActions p={p} /> : <span className="ml-auto text-meta text-muted-foreground">{t("pick.removed")}</span>}
-              </LandingName>
+            const actions = p ? <PickedActions p={p} /> : <span className="ml-auto text-meta text-muted-foreground">{t("pick.removed")}</span>;
+            const save = !staged && typing ? saveOf(saved.find((s) => s.standin_id === o.entry.id), o.entry) : undefined;
+            return save ? (
+              <NearMissName key={o.entry.id} save={save} at={o.at}>{actions}</NearMissName>
+            ) : (
+              <LandingName key={o.entry.id} entry={o.entry} at={typing ? o.at : 0} typed={!staged}>{actions}</LandingName>
             );
+          })}
+          {!staged && typing && saved.filter((s) => !s.standin_id).map((s) => {
+            const save = saveOf(s, null);
+            return save ? <NearMissName key={s.id} save={save} at={(order.at(-1)?.at ?? 0) + REVEAL.step} /> : null;
           })}
         </div>
       )}
@@ -153,7 +184,7 @@ function PickBody({ picked }: { picked: DrawEntry[] }) {
       )}
       <div className="flex justify-end">
         {playing ? (
-          <Button variant="outline" size="lg" className="max-md:h-11" onClick={() => setStep(picked.length)}>
+          <Button variant="outline" size="lg" className="max-md:h-11" onClick={() => setStep(slots.length)}>
             <FastForward aria-hidden />
             {t("pick.skip")}
           </Button>
@@ -164,7 +195,7 @@ function PickBody({ picked }: { picked: DrawEntry[] }) {
             size="lg"
             className="max-md:h-11"
             disabled={!canWrite}
-            onClick={() => void pickAgain(picked.length, source)}
+            onClick={() => void pickAgain(draw.n, source, true)}
           >
             <RotateCcw aria-hidden />
             {t("pick.again")}

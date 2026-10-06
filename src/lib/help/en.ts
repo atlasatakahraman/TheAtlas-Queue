@@ -159,7 +159,7 @@ export const en: Help = {
         id: "draw",
         title: "Drawing teams",
         body: [
-          "**Draw teams** (`D`) fills both teams at random from the waiting players. **Reroll** draws again from the same players, keeping anyone protected. **Shuffle current teams** mixes the players already in teams.",
+          "**Draw teams** (`D`) fills both teams at random from the waiting players. **Reroll** draws again from the same players. **Shuffle current teams** mixes the players already in teams.",
           "Draws avoid putting the same teammates together again, so the same four players drawn after a game are split differently. See [How teams are split](/wiki/teams#split).",
         ],
       },
@@ -253,15 +253,15 @@ export const en: Help = {
   },
   perks: {
     title: "Perks and badges",
-    description: "The subscriber perk protects drawn subscribers from a reroll, a set number of times, and which Kick badges qualify.",
-    lead: "The subscriber perk rewards your supporters without hidden odds: everyone sees who is protected.",
+    description: "The subscriber perk keeps qualifying viewers on their team when a pick from the teams lands on them, a set number of times, and which Kick badges qualify.",
+    lead: "The subscriber perk rewards your supporters without hidden odds: everyone sees the save.",
     sections: [
       {
         id: "perk",
         title: "Protected picks",
         body: [
-          `When a viewer with a qualifying badge is drawn, they are protected: a reroll re-splits the same players and keeps them in their team. A pick is used only when a reroll or a shuffle actually keeps them there, once per draw; a draw with no reroll uses nothing. Each gets ${s.perk_uses} protected picks every ${s.perk_window_days} days unless you change it (${L.perk_uses[0]} to ${L.perk_uses[1]} picks, every ${L.perk_window_days[0]} to ${L.perk_window_days[1]} days).`,
-          `Viewers check what is left with \`${c.perk}\`; a viewer without a qualifying badge is told which badges qualify, never a count. On the dashboard a protected player carries a *Protected* tag, and the row menu can remove it.`,
+          `**Pick** from **Teams** takes players off the teams so waiting viewers get to play. When it lands on a viewer with a qualifying badge and protected picks left, the shield takes the hit: they stay on their team, a random unprotected teammate is picked instead, and one protected pick is used. Nothing is used when the pick never lands on them, and **Pick again** or **Undo** gives it back. Team draws, rerolls and shuffles have no protection. Each gets ${s.perk_uses} protected picks every ${s.perk_window_days} days unless you change it (${L.perk_uses[0]} to ${L.perk_uses[1]} picks, every ${L.perk_window_days[0]} to ${L.perk_window_days[1]} days).`,
+          `Viewers check what is left with \`${c.perk}\`; a viewer without a qualifying badge is told which badges qualify, never a count. Everyone sees the save: the reveal lands on the protected viewer, the shield breaks, and it moves on to the teammate.`,
         ],
       },
       {

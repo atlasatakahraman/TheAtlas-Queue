@@ -422,7 +422,8 @@ justified exception and is documented in [The draw reveal](#the-draw-reveal).
 **Preferences, per browser** (owner, 2026-09-27; the account menu and the palette's
 Preferences): **Animations**, on by default. Off, every animation and transition jumps to its
 end (`html[data-motion="off"]`), `Typewriter` lines appear whole (`Typed`), the draw reveal
-lands at once and in-page jumps are instant. Under the system's reduced motion it is off and
+lands at once, the shield break of a [near miss](#near-miss--save) does not play and in-page
+jumps are instant. Under the system's reduced motion it is off and
 locked, and says why. **Notifications**, on by default. Off, success and info toasts stay
 hidden, their Undo with them; an error still shows. Both live in `localStorage`
 (`pref.motion`, `pref.toasts`) and a script in `<head>` applies them before the first paint.
@@ -488,13 +489,7 @@ the reveal can never disagree with what `/watch` and `/overlay` show.
 1. The Teams tab activates if it is not already open. The headline ("{team 1} vs {team 2}")
    stays put.
 2. Both rosters clear. Names land **alternately**, team 1 then team 2, one every **160ms**.
-   Protected subscribers land first, with their 🛡, because they were never in doubt.
-   **Protection used** (owner, 2026-09-29, migration 0041): when the draw spends a protected pick,
-   each such player lands first and a gold 🛡 **stamps** onto their row (from 2.2× and −18°
-   down to 1×, 480ms, `--brand`); their tag reads *Protected · 2 left*. Then a **redraw beat**
-   of 700ms, and the others land at the usual cadence. The watch page and the overlay's reveal
-   widget play the same. Reduced motion or animations off: no stamp, no beat, the tag with its
-   count at once. The count stays on the tag while that draw is the current one.
+   Team draws have no protection (owner, 2026-10-06, migration 0042): no stamp, no beat, no tag.
 3. Each name types in with `Typewriter` at `speed={30}`, `reveal={200}`. Ten names finish in
    about two seconds.
 4. The average rank under each team name updates when its last name has landed.
@@ -538,9 +533,44 @@ from queue*, disabled (never hidden) when they cannot happen, and the name shows
 or more names add **All to Team 1 / 2**, one write (`move_players`) and one Undo, disabled when
 the team lacks room for all of them; it closes the dialog, the pick being done, while a single
 name's move keeps it open (owner, 2026-09-28). A pick moves nobody, so its toast offers Undo only when it
-used a protection, which Undo gives back.
+used a protection or was a *Pick again*, and Undo gives those uses back (0042).
 
-**Everywhere at once.** `/watch` and `/overlay` play the same reveal when a new draw arrives.
+### Near miss → save
+
+When a Pick from Teams lands on a protected player (see [Subscriber perk](#subscriber-perk)),
+the slot plays a **near miss** (owner, 2026-10-06, P8, chosen from three live prototypes): the
+reveal lands on the protected player, a gold shield slams into the centre, cracks down the
+middle, its halves fly to the dialog's left and right edges (which flash gold), and the impact
+**kicks the reveal on to the stand-in**. The animation is the whole message: the protected
+player gets no row or tag in the picked list. `ShieldBreak` (`shield-break.tsx`, keyframes in
+`globals.css` § Shield break) animates only `transform` and `opacity`, measures its container
+once, and runs on these times after the stage stops (`SLAM_AT` 380ms, then `BREAK`):
+
+| ms after the stop | Beat |
+|---|---|
+| 380 | the shield slams in (scale 2.8 → 0.9 → 1, 380ms) |
+| 760 | the crack draws (160ms) |
+| 920 | the halves fly to the edges (460ms, ±46°), eight shards; the reveal is kicked on |
+| 1220 | the edges glint (480ms) |
+| 1240 | the stand-in takes the gold (no stand-in: 1580, the slot stays empty) |
+
+| Style | Near miss → save |
+|---|---|
+| **Wheel** | The stand-in's wedge sits just before the protected one (index `p − 1`, the one the pointer meets next). The spin stops on the protected wedge; the kick turns it one segment on (overshoot 1.14 → 0.96 → 1, 560ms) and the stand-in's wedge fills gold. |
+| **Cards** | The flick ends on the protected player's card; the shield breaks over it; the card flips to the stand-in (`sb-flip`, 320ms) and takes its gold edge. |
+| **List** | The strip ends one row short, on the protected player; the shield breaks over the frame; the strip kicks one row on to the stand-in. |
+| **Names type in** | The protected name types in; the shield breaks over the line; the stand-in's name types in its place. |
+| **No stand-in** (P6) | Any style: lands on the protected player, the shield breaks, no kick; the slot shows no one. |
+| **Show at once / animations off / reduced motion** | No near miss, no shield: the picked names only. |
+
+The stage's pool always holds the protected player and the stand-in, even when this browser's
+pick source differs from the one the pick used. The kept-on-team chat line goes out once the
+reveal is over, so chat never spoils the wheel.
+
+**Everywhere at once.** `/watch` and `/overlay` play the same reveal when a new draw arrives. A
+pick opens the same **Picked** dialog on `/watch` (P13), read-only (no moves, no *All to…*, no
+*Pick again*, no Skip), in the streamer's reveal style with the near miss; it closes when the
+reveal is over plus a read, never on a fixed timer. The overlay shows no picks.
 Each device plays a given draw **once**; a viewer who opens `/watch` afterwards sees the result
 already set.
 
@@ -1316,7 +1346,7 @@ Only *Not connected* ever raises a toast.
 ### Undo, and a confirm for the big ones
 
 Every action that changes or removes data gets a 5-second **Undo** toast: remove, move, mark
-away, moderation, draw and reroll (Undo restores the previous result), removing a protection.
+away, moderation, draw and reroll (Undo restores the previous result).
 A row's `×` and every other single-player action stop there: no dialog.
 
 **Bulk and moderation actions also ask first** (owner, 2026-09-27, amending D26): *Clear queue*,
@@ -1482,8 +1512,7 @@ Each kind of action is its own section, divided by a separator (owner, 2026-09-2
    on that row; on a queue row they open Add player, and the new player lands at that place.
    One write, one Undo. Disabled on a full team. Built in Stage 7 (7.33, migration `0018_place`).
 3. teams (both, with the team's **current name** and colour)
-4. state (back to waiting, mark away or back, lift a punishment) · protection (*Remove
-   protection*, only on a protected sub) on its own
+4. state (back to waiting, mark away or back, lift a punishment)
 5. moderation (warn and punish in warning, ban) · remove on its own
 
 Ban and remove are `variant="destructive"`. Shortcut hints go here.
@@ -1536,7 +1565,7 @@ sits between them (D25).
 ```
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  5px team bar
 ■ 4 of 5 · avg Gold II               [🏆 Victory] [+ Add to Kurtlar]
-┌ 1 (◉) brkdmr #TR1  ★ Protected       ▍ Plat IV   [⇄] [↩] [×] [⋯] ┐
+┌ 1 (◉) brkdmr #TR1  ★ sub             ▍ Plat IV   [⇄] [↩] [×] [⋯] ┐
 ┆   a 3px team-coloured line between two rows while one is dragged here (D37)
 └ 2 (◉) kaanxd #0001                   ▍ Gold I    [⇄] [↩] [×] [⋯] ┘
 ┌╌ Empty slot ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
@@ -1585,7 +1614,6 @@ the name's line; the name truncates first, and when the line is under 20rem (con
 | Tag | Icon | Colour | When |
 |---|---|---|---|
 | Sub | `Star` | brand | A subscriber, in the queue |
-| Protected | `ShieldCheck` | brand | A subscriber locked by the perk in this draw |
 | In game | `Gamepad2` | that team's colour | State |
 | Away | `Coffee` | muted | State |
 | First game | `Sparkles` | success | Fair-play is on and they have not played this session |
@@ -1628,18 +1656,34 @@ Subscribers and VIPs get 3 protected picks every 30 days, and check what is left
 
 ### Subscriber perk
 
-Settings → Draws & perks: uses per rolling 30 days and the [badge picker](#badge-picker). On
-the dashboard the perk is visible, never hidden odds: the *Protected* tags, the protected-first
-order in the reveal, *Remove protection* in the row menu.
+Settings → Draws & perks: uses per rolling 30 days and the [badge picker](#badge-picker). The
+perk is visible, never hidden odds: everyone sees the save (the [near miss](#near-miss--save)).
+The rules (owner, 2026-10-06, migration 0042; the vault's *2026-10-06-queue-protection-redesign-spec*,
+P1–P7):
 
-**Reroll and when a use is spent** (owner, 2026-09-29, migrations 0040 and 0041): a fresh draw
-protects each drawn player with a perk badge and a use left and **spends the use at once**,
-the draw itself being the automatic redraw around them (the reveal shows it: stamp, beat, the
-rest); the draw records who spent one and how many are left. **Reroll re-splits the same drawn
-players**, the protected keeping their team (as Shuffle current teams does); nobody new comes
-in from the queue, and it spends nothing more for that draw. Undo of the draw gives the use
-back; *Remove protection* gives back the use of this draw. Viewers check their own remaining uses
-with `!hak`; a viewer without a perk badge is told who the perk is for, never a count.
+**Where it applies (P1).** Protection lives in **Pick** only, and only when the pick's source is
+**Teams**: *Pick from Teams* takes players off the teams so waiting viewers get to play. Waiting
+and Whole queue ignore it; Draw teams, Reroll and Shuffle current teams have no protection.
+
+**What it buys (P2).** When a Pick from Teams lands on a protected player, they stay on their
+team and a **stand-in** is picked in their place.
+
+**When a use is spent (P3).** Only when the pick actually landed on them, automatically; the
+viewer cannot opt out or save uses.
+
+**Who qualifies (P4).** A player whose latest known badges (they refresh from every chat message,
+P10) include one of the chosen perk badges and who has a use left in the window. One shared quota.
+
+**The stand-in (P5).** Random among the unprotected team players not already picked. A protected
+player is never a stand-in.
+
+**No stand-in left (P6).** Protection holds: they stay, the pick returns fewer names, and the use
+is spent.
+
+**Kept picks only (P7).** The use is spent at the hit and refunded when the streamer presses
+**Pick again** or **Undo** on that pick. There is no *Remove protection*. Viewers check their own
+remaining uses with `!hak`; a viewer without a perk badge is told who the perk is for, never a
+count; when protection keeps someone on the team, chat says so once (P9).
 
 ### Buttons
 
@@ -1831,7 +1875,7 @@ icon inside a button. Decorative icons are `aria-hidden`; icon-only buttons carr
 Menu items carry an icon each (the row menu, the page menu, the toolbar's Shuffle menu, the
 account menu); the command palette does not. GitHub's mark is inline SVG, since lucide 1.x ships
 no brand icons.
-🛡 appears only in chat replies; the page draws protection with `ShieldCheck` and badges with
+🛡 appears only in chat replies; the page draws protection as the near miss's shield and badges with
 the [badge picker](#badge-picker)'s glyphs.
 
 **Colour means something** (owner, 2026-09-28). An icon takes a colour only when it names a
@@ -1915,7 +1959,7 @@ ban removes the player from the queue; Undo brings them back. Games are served b
 **Do**
 
 - Reach for the semantic token, so both themes come for free.
-- Keep gold scarce: the wordmark, focus, selection, the subscriber and protected tags, warnings.
+- Keep gold scarce: the wordmark, focus, selection, the subscriber tag, the near miss's shield, warnings.
 - Give every row its `row-edge` outline and a 6px gap.
 - Write state as a word *and* a colour.
 - Give every text role its selection pair; make chrome `select-none`.

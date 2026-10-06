@@ -160,7 +160,7 @@ export const tr: Help = {
         id: "draw",
         title: "Takım çekmek",
         body: [
-          "**Takımları çek** (`D`) iki takımı bekleyenlerden rastgele doldurur. **Yeniden çek** aynı oyunculardan yeniden çeker, korumalı olanları yerinde bırakır. **Mevcut takımları karıştır** zaten takımda olanları karıştırır.",
+          "**Takımları çek** (`D`) iki takımı bekleyenlerden rastgele doldurur. **Yeniden çek** aynı oyunculardan yeniden çeker. **Mevcut takımları karıştır** zaten takımda olanları karıştırır.",
           "Çekilişler aynı takım arkadaşlarını yeniden bir araya getirmekten kaçınır; bir maçtan sonra aynı dört oyuncu çekilirse farklı bölünür. Bkz. [Takımlar nasıl bölünür](/wiki/teams#split).",
         ],
       },
@@ -254,15 +254,15 @@ export const tr: Help = {
   },
   perks: {
     title: "Ayrıcalıklar ve rozetler",
-    description: "Abone ayrıcalığı çekilen aboneleri belli sayıda yeniden çekilişten korur; hangi Kick rozetlerinin hak kazandırdığı.",
-    lead: "Abone ayrıcalığı destekçilerini gizli şans olmadan ödüllendirir: kimin korumalı olduğunu herkes görür.",
+    description: "Abone ayrıcalığı, takımlardan seçim uygun izleyiciye denk geldiğinde onu belirli sayıda takımında tutar; hangi Kick rozetlerinin hak kazandırdığı.",
+    lead: "Abone ayrıcalığı destekçilerini gizli şans olmadan ödüllendirir: kurtarışı herkes görür.",
     sections: [
       {
         id: "perk",
         title: "Korumalı haklar",
         body: [
-          `Hak kazandıran rozeti olan bir izleyici çekildiğinde korumalı olur: yeniden çekiliş aynı oyuncuları yeniden böler ve onu takımında bırakır. Bir hak yalnızca yeniden çekiliş ya da karıştırma onu gerçekten takımında tuttuğunda, çekiliş başına bir kez harcanır; yeniden çekilmeyen bir çekiliş hak harcamaz. Değiştirmediysen her biri ${s.perk_window_days} günde ${s.perk_uses} korumalı hak alır (${L.perk_uses[0]} ile ${L.perk_uses[1]} hak, ${L.perk_window_days[0]} ile ${L.perk_window_days[1]} günde bir).`,
-          `İzleyiciler kalanı \`${c.perk}\` ile sorar; uygun rozeti olmayan izleyiciye bir sayı değil, hangi rozetlerin uygun olduğu söylenir. Panelde korumalı oyuncu *korumalı* etiketini taşır; satır menüsü korumayı kaldırabilir.`,
+          `**Takımlar**dan **Çek** bekleyenler de oynasın diye oyuncuları takımlardan çıkarır. Seçim, uygun rozeti ve korumalı hakkı olan bir izleyiciye denk gelirse kalkan darbeyi alır: izleyici takımında kalır, yerine korumasız bir takım arkadaşı rastgele seçilir ve bir korumalı hak kullanılır. Seçim ona hiç denk gelmezse hak kullanılmaz; **Tekrar çek** ya da **Geri al** hakkı geri verir. Takım çekme, yeniden çekme ve karıştırmada koruma yoktur. Değiştirmediysen her biri ${s.perk_window_days} günde ${s.perk_uses} korumalı hak alır (${L.perk_uses[0]} ile ${L.perk_uses[1]} hak, ${L.perk_window_days[0]} ile ${L.perk_window_days[1]} günde bir).`,
+          `İzleyiciler kalanı \`${c.perk}\` ile sorar; uygun rozeti olmayan izleyiciye bir sayı değil, hangi rozetlerin uygun olduğu söylenir. Kurtarışı herkes görür: seçim korumalı izleyiciye denk gelir, kalkan kırılır ve takım arkadaşına geçer.`,
         ],
       },
       {

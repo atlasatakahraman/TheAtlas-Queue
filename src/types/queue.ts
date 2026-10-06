@@ -247,6 +247,7 @@ export type DashboardActions = {
   findKickUser: (channelId: string, username: string) => Promise<FoundKickUser>;
   reconnect: (channelId: string) => Promise<string | null>;
   stopChatReplies: (channelId: string) => Promise<void>;
+  announceSaves: (channelId: string, drawId: string) => Promise<void>;
   deleteMyData: (channelId: string, typed: string) => Promise<boolean>;
 };
 

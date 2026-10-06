@@ -11,33 +11,43 @@ import { HERE } from "@/lib/server/site";
 type Result = { result: string; reason?: string; player?: string; left?: number; enabled?: boolean; eligible?: boolean; position?: number | null };
 type Settings = { chat_replies: boolean; stream_locale: Lang; labels: Labels | null };
 
-// Batched (owner, 2026-09-29): a channel's answers wait up to 5 s and go out together, so a join
-// rush is a few messages, not one per viewer. The first answer's after() carries the send; the
-// rest wait on it.
-// ponytail: per-instance batch; answers landing on another instance make their own message.
-const WAIT = 5_000;
+// Replies (owner, 2026-10-06; amends 0075): the first in a quiet channel goes out at once; those
+// that arrive within the next 2 s merge into one follow-up sent when the window closes, so a join
+// rush is still a few messages, not one per viewer.
+// ponytail: per-instance window; answers landing on another instance make their own message.
+const WINDOW = 2_000;
 const MAX = 500; // Kick's chat message limit
 type Line = { key: LabelKey; vars: Record<string, string | number> };
 type Batch = { s: Settings; lines: Line[]; sent?: Promise<void> };
 const batches = new Map<string, Batch>();
+const quietAt = new Map<string, number>();
 
 async function say(channelId: string, key: LabelKey, vars: Record<string, string | number>, s?: Settings) {
   s ??= (await adminDb().from("settings").select("chat_replies, stream_locale, labels").eq("channel_id", channelId).single()).data as Settings;
   if (!s?.chat_replies) return;
-  let b = batches.get(channelId);
-  if (!b) {
-    const batch: Batch = { s, lines: [] };
-    batch.sent = new Promise<void>((r) => setTimeout(r, WAIT)).then(() => flush(channelId, batch));
-    batches.set(channelId, (b = batch));
+  const open = batches.get(channelId);
+  if (open) {
+    open.lines.push({ key, vars });
+    return open.sent;
   }
-  b.lines.push({ key, vars });
-  return b.sent;
+  const wait = (quietAt.get(channelId) ?? 0) - Date.now();
+  if (wait <= 0) {
+    quietAt.set(channelId, Date.now() + WINDOW);
+    return flush(channelId, { s, lines: [{ key, vars }] });
+  }
+  const batch: Batch = { s, lines: [{ key, vars }] };
+  batch.sent = new Promise<void>((r) => setTimeout(r, wait)).then(() => {
+    quietAt.set(channelId, Date.now() + WINDOW);
+    return flush(channelId, batch);
+  });
+  batches.set(channelId, batch);
+  return batch.sent;
 }
 
 // The batch as messages: several joins become one "Joined the queue: @a #3, @b #4" line, the
 // rest stay their own sentences, packed up to Kick's limit.
 async function flush(channelId: string, b: Batch) {
-  batches.delete(channelId);
+  if (batches.get(channelId) === b) batches.delete(channelId);
   const t = (key: LabelKey, vars: Line["vars"]) => translate(b.s.stream_locale, key, b.s.labels ?? undefined, vars);
   const joins = b.lines.filter((l) => l.key === "chat.joined").sort((x, y) => Number(x.vars.position) - Number(y.vars.position));
   const pieces: string[] = [];
@@ -101,6 +111,11 @@ export async function answer(channelId: string, command: keyof Commands, r: Resu
   if (command === "perk" && r.result === "perk" && r.enabled && r.eligible === false)
     return throttled(`${channelId}:perk-none:${name.toLowerCase()}`) ? undefined : perkNone(channelId, name);
   if (command === "perk" && r.result === "perk" && r.enabled) return say(channelId, "chat.perk", { name, uses: r.left ?? 0 });
+}
+
+// Protection kept a viewer on their team (P9), once per pick (announceSaves holds the gate).
+export async function keptOnTeam(channelId: string, name: string, left: number) {
+  await say(channelId, "chat.perk.saved", { name, uses: left });
 }
 
 // !komutlar / !commands (fixed in both languages) and the watch command: each at most once per

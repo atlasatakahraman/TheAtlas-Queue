@@ -3,6 +3,7 @@ import "server-only";
 import { auth } from "@/lib/auth";
 import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
+import { keptOnTeam } from "@/lib/server/chat-replies";
 import { dropSubscriptions, ensureSubscriptions, kickUserBySlug } from "@/lib/server/kick";
 import { dropChatToken } from "@/lib/server/kick-tokens";
 import { kickUser } from "@/lib/server/profile";
@@ -95,6 +96,24 @@ export async function reconnect(channelId: string): Promise<string | null> {
 // Chat replies off (the switch saves chat_replies itself): the token is revoked and deleted.
 export async function stopChatReplies(channelId: string): Promise<void> {
   if (await membership(channelId, true)) await dropChatToken(channelId);
+}
+
+// The kept-on-team lines for a pick (P9), sent once whoever asks: the update that sets
+// announced_at is the gate, so every dashboard can call it when its reveal ends.
+export async function announceSaves(channelId: string, drawId: string): Promise<void> {
+  if (typeof drawId !== "string" || !UUID.test(drawId) || !(await membership(channelId))) return;
+  const { data } = await adminDb()
+    .from("draws")
+    .update({ announced_at: new Date().toISOString() })
+    .eq("id", drawId)
+    .eq("channel_id", channelId)
+    .eq("kind", "pick")
+    .is("announced_at", null)
+    .is("undone_at", null)
+    .select("result")
+    .maybeSingle();
+  const saved = (data?.result as { saved?: { kick_username: string; left: number }[] } | null)?.saved ?? [];
+  for (const s of saved) await keptOnTeam(channelId, s.kick_username, s.left);
 }
 
 // Delete my data (DESIGN.md § Settings → Your data): owner only, the channel's slug typed again.

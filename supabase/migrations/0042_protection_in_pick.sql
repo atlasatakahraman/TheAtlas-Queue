@@ -630,3 +630,173 @@ end $function$;
 
 -- draw_root's only callers were perk_charge and remove_protection, both dropped above.
 drop function private.draw_root(uuid);
+
+-- Part 2: protection in Pick from Teams (P1–P7), badge refresh (P10), the saved label (spec § 4).
+
+-- Protected picks left in the window (the same count !hak answers with, 0039).
+create function private.perk_left(p_channel uuid, p_kick_user_id bigint) returns integer
+language sql stable set search_path = '' as $$
+  select greatest(s.perk_uses - (select count(*)::integer from public.perk_uses u
+    where u.channel_id = p_channel and u.kick_user_id = p_kick_user_id and u.refunded_at is null
+      and u.used_at > now() - make_interval(days => s.perk_window_days)), 0)
+  from public.settings s where s.channel_id = p_channel
+$$;
+revoke execute on function private.perk_left(uuid, bigint) from public, anon, authenticated;
+
+-- Pick N (P1–P7). From the teams a pick takes players off them, so protection is immunity: the
+-- random pick runs as always; each protected player it lands on stays, an unprotected teammate
+-- not already picked takes their slot (the stand-in), and one use is spent. No stand-in left:
+-- protection holds and the pick is one shorter. Pick again refunds the pick it replaces; Undo
+-- gives back both. draws.n is the requested N (draws_n_check is 1–10).
+drop function public.pick_players(uuid, integer, text, uuid, uuid);
+create function public.pick_players(p_channel uuid, p_n integer, p_source text, p_base uuid, p_request_id uuid, p_again boolean default false)
+returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  b        record;
+  s        public.settings;
+  v_latest public.draws;
+  v_draw   public.draws;
+  v_pick   uuid[];
+  v_out    uuid[] := '{}';
+  v_prot   uuid[] := '{}';
+  v_stand  uuid[] := '{}';
+  v_saved  jsonb := '[]'::jsonb;
+  v_hit    uuid;
+  v_k      integer := 1;
+  v_refund jsonb := '[]'::jsonb;
+  v_uses   uuid[];
+begin
+  select * into b from private.begin(p_channel, false, p_request_id);
+  if b.replay then return private.replay(p_channel, b.actor); end if;
+  if p_n is null or p_n not between 1 and 10 or p_source is null or p_source not in ('waiting', 'teams', 'all')
+     or p_again is null then
+    perform private.fail('request.invalid');
+  end if;
+  v_latest := private.latest_draw(p_channel);
+  if v_latest.id is distinct from p_base then return private.stale(p_channel, b.actor, v_latest); end if;
+  select * into s from public.settings x where x.channel_id = p_channel;
+
+  -- Pick again (P7): the pick it replaces costs nothing. Undo restores these rows as they were.
+  if p_again and v_latest.kind = 'pick' then
+    select coalesce(jsonb_agg(to_jsonb(u)), '[]'::jsonb) into v_refund
+    from public.perk_uses u where u.channel_id = p_channel and u.draw_id = v_latest.id and u.refunded_at is null;
+    update public.perk_uses u set refunded_at = now()
+    where u.channel_id = p_channel and u.draw_id = v_latest.id and u.refunded_at is null;
+  end if;
+
+  select coalesce((array_agg(p.id order by extensions.gen_random_bytes(8)))[1:p_n], '{}') into v_pick
+  from public.players p
+  where p.channel_id = p_channel and p.deleted_at is null
+    and p.status = any(case p_source when 'waiting' then array['waiting'] when 'teams' then array['playing']
+                                     else array['waiting', 'playing'] end)
+    and private.sanction(p_channel, p.kick_username, p.kick_user_id) is null;
+  if cardinality(v_pick) = 0 then perform private.fail('draw.not_enough'); end if;
+
+  if p_source = 'teams' and s.perk_enabled then
+    select coalesce(array_agg(p.id), '{}') into v_prot
+    from public.players p
+    where p.channel_id = p_channel and p.deleted_at is null and p.status = 'playing'
+      and p.kick_user_id is not null and p.badges && s.perk_badges
+      and private.perk_left(p_channel, p.kick_user_id) > 0;
+    select coalesce(array_agg(p.id order by extensions.gen_random_bytes(8)), '{}') into v_stand
+    from public.players p
+    where p.channel_id = p_channel and p.deleted_at is null and p.status = 'playing'
+      and private.sanction(p_channel, p.kick_username, p.kick_user_id) is null
+      and p.id <> all (v_pick) and p.id <> all (v_prot);
+    foreach v_hit in array v_pick loop
+      if v_hit = any(v_prot) then
+        v_saved := v_saved || jsonb_build_object(
+          'id', v_hit,
+          'kick_username', (select p.kick_username from public.players p where p.id = v_hit),
+          'standin_id', v_stand[v_k],  -- null past the end: protection holds, the slot goes (P6)
+          'left', private.perk_left(p_channel, (select p.kick_user_id from public.players p where p.id = v_hit)) - 1);
+        if v_k <= cardinality(v_stand) then
+          v_out := v_out || v_stand[v_k];
+          v_k := v_k + 1;
+        end if;
+      else
+        v_out := v_out || v_hit;
+      end if;
+    end loop;
+    v_pick := v_out;
+  end if;
+
+  insert into public.draws (channel_id, kind, n, result, request_id, created_by)
+  values (p_channel, 'pick', p_n,
+    jsonb_build_object(
+      'picked', (select coalesce(jsonb_agg(jsonb_build_object('id', p.id, 'kick_username', p.kick_username)
+                                           order by array_position(v_pick, p.id)), '[]'::jsonb)
+                 from public.players p where p.id = any(v_pick)),
+      'saved', v_saved),
+    coalesce(p_request_id, gen_random_uuid()), b.actor)
+  returning * into v_draw;
+
+  with u as (
+    insert into public.perk_uses (channel_id, kick_user_id, draw_id)
+    select p_channel, p.kick_user_id, v_draw.id
+    from jsonb_array_elements(v_saved) e join public.players p on p.id = (e ->> 'id')::uuid
+    returning id)
+  select coalesce(array_agg(u.id), '{}') into v_uses from u;
+
+  return private.commit(p_channel, b.next_v, b.actor, 'pick_from_' || p_source, null,
+    jsonb_build_object('draw', v_draw.id, 'n', p_n, 'saved', jsonb_array_length(v_saved)),
+    jsonb_build_object('inserted_perk_uses', to_jsonb(v_uses), 'perk_uses', v_refund, 'draw', v_draw.id),
+    p_request_id, jsonb_build_array(to_jsonb(v_draw) || '{"_t":"draws"}'::jsonb));
+end $$;
+revoke execute on function public.pick_players(uuid, integer, text, uuid, uuid, boolean) from public, anon;
+grant execute on function public.pick_players(uuid, integer, text, uuid, uuid, boolean) to authenticated;
+
+-- A queued viewer's badges follow their chat (P10): the webhook sends every message's badges
+-- when they differ from what that instance last saw; nothing is written unless they changed.
+create function public.refresh_badges(p_broadcaster bigint, p_sender_id bigint, p_badges text[]) returns void
+language sql security definer set search_path = '' as $$
+  update public.players p set badges = coalesce(p_badges, '{}')
+  from public.channels c
+  where c.kick_channel_id = p_broadcaster and p.channel_id = c.id and p.kick_user_id = p_sender_id
+    and p.deleted_at is null and cardinality(coalesce(p_badges, '{}')) <= 16
+    and p.badges is distinct from coalesce(p_badges, '{}')
+$$;
+revoke execute on function public.refresh_badges(bigint, bigint, text[]) from public, anon, authenticated;
+grant execute on function public.refresh_badges(bigint, bigint, text[]) to service_role;
+
+-- The kept-on-team line (spec § 4) can be renamed like the other chat replies.
+CREATE OR REPLACE FUNCTION private.labels_valid(l jsonb)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ IMMUTABLE
+ SET search_path TO ''
+AS $function$
+declare loc text; v jsonb; k text; s jsonb;
+begin
+  if jsonb_typeof(l) <> 'object' then return false; end if;
+  for loc, v in select * from jsonb_each(l) loop
+    if loc not in ('en', 'tr') or jsonb_typeof(v) <> 'object' then return false; end if;
+    for k, s in select * from jsonb_each(v) loop
+      if k <> all (array[
+        'brand.subtitle', 'team.1', 'team.2', 'match.vs',
+        'queue.title', 'queue.hint', 'queue.empty.title', 'queue.empty.hint',
+        'action.add', 'action.draw', 'action.reroll', 'action.pick',
+        'watch.title', 'watch.subtitle', 'watch.disabled',
+        'overlay.queue.title', 'overlay.draw.title',
+        'chat.joined', 'chat.joined.many', 'chat.rejected.banned', 'chat.rejected.duplicate',
+        'chat.rejected.offline', 'chat.rejected.closed', 'chat.position', 'chat.perk', 'chat.perk.none',
+        'chat.perk.saved',
+        'chat.commands', 'chat.watch', 'chat.rules'
+      ]) then return false; end if;
+      if jsonb_typeof(s) <> 'string' or char_length(s #>> '{}') > 80 then return false; end if;
+    end loop;
+  end loop;
+  return true;
+end $function$;
+
+-- Last, once every reader above is redefined: the column goes, and nothing may still name it.
+alter table public.players drop column locked;
+
+do $$
+begin
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname in ('public', 'private') and p.prosrc ~ '\mlocked\M') then
+    raise exception '0042: a function still reads players.locked';
+  end if;
+end $$;

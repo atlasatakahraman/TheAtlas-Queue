@@ -19,9 +19,25 @@ type Sender = {
   identity?: { badges?: { type?: string }[] } | null;
 };
 
-// ponytail: per-instance 60 s cache, so plain chat never reaches Postgres; a command or member
-// change reaches chat within a minute. Invalidate across instances if that ever matters.
+// ponytail: per-instance 60 s cache, so plain chat reaches Postgres only for a sender's badge
+// change (P10); a command or member change reaches chat within a minute. Invalidate across
+// instances if that ever matters.
 const contexts = new Map<number, { at: number; ctx: Context | null }>();
+
+// The badges each sender last showed this instance (P10): a queued viewer's badges follow their
+// chat, but only a change reaches Postgres. ponytail: per-instance and bounded; another instance
+// sends its own first sighting, which writes nothing if unchanged.
+const seenBadges = new Map<string, { at: number; key: string }>();
+const BADGES_TTL = 10 * 60_000;
+function badgesChanged(broadcaster: number, sender: number, badges: string[]): boolean {
+  const id = `${broadcaster}:${sender}`;
+  const key = [...badges].sort().join(",");
+  const hit = seenBadges.get(id);
+  if (hit && hit.key === key && Date.now() - hit.at < BADGES_TTL) return false;
+  if (seenBadges.size > 5000) seenBadges.clear();
+  seenBadges.set(id, { at: Date.now(), key });
+  return true;
+}
 
 async function context(broadcaster: number): Promise<Context | null> {
   const hit = contexts.get(broadcaster);
@@ -52,6 +68,11 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
     .map((b) => b.type)
     .filter((t): t is string => typeof t === "string" && /^[a-z_]{1,32}$/.test(t))
     .slice(0, 16);
+  if (badgesChanged(broadcaster!, s.user_id!, badges))
+    after(async () => {
+      const { error } = await adminDb().rpc("refresh_badges", { p_broadcaster: broadcaster, p_sender_id: s.user_id, p_badges: badges });
+      if (error) console.error(JSON.stringify({ route: "kick/webhook", step: "refresh_badges", error: error.code }));
+    });
   if (s.user_id !== broadcaster && needsBadgeSync(ctx.members[String(s.user_id)], badges.includes("moderator"))) {
     const { error } = await adminDb().rpc("sync_member_badge", {
       p_broadcaster: broadcaster, p_user_id: s.user_id, p_username: s.username, p_is_mod: badges.includes("moderator"),

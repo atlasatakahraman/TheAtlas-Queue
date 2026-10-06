@@ -16,8 +16,6 @@ import {
   type LucideIcon,
   Pencil,
   RefreshCw,
-  ShieldCheck,
-  ShieldOff,
   Sparkles,
   Star,
   Trash2,
@@ -112,11 +110,9 @@ function PunishedTag({ punish }: { punish?: Sanction }) {
   return <Tag fold tone="warning" icon={Hourglass}>{left}</Tag>;
 }
 
-export function PlayerTags({ player, showState = true, shield }: {
+export function PlayerTags({ player, showState = true }: {
   player: Player;
   showState?: boolean;
-  /** The current draw's shield for this player (0041): picks left, and when its icon stamps on. */
-  shield?: { left: number; stampAt?: number };
 }) {
   const { t } = useT();
   const fairPlay = useQueue((v) => v.settings.fair_play);
@@ -124,13 +120,7 @@ export function PlayerTags({ player, showState = true, shield }: {
   const s = activeSanctions(moderation, player.kick_username);
   return (
     <>
-      {player.locked ? (
-        <Tag fold tone="brand" icon={ShieldCheck} stampAt={shield?.stampAt}>
-          {shield ? t("tag.protected.left", { n: shield.left }) : t("tag.protected")}
-        </Tag>
-      ) : (
-        player.is_subscriber && <Tag fold tone="brand" icon={Star}>{t("tag.sub")}</Tag>
-      )}
+      {player.is_subscriber && <Tag fold tone="brand" icon={Star}>{t("tag.sub")}</Tag>}
       {showState && player.status === "playing" && (
         <Tag fold tone={player.team === 2 ? "team-2" : "team-1"} icon={Gamepad2}>{t("tag.in_game")}</Tag>
       )}
@@ -192,8 +182,6 @@ export function usePlayerActions(p: Player) {
       const m = activeSanctions(store.get().moderation, p.kick_username).punish;
       if (m) void act("revoke_sanction", { p_id: m.id }, { done: "done.revoke", vars: { name: p.kick_username } });
     },
-    removeProtection: () =>
-      act("remove_protection", { p_player: p.id }, { done: "done.unprotect", vars: { name: p.kick_username } }),
     warn: () => ui.setSanction({ name: p.kick_username, kind: "warn" }),
     punish: () => ui.setSanction({ name: p.kick_username, kind: "punish" }),
     ban: () => ui.setSanction({ name: p.kick_username, kind: "ban" }),
@@ -288,7 +276,6 @@ export function usePlayerMenu(p: Player): Item[][] {
         ? [{ label: p.status === "away" ? t("menu.back") : t("menu.away"), icon: Coffee, onSelect: a.toggleAway, write: true, disabled: punished }]
         : []),
     ],
-    p.locked ? [{ label: t("menu.unprotect"), icon: ShieldOff, onSelect: a.removeProtection, write: true }] : [],
     [
       { label: t("menu.warn"), icon: TriangleAlert, onSelect: a.warn, tone: "text-warning", write: true },
       { label: t("menu.punish"), icon: Hourglass, onSelect: a.punish, tone: "text-warning", write: true },
@@ -581,7 +568,6 @@ export function PlayerRow({
   revertedAt,
   enterStyle,
   landAt,
-  shield,
   sorted = false,
 }: {
   player: Player;
@@ -592,7 +578,6 @@ export function PlayerRow({
   enterStyle?: { className?: string; style?: React.CSSProperties };
   /** A fresh draw landing this row: it rises in at this many ms and types its name. */
   landAt?: number;
-  shield?: { left: number; stampAt?: number };
   /** A column sort is on (D35): the row does not drag. */
   sorted?: boolean;
 }) {
@@ -748,7 +733,7 @@ export function PlayerRow({
             <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
               <PlayerName player={player} seen={seen} stacked={table} typeAt={landAt} keyboard={kbd} />
               {table && <RespectBadge name={player.kick_username} />}
-              <PlayerTags player={player} showState={table} shield={shield} />
+              <PlayerTags player={player} showState={table} />
             </div>
           </div>
           {table && ids && <span className={cn("truncate text-meta text-muted-foreground", MID)}>{player.kick_username}</span>}

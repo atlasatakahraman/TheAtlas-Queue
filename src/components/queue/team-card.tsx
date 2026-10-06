@@ -6,7 +6,7 @@ import { Typed } from "@/components/prefs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CARD_HEAD, MIRROR, SLOT } from "@/components/queue/geometry";
-import { REVEAL, revealDuration, revealOrder, shieldsOf } from "@/components/queue/reveal-order";
+import { REVEAL, revealDuration, revealOrder } from "@/components/queue/reveal-order";
 import type { LabelKey } from "@/lib/i18n";
 import { averageRank } from "@/lib/rank";
 import { cn } from "@/lib/utils";
@@ -52,23 +52,15 @@ const TONES = {
   destructive: "text-destructive",
 };
 
-export function Tag({ tone, icon: Icon, fold = false, stampAt, children }: {
+export function Tag({ tone, icon: Icon, fold = false, children }: {
   tone: keyof typeof TONES;
   icon?: LucideIcon;
   fold?: boolean;
-  /** Protection used (0041): the icon stamps on this many ms into a draw landing. */
-  stampAt?: number;
   children: React.ReactNode;
 }) {
   const tag = (
     <span className={cn("inline-flex shrink-0 items-center gap-1 text-meta font-medium select-none", TONES[tone])}>
-      {Icon && (
-        <Icon
-          className={cn("size-3.5 shrink-0", stampAt !== undefined && "animate-stamp")}
-          style={stampAt === undefined ? undefined : { animationDelay: `${stampAt}ms` }}
-          aria-hidden
-        />
-      )}
+      {Icon && <Icon className="size-3.5 shrink-0" aria-hidden />}
       <span className={cn(fold && "@max-xs/name:sr-only")}>{children}</span>
     </span>
   );
@@ -182,25 +174,16 @@ export function slotLayout<P extends Pick<Player, "team_slot">>(roster: P[], siz
 // A fresh draw lands in the live rosters themselves: each drawn row rises into its slot and types
 // the name it keeps showing, so nothing is swapped when the reveal ends (owner, 2026-09-27: the
 // avatars used to jump in after the names). Rows land in roster order, alternating teams.
-export function useLanding(draw: Pick<Draw, "result"> | null, rosters: Pick<Player, "id" | "kick_username" | "riot_id" | "locked">[][]) {
+export function useLanding(draw: Pick<Draw, "result"> | null, rosters: Pick<Player, "id" | "kick_username" | "riot_id">[][]) {
   return useMemo(() => {
     if (!draw) return null;
     const ids = new Set((draw.result.teams ?? []).flat().map((e) => e.id));
     const lists = rosters.map((r) =>
-      r.filter((p) => ids.has(p.id)).map((p) => ({ id: p.id, kick_username: p.riot_id?.split("#")[0] ?? p.kick_username, locked: p.locked })),
+      r.filter((p) => ids.has(p.id)).map((p) => ({ id: p.id, kick_username: p.riot_id?.split("#")[0] ?? p.kick_username })),
     );
-    const used = new Set([...shieldsOf(draw)].filter(([, s]) => s.used).map(([id]) => id));
-    const order = revealOrder(lists, used);
-    return { at: new Map(order.map((o) => [o.entry.id, o.at])), used, duration: revealDuration(order) };
+    const order = revealOrder(lists);
+    return { at: new Map(order.map((o) => [o.entry.id, o.at])), duration: revealDuration(order) };
   }, [draw, rosters]);
-}
-
-// A row's shield from the current draw: its picks left, and when it stamps on if this draw spent
-// one and is landing now.
-export function shieldFor(shields: ReturnType<typeof shieldsOf>, landing: ReturnType<typeof useLanding>, id: string) {
-  const s = shields.get(id);
-  if (!s) return undefined;
-  return { left: s.left, stampAt: landing?.used.has(id) ? landing.at.get(id) : undefined };
 }
 
 // The card: the team's colour along its top, the header line (the count and average on the

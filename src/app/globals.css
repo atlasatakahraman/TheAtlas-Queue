@@ -275,8 +275,6 @@
   --animate-count: count 200ms ease-out both;
   /* Live in the top bar: the Radio icon's two outer arcs fade in turn (D25). */
   --animate-on-air: on-air 2s ease-in-out infinite;
-  /* Protection used (0041): the shield stamps onto the row as its player lands. */
-  --animate-stamp: stamp 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 @layer base {
@@ -316,21 +314,6 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes stamp {
-  from {
-    opacity: 0;
-    transform: scale(2.2) rotate(-18deg);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(0.9) rotate(4deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0);
   }
 }
 
@@ -539,8 +522,7 @@
   .animate-enter,
   .animate-signal,
   .animate-count,
-  .animate-on-air,
-  .animate-stamp {
+  .animate-on-air {
     animation: none;
   }
   .animate-arrive {

@@ -1,9 +1,8 @@
 "use client";
-import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { I18nProvider, useT } from "@/components/i18n";
 import { Typed } from "@/components/prefs";
-import { REVEAL, revealOrder, shieldsOf } from "@/components/queue/reveal-order";
+import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
 import { useLive } from "@/components/watch/use-watch";
 import { cn } from "@/lib/utils";
 import type { OverlayConfig, OverlaySnapshot, OverlayWidget } from "@/types/queue";
@@ -114,11 +113,10 @@ function Panel({ title, children, className }: { title?: string; children: React
 
 const tone = (team: 1 | 2) => (team === 1 ? "text-(--o-t1)" : "text-(--o-t2)");
 
-function Name({ name, locked }: { name: string; locked?: boolean }) {
+function Name({ name }: { name: string }) {
   return (
     <span className="flex min-w-0 items-center gap-2 text-overlay-name">
       <span className="truncate">{name}</span>
-      {locked && <ShieldCheck className="size-6 shrink-0 text-(--o-gold)" aria-hidden />}
     </span>
   );
 }
@@ -133,7 +131,7 @@ function Teams({ snap }: { snap: OverlaySnapshot }) {
         <div key={n} className="flex min-w-0 flex-col gap-1.5">
           <h2 className={cn("font-serif text-[2.25rem] leading-tight", tone(n))}>{t(`team.${n}`)}</h2>
           {players.filter((p) => p.team === n).map((p) => (
-            <Name key={p.id} name={p.kick_username} locked={p.locked} />
+            <Name key={p.id} name={p.kick_username} />
           ))}
         </div>
       ))}
@@ -176,8 +174,7 @@ function Reveal({ snap, overlayKey }: { snap: OverlaySnapshot; overlayKey: strin
   }, [draw, overlayKey]);
   if (!draw || shown?.id !== draw.id) return null;
   const lists = draw.result.teams ?? [draw.result.picked ?? []];
-  const shields = shieldsOf(draw);
-  const order = revealOrder(lists, new Set([...shields].filter(([, s]) => s.used).map(([id]) => id)));
+  const order = revealOrder(lists);
   return (
     <Panel title={t("overlay.draw.title")} className={cn("transition-opacity duration-700", shown.fading && "opacity-0")}>
       <div className={cn("grid gap-x-10 gap-y-1.5", lists.length === 2 && "grid-cols-2")}>
@@ -192,9 +189,6 @@ function Reveal({ snap, overlayKey }: { snap: OverlaySnapshot; overlayKey: strin
                   startDelay={o.at}
                   className={cn("truncate text-overlay-name", lists.length === 2 ? tone((i + 1) as 1 | 2) : "text-(--o-gold)")}
                 />
-                {shields.get(o.entry.id)?.used && (
-                  <ShieldCheck className="size-6 shrink-0 animate-stamp text-(--o-gold)" style={{ animationDelay: `${o.at}ms` }} aria-hidden />
-                )}
               </span>
             ))}
           </div>

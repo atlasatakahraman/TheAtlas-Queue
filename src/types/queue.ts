@@ -27,7 +27,6 @@ export type Player = {
   puuid: string | null;
   status: Status;
   team: 1 | 2 | null;
-  locked: boolean;
   is_subscriber: boolean;
   badges: string[];
   games_played: number;
@@ -43,27 +42,29 @@ export type Player = {
   rank: Rank;
 };
 
-export type DrawEntry = { id: string; kick_username: string; locked: boolean };
-// A protected player in a draw (0041): picks left, and whether this draw spent one.
-export type DrawShield = { id: string; left: number; used: boolean };
+export type DrawEntry = { id: string; kick_username: string };
+// A protected player a pick landed on (0042): who took their slot (null: nobody could), picks left.
+export type DrawSave = { id: string; kick_username: string; standin_id: string | null; left: number };
 
 export type Draw = {
   id: string;
   channel_id: string;
   kind: "teams" | "pick";
+  // A pick's requested N (0042), so Pick again asks for the same count after a save shortened it.
   n: number;
-  result: { teams?: [DrawEntry[], DrawEntry[]]; picked?: DrawEntry[]; protected?: DrawShield[] };
+  result: { teams?: [DrawEntry[], DrawEntry[]]; picked?: DrawEntry[]; saved?: DrawSave[] };
   rerolled_from: string | null;
   created_by: string | null;
   created_at: string;
   undone_at: string | null;
+  announced_at?: string | null;
 };
 
 // A recorded game (D27, 0027): both rosters as they stood, each player with their rank then. A
 // player removed from all history leaves { removed: true } in their place. n is the channel's
 // game number, never reused, so /games/<n> stays put.
 export type GameEntry =
-  | { id: string; kick_username: string; riot_id: string | null; locked: boolean; rank: Rank; removed?: undefined }
+  | { id: string; kick_username: string; riot_id: string | null; rank: Rank; removed?: undefined }
   | { removed: true };
 export type Game = {
   id: string;
@@ -151,7 +152,7 @@ export type WatchSection = "teams" | "queue" | "games" | "moderation" | "riot_id
 
 // What /watch/<slug> and /api/watch/<slug> carry (0029's watch_snapshot, a whitelist): Riot only
 // with riot_ids, games and the all-time board only with games, moderation names and kind only.
-export type WatchPlayer = Pick<Player, "id" | "kick_username" | "status" | "team" | "team_slot" | "sort_key" | "locked" | "riot_id" | "rank">;
+export type WatchPlayer = Pick<Player, "id" | "kick_username" | "status" | "team" | "team_slot" | "sort_key" | "riot_id" | "rank">;
 export type WatchGame = { n: number; winner: 1 | 2; ended_at: string; teams: [GameEntry[], GameEntry[]] };
 export type WatchSnapshot =
   | { disabled: true; channel: { slug: string; name: string }; labels: Labels }
@@ -162,6 +163,8 @@ export type WatchSnapshot =
       labels: Labels | null;
       sections: WatchSection[];
       team_size: number;
+      // The streamer's reveal style for the Picked dialog (P13, 0042); absent from a payload cached before it.
+      draw_reveal?: DrawReveal;
       players: WatchPlayer[];
       draw: Pick<Draw, "id" | "kind" | "n" | "result" | "created_at"> | null;
       score: Score;
@@ -278,7 +281,7 @@ export type OverlaySnapshot = {
   lang: Lang;
   labels: Labels | null;
   team_size: number;
-  teams: { id: string; kick_username: string; team: 1 | 2; team_slot: number | null; locked: boolean }[] | null;
+  teams: { id: string; kick_username: string; team: 1 | 2; team_slot: number | null }[] | null;
   queue: { total: number; rows: { id: string; kick_username: string }[] } | null;
   score: { t1: number; t2: number } | null;
   last: { n: number; winner: 1 | 2; ended_at: string; teams: [string[], string[]] } | null;

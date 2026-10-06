@@ -1,5 +1,5 @@
 "use client";
-import { Ban, CircleHelp, Radio, ShieldCheck, Trophy, TriangleAlert, Gavel } from "lucide-react";
+import { Ban, CircleHelp, Radio, Trophy, TriangleAlert, Gavel } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { rememberPlace, rememberWatched } from "@/components/queue/tabs";
 import { I18nProvider, useSetLang, useT } from "@/components/i18n";
@@ -9,8 +9,8 @@ import { ThemeButton } from "@/components/theme-button";
 import { Kbd } from "@/components/ui/kbd";
 import { useNow } from "@/components/use-now";
 import { MAIN, ROW, ROW_ROSTER, TEAMS_GRID } from "@/components/queue/geometry";
-import { REVEAL, revealDuration, revealOrder, shieldsOf } from "@/components/queue/reveal-order";
-import { Avg, EMPTY_SLOT, EmptySlotBody, NameText, PlayerAvatar, RankText, shieldFor, slotLayout, Tag, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
+import { REVEAL, revealDuration, revealOrder } from "@/components/queue/reveal-order";
+import { Avg, EMPTY_SLOT, EmptySlotBody, NameText, PlayerAvatar, RankText, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
 import { SlimBar } from "@/components/status-page";
 import { useWatch } from "@/components/watch/use-watch";
 import type { Lang } from "@/lib/i18n";
@@ -82,7 +82,6 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
   const reveal = useReveal(snap.draw);
   const rosters = useMemo(() => ([1, 2] as const).map((n) => playing.filter((p) => p.team === n)), [playing]);
   const landing = useLanding(reveal?.kind === "teams" ? reveal : null, rosters);
-  const shields = useMemo(() => shieldsOf(snap.draw), [snap.draw]);
   const shown = [
     on("teams") && (playing.length > 0 || reveal),
     on("queue"),
@@ -133,7 +132,7 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
             {reveal?.kind === "pick" && <Picked entries={reveal.result.picked ?? []} />}
             <div className={TEAMS_GRID}>
               {rosters.map((roster, i) => (
-                <TeamCard key={i} team={(i + 1) as 1 | 2} roster={roster} size={snap.team_size} landing={landing} shields={shields} />
+                <TeamCard key={i} team={(i + 1) as 1 | 2} roster={roster} size={snap.team_size} landing={landing} />
               ))}
             </div>
           </section>
@@ -148,7 +147,7 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
                 {waiting.map((p, i) => (
                   <li key={p.id} className={cn(ROW, "grid-cols-[2rem_minmax(0,1fr)_auto] border-l-row-edge bg-row")}>
                     <span className="font-serif text-numeral text-muted-foreground tabular-nums">{i + 1}</span>
-                    <Name name={p.kick_username} locked={p.locked} riot={p.riot_id} />
+                    <Name name={p.kick_username} riot={p.riot_id} />
                     <RankText player={p} />
                   </li>
                 ))}
@@ -277,12 +276,11 @@ function Headline({ score }: { score: Live["score"] }) {
 // A team card as the dashboard draws it (owner, 2026-09-28: one card), without its buttons, menus
 // or drag: each player in their own slot (0028), gaps stay empty slots, and a fresh draw lands
 // in the rosters themselves, typing each name in.
-function TeamCard({ team, roster, size, landing, shields }: {
+function TeamCard({ team, roster, size, landing }: {
   team: 1 | 2;
   roster: Live["players"];
   size: number;
   landing: ReturnType<typeof useLanding>;
-  shields: ReturnType<typeof shieldsOf>;
 }) {
   return (
     <TeamCardView
@@ -296,7 +294,7 @@ function TeamCard({ team, roster, size, landing, shields }: {
     >
       {slotLayout(roster, size).map((p, n) =>
         p ? (
-          <RosterRow key={p.id} player={p} n={n + 1} at={landing?.at.get(p.id)} shield={shieldFor(shields, landing, p.id)} />
+          <RosterRow key={p.id} player={p} n={n + 1} at={landing?.at.get(p.id)} />
         ) : (
           <div key={`slot-${n}`} className={EMPTY_SLOT}>
             <EmptySlotBody n={n + 1} />
@@ -308,8 +306,7 @@ function TeamCard({ team, roster, size, landing, shields }: {
 }
 
 // The dashboard's roster row (PlayerRow's "roster"): number, avatar, name#tag, tags, rank.
-function RosterRow({ player, n, at, shield }: { player: Live["players"][number]; n: number; at?: number; shield?: { left: number; stampAt?: number } }) {
-  const { t } = useT();
+function RosterRow({ player, n, at }: { player: Live["players"][number]; n: number; at?: number }) {
   return (
     <div
       style={at === undefined ? undefined : { animationDelay: `${at}ms` }}
@@ -320,11 +317,6 @@ function RosterRow({ player, n, at, shield }: { player: Live["players"][number];
         <PlayerAvatar player={player} />
         <div className="@container/name flex min-w-0 flex-1 items-center gap-x-2.5">
           <NameText player={player} stacked={false} typeAt={at} />
-          {player.locked && (
-            <Tag fold tone="brand" icon={ShieldCheck} stampAt={shield?.stampAt}>
-              {shield ? t("tag.protected.left", { n: shield.left }) : t("tag.protected")}
-            </Tag>
-          )}
         </div>
       </div>
       <div className="max-sm:hidden">
@@ -346,18 +338,11 @@ function Picked({ entries }: { entries: DrawEntry[] }) {
   );
 }
 
-function Name({ name, locked, riot }: { name: string; locked: boolean; riot: string | null }) {
-  const { t } = useT();
+function Name({ name, riot }: { name: string; riot: string | null }) {
   return (
     <span className="flex min-w-0 flex-col">
       <span className="flex min-w-0 items-center gap-2">
         <span className="truncate text-name">{name}</span>
-        {locked && (
-          <span className="inline-flex shrink-0 items-center gap-1 text-meta font-medium text-brand">
-            <ShieldCheck className="size-3.5" aria-hidden />
-            {t("tag.protected")}
-          </span>
-        )}
       </span>
       {riot && <span className="truncate text-meta text-muted-foreground">{riot}</span>}
     </span>
@@ -402,7 +387,7 @@ function useReveal(draw: Live["draw"]) {
     } catch {}
     const lists = draw.result.teams ?? [draw.result.picked ?? []];
     const t0 = setTimeout(() => setPlaying(draw), 0);
-    const t1 = setTimeout(() => setPlaying(null), revealDuration(revealOrder(lists, new Set([...shieldsOf(draw)].filter(([, v]) => v.used).map(([id]) => id)))) + (draw.kind === "pick" ? 8000 : 400));
+    const t1 = setTimeout(() => setPlaying(null), revealDuration(revealOrder(lists)) + (draw.kind === "pick" ? 8000 : 400));
     return () => {
       clearTimeout(t0);
       clearTimeout(t1);

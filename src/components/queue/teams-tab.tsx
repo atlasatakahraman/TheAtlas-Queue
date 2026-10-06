@@ -1,10 +1,10 @@
 "use client";
-import { ChevronDown, ShieldCheck, Shuffle, Trophy, UserPlus, UsersRound } from "lucide-react";
+import { ChevronDown, Shuffle, Trophy, UserPlus, UsersRound } from "lucide-react";
 import { Fragment, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
-import { draggedPlayer, PlayerRow, Tag, TeamAddContext, useMoveTo, useRanks, useRiotIds } from "@/components/queue/player-row";
+import { draggedPlayer, PlayerRow, TeamAddContext, useMoveTo, useRanks, useRiotIds } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typed, useMotion } from "@/components/prefs";
@@ -30,8 +30,8 @@ import { useStored } from "@/components/use-client-state";
 import { isError, type QueueView } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, DrawEntry, Player } from "@/types/queue";
-import { REVEAL, revealOrder, shieldsOf } from "@/components/queue/reveal-order";
-import { Avg, EMPTY_SLOT, EmptySlotBody, shieldFor, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
+import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
+import { Avg, EMPTY_SLOT, EmptySlotBody, slotLayout, TeamCardView, TeamCount, useLanding } from "@/components/queue/team-card";
 import { PICK_SIZES, SLOT, TEAMS_BAR, TEAMS_BAR_BUTTONS, TEAMS_GRID } from "@/components/queue/geometry";
 
 export { REVEAL };
@@ -237,21 +237,15 @@ function AddToTeam({ team, at, slot, onClose }: { team: 1 | 2; at: HTMLElement |
   );
 }
 
-// One name landing: typed in with Typewriter, its protected tag rising with it. `typed={false}`
-// shows it at once, for a name a pick's Cards, List or Wheel has just revealed.
+// One name landing: typed in with Typewriter. `typed={false}` shows it at once, for a name a
+// pick's Cards, List or Wheel has just revealed.
 export function LandingName({ entry, at, typed = true, children }: { entry: DrawEntry; at: number; typed?: boolean; children?: React.ReactNode }) {
-  const { t } = useT();
   return (
     <div className={cn("flex items-center gap-2 rounded-xl border border-row-edge bg-background px-4 py-3", SLOT)}>
       {typed ? (
         <Typed text={entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={at} className="text-name" />
       ) : (
         <span className="text-name">{entry.kick_username}</span>
-      )}
-      {entry.locked && (
-        <span className="animate-enter" style={{ animationDelay: `${at}ms` }}>
-          <Tag tone="brand" icon={ShieldCheck}>{t("tag.protected")}</Tag>
-        </span>
       )}
       {children}
     </div>
@@ -494,8 +488,6 @@ export function TeamsTab() {
   );
   const revealing = motion && reveal?.kind === "teams" ? reveal : null;
   const landing = useLanding(revealing, rosters);
-  const current = useQueue((v) => v.draw);
-  const shields = useMemo(() => shieldsOf(current), [current]);
   const e3 = enter(ui.entering, 3);
   const e4 = enter(ui.entering, 4);
   const offline = !canWrite ? t("why.offline") : null;
@@ -577,7 +569,6 @@ export function TeamsTab() {
                     number={n + 1}
                     variant="roster"
                     landAt={at}
-                    shield={shieldFor(shields, landing, p.id)}
                     enterStyle={at === undefined ? undefined : { className: "animate-enter", style: { animationDelay: `${at}ms` } }}
                   />
                 );

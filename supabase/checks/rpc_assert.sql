@@ -42,7 +42,7 @@ insert into public.moderation (channel_id, kick_username, kind, level, reason, c
 
 -- Draw fixture: channel qa-draw (owner qa_owner), team size 5, fair-play on, one perk use per
 -- window; p00..p11 with games_played = i; p00 and p01 are subs and p01 has used its perk
--- already; p11 is punished for 2 games.
+-- already (0042: team draws neither protect nor spend); p11 is punished for 2 games.
 insert into public.channels (id, kick_channel_id, slug, display_name)
   values ('c0000000-0000-4000-8000-000000000002', -201, 'qa-draw', 'qa draw');
 insert into public.channel_members (channel_id, kick_user_id, role, source)
@@ -112,7 +112,6 @@ begin
   d := pg_temp.expect(format('select public.undo(%L, %s, gen_random_uuid())', ch, act), 'undo.changed');
   if d::jsonb ->> 'by' is distinct from 'qa_owner' then raise exception 'undo.changed names %', d; end if;
 
-  perform pg_temp.expect(format('select public.remove_protection(%L, %L, gen_random_uuid())', ch, bob), 'request.invalid');
   r := public.set_fair_play(ch, true, gen_random_uuid());
   if not exists (select 1 from pg_temp.rows_of(r, 'settings') e where (e ->> 'fair_play')::boolean) then
     raise exception 'set_fair_play: event lacks settings';
@@ -159,16 +158,15 @@ declare
   d2      uuid;
   a1      bigint;
   a2      bigint;
-  t0      smallint;
   orig    jsonb;
   after1  jsonb;
   picked  uuid[];
 begin
-  select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played, locked)) into orig
+  select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played)) into orig
   from public.players where channel_id = ch;
 
   -- Fresh draw, fair-play on: the ten fewest games play (p11 is punished anyway), 5 v 5, each
-  -- gains a game; p00 is protected, p01 is out of perk uses; p11 serves nothing (0027: games do).
+  -- gains a game; no perk use is spent (0042); p11 serves nothing (0027: games do).
   r := public.draw_teams(ch, null, false, rq);
   select (e ->> 'id')::uuid into d1 from pg_temp.rows_of(r, 'draws') e;
   select (e ->> 'id')::bigint into a1 from pg_temp.rows_of(r, 'activity') e;
@@ -184,10 +182,7 @@ begin
      or (select count(*) from public.players where channel_id = ch and team = 2) <> 5 then
     raise exception 'draw: teams are not 5 v 5';
   end if;
-  if (select array_agg(kick_username) from public.players where channel_id = ch and locked) is distinct from array['p00'] then
-    raise exception 'perk: expected only p00 protected';
-  end if;
-  if (select count(*) from public.perk_uses where channel_id = ch) <> 2 then raise exception 'perk: use not recorded'; end if;
+  if (select count(*) from public.perk_uses where channel_id = ch) <> 1 then raise exception 'perk: a draw spent a use'; end if;
   -- 0027: a recorded game serves a punishment's game, a draw no longer does.
   if (select games_left from public.moderation where channel_id = ch) <> 2 then raise exception 'punishment: a draw served a game'; end if;
 
@@ -201,20 +196,16 @@ begin
     raise exception 'draw: a stale base drew a second time';
   end if;
 
-  select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played, locked)) into after1
+  select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played)) into after1
   from public.players where channel_id = ch;
-  select team into t0 from public.players where channel_id = ch and kick_username = 'p00';
 
-  -- Reroll: p00 keeps team and protection; the nine thrown back get their game back, so
-  -- fair-play re-picks p01..p09; no perk use, no punishment game.
+  -- Reroll: the same ten re-split (0040), nobody fixed in place (0042); no game counted, no
+  -- perk use, no punishment game.
   r := public.draw_teams(ch, d1, true, gen_random_uuid());
   select (e ->> 'id')::uuid into d2 from pg_temp.rows_of(r, 'draws') e;
   select (e ->> 'id')::bigint into a2 from pg_temp.rows_of(r, 'activity') e;
   if r ->> 'kind' <> 'reroll' or (select rerolled_from from public.draws where id = d2) <> d1 then
     raise exception 'reroll: not recorded as a reroll of the draw';
-  end if;
-  if (select team = t0 and locked from public.players where channel_id = ch and kick_username = 'p00') is not true then
-    raise exception 'reroll: protected p00 lost team or protection';
   end if;
   if exists (select 1 from public.players where channel_id = ch and (status = 'playing') <> (kick_username < 'p10'))
      or exists (select 1 from public.players where channel_id = ch
@@ -225,18 +216,18 @@ begin
      or (select count(*) from public.players where channel_id = ch and team = 2) <> 5 then
     raise exception 'reroll: teams are not 5 v 5';
   end if;
-  if (select count(*) from public.perk_uses where channel_id = ch) <> 2 then raise exception 'reroll: consumed a perk use'; end if;
+  if (select count(*) from public.perk_uses where channel_id = ch) <> 1 then raise exception 'reroll: consumed a perk use'; end if;
   if (select games_left from public.moderation where channel_id = ch) <> 2 then raise exception 'reroll: served a punishment game'; end if;
 
   -- Undo the reroll, then the draw: undos stack back to the start.
   perform public.undo(ch, a2, gen_random_uuid());
-  if (select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played, locked))
+  if (select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played))
       from public.players where channel_id = ch) <> after1
      or (select id from public.draws where channel_id = ch and undone_at is null order by created_at desc limit 1) <> d1 then
     raise exception 'undo reroll: not back to the draw';
   end if;
   perform public.undo(ch, a1, gen_random_uuid());
-  if (select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played, locked))
+  if (select jsonb_object_agg(kick_username, jsonb_build_array(status, team, games_played))
       from public.players where channel_id = ch) <> orig
      or exists (select 1 from public.draws where channel_id = ch and undone_at is null)
      or (select count(*) from public.perk_uses where channel_id = ch) <> 1
@@ -716,7 +707,7 @@ begin
   insert into public.settings (channel_id, team_size) values (ch, 2);
   insert into public.players (channel_id, kick_user_id, kick_username, riot_id, source) values (ch, -501, 'w1', 'W One#TR1', 'chat');
   insert into public.games (channel_id, n, winner, teams, team_size, ended_at, recorded_by, request_id)
-  values (ch, 1, 1, '[[{"id": "00000000-0000-0000-0000-000000000001", "kick_username": "w1", "riot_id": "W One#TR1", "locked": false, "rank": null}], []]', 1, now(), 'qa-recorder', gen_random_uuid());
+  values (ch, 1, 1, '[[{"id": "00000000-0000-0000-0000-000000000001", "kick_username": "w1", "riot_id": "W One#TR1", "rank": null}], []]', 1, now(), 'qa-recorder', gen_random_uuid());
   insert into public.player_records (channel_id, name, wins, losses, streak, best, last_game_at) values (ch, 'w1', 1, 0, 1, 1, now());
   if public.watch_snapshot('qa-no-such-channel') is not null then raise exception 'watch: an unknown slug is not null'; end if;
   update public.settings set watch_enabled = false where channel_id = ch;

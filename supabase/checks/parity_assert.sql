@@ -17,8 +17,7 @@ exception when sqlstate 'P0001' then
   return d;
 end $$;
 
--- Fixture: channel qa-parity, owner qa_owner, mod qa_mod; team size 5; p00..p11 waiting, p00
--- protected (locked); two sanctions.
+-- Fixture: channel qa-parity, owner qa_owner, mod qa_mod; team size 5; p00..p11 waiting; two sanctions.
 insert into public.profiles (id, kick_user_id, username) values
   ('a0000000-0000-4000-8000-000000000001', -101, 'qa_owner'),
   ('a0000000-0000-4000-8000-000000000002', -102, 'qa_mod');
@@ -49,7 +48,6 @@ declare
   base   uuid;
   before jsonb;
   games  jsonb;
-  v_lock uuid;
   n      integer;
 begin
   -- Nothing to shuffle, clear or pick from the teams before a draw.
@@ -60,15 +58,12 @@ begin
 
   r := public.draw_teams(ch, null, false, gen_random_uuid());
   base := (select (e ->> 'id')::uuid from jsonb_array_elements(r -> 'rows') e where e ->> '_t' = 'draws');
-  -- Protect one player of team 1 by hand, as the perk would.
-  select id into v_lock from public.players where channel_id = ch and team = 1 limit 1;
   reset role;
-  update public.players set locked = true where id = v_lock;
   update public.draws set created_at = created_at - interval '1 minute' where channel_id = ch;
   set local role authenticated;
 
-  -- Shuffle: same ten players, 5 v 5, the protected one stays, no game counted, a new teams
-  -- draw that rerolls the standing one; stale base refused.
+  -- Shuffle: same ten players, 5 v 5, no game counted, a new teams draw that rerolls the
+  -- standing one; stale base refused. Nobody is fixed in place (0042).
   select jsonb_object_agg(id, games_played), jsonb_agg(id order by id) into games, before
   from public.players where channel_id = ch and status = 'playing';
   perform set_config('request.jwt.claims', modr, true);
@@ -81,9 +76,8 @@ begin
     raise exception 'shuffle: draw row wrong: %', d;
   end if;
   if (select jsonb_agg(id order by id) from public.players where channel_id = ch and status = 'playing') <> before
-     or (select jsonb_object_agg(id, games_played) from public.players where channel_id = ch and status = 'playing') <> games
-     or (select team from public.players where id = v_lock) <> 1 then
-    raise exception 'shuffle: players, games or the protected team changed';
+     or (select jsonb_object_agg(id, games_played) from public.players where channel_id = ch and status = 'playing') <> games then
+    raise exception 'shuffle: players or games changed';
   end if;
   base := (d ->> 'id')::uuid;
   -- One transaction means one now(): age the earlier draws so the latest is unambiguous.
@@ -110,14 +104,13 @@ begin
     raise exception 'pick all: %', r;
   end if;
 
-  -- Clear teams: everyone back to waiting, protection ends; undo puts them back.
+  -- Clear teams: everyone back to waiting; undo puts them back.
   r := public.clear_teams(ch, gen_random_uuid());
-  if exists (select 1 from public.players where channel_id = ch and (status = 'playing' or locked or team is not null)) then
+  if exists (select 1 from public.players where channel_id = ch and (status = 'playing' or team is not null)) then
     raise exception 'clear_teams: someone is still on a team';
   end if;
   perform public.undo(ch, (select (e ->> 'id')::bigint from jsonb_array_elements(r -> 'rows') e where e ->> '_t' = 'activity'), gen_random_uuid());
-  if (select jsonb_agg(id order by id) from public.players where channel_id = ch and status = 'playing') <> before
-     or not (select p.locked from public.players p where p.id = v_lock) then
+  if (select jsonb_agg(id order by id) from public.players where channel_id = ch and status = 'playing') <> before then
     raise exception 'clear_teams undo: teams not restored';
   end if;
 

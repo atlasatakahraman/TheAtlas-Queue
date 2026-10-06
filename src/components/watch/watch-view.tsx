@@ -1,10 +1,12 @@
 "use client";
 import { Ban, CircleHelp, Radio, Trophy, TriangleAlert, Gavel } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { rememberPlace, rememberWatched } from "@/components/queue/tabs";
 import { I18nProvider, useSetLang, useT } from "@/components/i18n";
 import { LangSwitch } from "@/components/lang-switch";
-import { Typed } from "@/components/prefs";
+import { Typed, useMotion } from "@/components/prefs";
+import { NearMissName, poolWith, type Save, STAGED, Stage, type Staged } from "@/components/queue/pick-stages";
+import { ResponsiveDialog } from "@/components/queue/responsive-dialog";
 import { ThemeButton } from "@/components/theme-button";
 import { Kbd } from "@/components/ui/kbd";
 import { useNow } from "@/components/use-now";
@@ -15,7 +17,7 @@ import { SlimBar } from "@/components/status-page";
 import { useWatch } from "@/components/watch/use-watch";
 import type { Lang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { DrawEntry, GameEntry, WatchSnapshot } from "@/types/queue";
+import type { DrawEntry, DrawSave, GameEntry, WatchSnapshot } from "@/types/queue";
 
 type Live = Exclude<WatchSnapshot, { disabled: true }>;
 const SOURCE = "https://github.com/atlasatakahraman/TheAtlas-Queue";
@@ -79,7 +81,7 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
   const on = (s: Live["sections"][number]) => snap.sections.includes(s);
   const playing = useMemo(() => snap.players.filter((p) => p.status === "playing"), [snap.players]);
   const waiting = snap.players.filter((p) => p.status === "waiting");
-  const reveal = useReveal(snap.draw);
+  const [reveal, closeReveal] = useReveal(snap.draw);
   const rosters = useMemo(() => ([1, 2] as const).map((n) => playing.filter((p) => p.team === n)), [playing]);
   const landing = useLanding(reveal?.kind === "teams" ? reveal : null, rosters);
   const shown = [
@@ -129,7 +131,7 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
           <section {...sec(enter(), "flex flex-col gap-4")} aria-labelledby="w-teams">
             <h2 id="w-teams" className="sr-only">{t("tab.teams")}</h2>
             <Headline score={snap.score} />
-            {reveal?.kind === "pick" && <Picked entries={reveal.result.picked ?? []} />}
+            {reveal?.kind === "pick" && <WatchPick draw={reveal} players={snap.players} style={snap.draw_reveal} onDone={closeReveal} />}
             <div className={TEAMS_GRID}>
               {rosters.map((roster, i) => (
                 <TeamCard key={i} team={(i + 1) as 1 | 2} roster={roster} size={snap.team_size} landing={landing} />
@@ -326,15 +328,61 @@ function RosterRow({ player, n, at }: { player: Live["players"][number]; n: numb
   );
 }
 
-function Picked({ entries }: { entries: DrawEntry[] }) {
+// A pick on /watch (P13): the same Picked dialog as the dashboard, read-only — no moves, no
+// Pick again, no Skip — in the streamer's reveal style, with the near miss for every save. A
+// payload cached before 0042 has no style: names type in.
+function WatchPick({ draw, players, style = "typewriter", onDone }: {
+  draw: NonNullable<Live["draw"]>; players: Live["players"]; style: Live["draw_reveal"]; onDone: () => void;
+}) {
   const { t } = useT();
+  const motion = useMotion() && style !== "none";
+  const staged = motion && STAGED.includes(style) ? (style as Staged) : null;
+  const picked = draw.result.picked ?? [];
+  const saved = draw.result.saved ?? [];
+  const slots = [
+    ...picked.map((e) => ({ entry: e as DrawEntry | null, save: saved.find((s) => s.standin_id === e.id) })),
+    ...saved.filter((s) => !s.standin_id).map((s) => ({ entry: null, save: s as DrawSave | undefined })),
+  ];
+  const pool = players.filter((p) => p.status === "playing");
+  const find = (id: string | null | undefined) => (id ? pool.find((p) => p.id === id) : undefined);
+  const saveOf = (s: DrawSave | undefined, entry: DrawEntry | null): Save | undefined => {
+    const prot = s && find(s.id);
+    return prot ? { protectedPlayer: prot, standin: find(entry?.id) ?? null } : undefined;
+  };
+  const [step, setStep] = useState(staged ? 0 : slots.length);
+  const playing = step < slots.length;
+  const order = revealOrder([picked]);
+  const taken = new Set(slots.slice(0, step).flatMap((s) => (s.entry ? [s.entry.id] : [])));
+  // Closes when the reveal is over plus a read, never on a fixed timer (a save would be cut off).
+  const typedEnd = revealDuration(order) + (saved.length ? 1600 : 0);
+  useEffect(() => {
+    if (playing) return;
+    const id = setTimeout(onDone, (staged ? 0 : typedEnd) + 8000);
+    return () => clearTimeout(id);
+  }, [playing, staged, typedEnd, onDone]);
   return (
-    <p className="flex flex-wrap items-baseline justify-center gap-x-3 text-body">
-      <span className="text-muted-foreground">{t("watch.picked")}</span>
-      {entries.map((e, i) => (
-        <Typed key={e.id} text={e.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={i * REVEAL.step} className="font-medium text-brand" />
-      ))}
-    </p>
+    <ResponsiveDialog open onOpenChange={(o) => !o && onDone()} title={t("pick.title")}>
+      {playing && staged && (
+        <Stage key={step} style={staged} pool={poolWith(pool.filter((p) => !taken.has(p.id)), find(slots[step].save?.id), find(slots[step].entry?.id))}
+          winner={slots[step].entry?.id ?? null} save={saveOf(slots[step].save, slots[step].entry)} onDone={() => setStep((n) => n + 1)} />
+      )}
+      <div className="flex flex-col gap-1.5">
+        {order.filter((o) => taken.has(o.entry.id)).map((o) => {
+          const save = !staged && motion ? saveOf(saved.find((s) => s.standin_id === o.entry.id), o.entry) : undefined;
+          return save ? <NearMissName key={o.entry.id} save={save} at={o.at} /> : (
+            <div key={o.entry.id} className="rounded-xl border border-row-edge bg-background px-4 py-3">
+              {motion && !staged
+                ? <Typed text={o.entry.kick_username} speed={REVEAL.speed} reveal={REVEAL.sharpen} startDelay={o.at} className="text-name" />
+                : <span className="text-name">{o.entry.kick_username}</span>}
+            </div>
+          );
+        })}
+        {!staged && motion && saved.filter((s) => !s.standin_id).map((s) => {
+          const save = saveOf(s, null);
+          return save ? <NearMissName key={s.id} save={save} at={(order.at(-1)?.at ?? 0) + REVEAL.step} /> : null;
+        })}
+      </div>
+    </ResponsiveDialog>
   );
 }
 
@@ -376,8 +424,8 @@ function GameRow({ n, winner, ended, teams }: { n: number; winner: 1 | 2; ended:
 
 // The draw reveal (spec § Realtime): a draw plays when it is new to this page, under 30 seconds
 // old, and not played on this device before. The names type in as on the dashboard; then the
-// rosters stand.
-function useReveal(draw: Live["draw"]) {
+// rosters stand. A pick's dialog closes itself when its reveal is over (P13).
+function useReveal(draw: Live["draw"]): [Live["draw"], () => void] {
   const [playing, setPlaying] = useState<Live["draw"]>(null);
   useEffect(() => {
     if (!draw || Date.now() - Date.parse(draw.created_at) > 30_000) return;
@@ -387,11 +435,12 @@ function useReveal(draw: Live["draw"]) {
     } catch {}
     const lists = draw.result.teams ?? [draw.result.picked ?? []];
     const t0 = setTimeout(() => setPlaying(draw), 0);
-    const t1 = setTimeout(() => setPlaying(null), revealDuration(revealOrder(lists)) + (draw.kind === "pick" ? 8000 : 400));
+    const t1 = draw.kind === "pick" ? undefined : setTimeout(() => setPlaying(null), revealDuration(revealOrder(lists)) + 400);
     return () => {
       clearTimeout(t0);
       clearTimeout(t1);
     };
   }, [draw]);
-  return playing;
+  const close = useCallback(() => setPlaying(null), []);
+  return [playing, close];
 }

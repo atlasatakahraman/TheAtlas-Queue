@@ -548,3 +548,31 @@ html[data-motion="off"] {
 html[data-toasts="off"] [data-sonner-toast]:not([data-type="error"]) {
   display: none;
 }
+
+/* Shield break (P8, shield-break.tsx). Transform and opacity only; BREAK in the component holds
+   the same times. The intro fills both ways, the fly forwards only, so it never overrides the
+   intro before it starts. */
+.shield-break .sb-half { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; filter: drop-shadow(0 4px 10px rgb(0 0 0 / .45));
+  animation: sb-slam 380ms cubic-bezier(.5, 0, .6, 1.4) both, var(--sb-fly) 460ms cubic-bezier(.3, .6, .25, 1) 540ms forwards; }
+.shield-break .sb-l { --sb-fly: sb-fly-l; clip-path: polygon(0 0, 52% 0, 45% 28%, 57% 50%, 46% 72%, 51% 100%, 0 100%); }
+.shield-break .sb-r { --sb-fly: sb-fly-r; clip-path: polygon(52% 0, 100% 0, 100% 100%, 51% 100%, 46% 72%, 57% 50%, 45% 28%); }
+.shield-break .sb-crack { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; opacity: 0; animation: sb-crack-show 300ms linear 380ms both; }
+.shield-break .sb-crack polyline { fill: none; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-dasharray: 160; animation: sb-crack-draw 160ms ease-out 380ms both; }
+.shield-break .sb-flash { position: absolute; left: 50%; top: 50%; width: 200px; height: 200px; margin: -100px 0 0 -100px; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand) 65%, white) 0, color-mix(in oklab, var(--brand) 30%, transparent) 30%, transparent 65%);
+  animation: sb-flash 560ms ease-out 300ms both; }
+.shield-break .sb-shard { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; background: var(--brand); clip-path: polygon(50% 0, 100% 100%, 0 70%); opacity: 0;
+  animation: sb-shard 620ms cubic-bezier(.2, .7, .3, 1) 540ms both; }
+.shield-break .sb-glint { position: absolute; top: 10%; bottom: 10%; width: 3px; border-radius: 3px; background: var(--brand); box-shadow: 0 0 16px 2px var(--brand); opacity: 0;
+  animation: sb-glint 480ms ease-out 840ms both; }
+@keyframes sb-slam { 0% { opacity: 0; transform: scale(2.8) rotate(-16deg) } 60% { opacity: 1; transform: scale(.9) rotate(2deg) } 100% { opacity: 1; transform: none } }
+@keyframes sb-fly-l { 0% { opacity: 1; transform: none } 80% { opacity: 1; transform: translateX(var(--sb-to-l)) rotate(-38deg) } 100% { opacity: 0; transform: translateX(var(--sb-to-l)) rotate(-46deg) scale(.75) } }
+@keyframes sb-fly-r { 0% { opacity: 1; transform: none } 80% { opacity: 1; transform: translateX(var(--sb-to-r)) rotate(38deg) } 100% { opacity: 0; transform: translateX(var(--sb-to-r)) rotate(46deg) scale(.75) } }
+@keyframes sb-crack-show { 0%, 85% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes sb-crack-draw { from { stroke-dashoffset: 160 } to { stroke-dashoffset: 0 } }
+@keyframes sb-flash { 0% { opacity: 0; transform: scale(.3) } 35% { opacity: .85; transform: scale(1) } 100% { opacity: 0; transform: scale(1.5) } }
+@keyframes sb-shard { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.5) } 12% { opacity: 1 } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)) } }
+@keyframes sb-glint { 0% { opacity: 0; transform: scaleY(.2) } 25% { opacity: 1; transform: scaleY(1) } 100% { opacity: 0 } }
+@keyframes sb-flip { from { opacity: 0; transform: rotateX(90deg) } to { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) { .shield-break { display: none } }
+html[data-motion="off"] .shield-break { display: none; }

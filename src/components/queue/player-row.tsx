@@ -263,14 +263,11 @@ export function usePlayerMenu(p: Player): Item[][] {
     ],
     [
       { label: t("menu.edit"), icon: Pencil, onSelect: a.edit, write: true },
-      // D22: the rank again, on demand; at most once a minute a player (server-checked).
-      {
-        label: t("menu.refresh_rank"),
-        icon: RefreshCw,
-        write: true,
-        disabled: !ranks || !p.riot_id,
-        onSelect: refresh,
-      },
+      // D22: the rank again, on demand; at most once a minute a player (server-checked). Gone with
+      // ranks off (Require Riot ID or Look up ranks off), as on the player card (owner, 2026-10-18).
+      ...(ranks
+        ? [{ label: t("menu.refresh_rank"), icon: RefreshCw, write: true, disabled: !p.riot_id, onSelect: refresh }]
+        : []),
     ],
     [
       { label: t("menu.add_above"), icon: ArrowUpToLine, onSelect: addBeside("before"), write: true, disabled: teamAdd?.full },

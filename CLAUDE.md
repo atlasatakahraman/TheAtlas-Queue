@@ -7,6 +7,8 @@
 **Framework Target**: Tauri 2.x + Next.js 15.x  
 **Date**: May 2026
 
+**Local database checks** (local Supabase stack, never production): see `docs/DEVELOPMENT.md`.
+
 ---
 
 ## Provider Routing Strategy

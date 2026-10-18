@@ -714,7 +714,8 @@ banned or punished; nobody else is listed), a 1–10 stepper capped at the ticke
 source is Custom, every pick control picks from that saved pool, so the dialog is needed only to
 change it. The server takes the ids (`p_ids`) and applies the same rule. A custom pick has **no
 protection**: protection stays immunity from *Pick from Teams*. Closing returns focus to the
-source select. `/watch` spins a custom pick's wheel over waiting and playing players.
+source select. The draw records the pool it drew from (`result.pool`, migration 0047), so `/watch`
+and every other dashboard animate a custom pick over exactly those names.
 
 **Page menu.** Right-click anywhere on the dashboard, kept short (owner, 2026-09-23): a header
 *Queue management (N players)*, **Add player** first, then Draw teams, Pick 1, Clear queue,

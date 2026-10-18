@@ -88,20 +88,25 @@ export function useDrawActions() {
   };
 }
 
-const PICK_SOURCES = ["waiting", "teams", "all", "custom"] as const;
+// The sources the toolbar can stand on. Custom is not one: choosing Custom… only opens its dialog
+// and the toolbar keeps its source (owner, 2026-10-18), so a custom pick runs from the dialog and
+// its reveal's Pick again. A browser that stored "custom" before falls back to waiting.
+const PICK_SOURCES = ["waiting", "teams", "all"] as const;
+const SELECT_SOURCES = [...PICK_SOURCES, "custom"] as const;
 
 // Pick's source (per browser, one for every pick control) and the ×n it can fill. The pool counts
 // as pick_players does: the source's statuses, less anyone under a live ban or punishment. A ×n
 // larger than the pool is hidden (owner, 2026-09-27); ×1 stays, disabled, when the pool is empty.
-// Custom's pool is the ticked list saved for this channel in this browser, read live (C5).
+// Custom's pool is the ticked list saved for this channel in this browser, read live (C5); live(src)
+// gives a source's ids at click time.
 export function usePick() {
   const store = useStore();
   const [source, setSource] = useStored<PickSource>("queue.pick-source", "waiting", PICK_SOURCES);
   const channelId = useQueue((v) => v.channel.id);
   const [custom, setCustom] = useStoredIds(customPoolKey(channelId));
   const pool = useQueue((v) => pickPool(v, source, custom).length);
-  const live = () => pickPool(store.get(), source, custom).map((p) => p.id);
-  return { source, setSource, sources: PICK_SOURCES, custom, setCustom, live, pool, sizes: PICK_SIZES.filter((n) => n === 1 || n <= pool) };
+  const live = (src: PickSource = source) => pickPool(store.get(), src, custom).map((p) => p.id);
+  return { source, setSource, sources: SELECT_SOURCES, custom, setCustom, live, pool, sizes: PICK_SIZES.filter((n) => n === 1 || n <= pool) };
 }
 
 export function pickPool({ players, moderation }: QueueView, source: PickSource, custom: readonly string[] = []): Player[] {

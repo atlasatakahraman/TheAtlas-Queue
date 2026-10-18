@@ -82,6 +82,9 @@ function PickBody({ draw }: { draw: Draw }) {
   // The pool the reveal runs over, the picked and saved names included: the pick's own source
   // (0045) and, for a custom pick, the pool it recorded (0047), so another member's pick shows
   // what that member picked from. A draw from before either falls back to this browser's.
+  // Pick again repeats the pick's own source (a custom pick from the ticked list as it is now), not
+  // the toolbar's; a draw from before 0045 has none and takes the toolbar's.
+  const againFrom = draw.result.source ?? source;
   const [pool] = useState(() => {
     const view = store.get();
     const named = new Set([...picked.map((e) => e.id), ...saved.map((s) => s.id)]);
@@ -194,7 +197,7 @@ function PickBody({ draw }: { draw: Draw }) {
             size="lg"
             className="max-md:h-11"
             disabled={!canWrite}
-            onClick={() => void pickAgain(draw.n, source, true, livePool())}
+            onClick={() => void pickAgain(draw.n, againFrom, true, livePool(againFrom))}
           >
             <RotateCcw aria-hidden />
             {t("pick.again")}

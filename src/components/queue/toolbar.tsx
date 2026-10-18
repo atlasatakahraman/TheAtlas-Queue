@@ -82,24 +82,14 @@ export function Toolbar() {
             </Button>
           </Tip>
         ))}
-        <Select value={source} onValueChange={(v) => setSource(v as PickSource)}>
+        {/* Custom… opens its dialog and leaves the source as it was (owner, 2026-10-18). */}
+        <Select value={source} onValueChange={(v) => (v === "custom" ? openCustom() : setSource(v as PickSource))}>
           <SelectTrigger ref={sourceRef} aria-label={t("pick.source")} className="h-9! rounded-l-none border-0 border-l border-input max-md:h-11!">
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper" align="end">
             {sources.map((s) => (
-              <SelectItem
-                key={s}
-                value={s}
-                // Custom… opens its dialog every time it is chosen, again included, which
-                // onValueChange never reports (spec § 3). Mouse selects on pointer-up, touch on
-                // click, keys on Enter or Space; opening twice is harmless.
-                {...(s === "custom" && {
-                  onPointerUp: openCustom,
-                  onClick: openCustom,
-                  onKeyDown: (e: React.KeyboardEvent) => (e.key === "Enter" || e.key === " ") && openCustom(),
-                })}
-              >
+              <SelectItem key={s} value={s}>
                 {t(`pick.source.${s}`)}
               </SelectItem>
             ))}

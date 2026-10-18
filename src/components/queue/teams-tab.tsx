@@ -453,7 +453,8 @@ function useDropOut() {
       if (!d) return;
       e.preventDefault();
       void act("move_player", { p_player: d.id, p_status: "waiting", p_team: null }, {
-        optimistic: { ids: [d.id], patch: (x) => ({ ...x, status: "waiting", team: null }) },
+        // Off a team lands at the end of the queue (0043); the RPC result reconciles the exact key.
+        optimistic: { ids: [d.id], patch: (x) => ({ ...x, status: "waiting", team: null, sort_key: Date.now() / 1000 }) },
         done: "done.waiting",
         vars: { name: d.kick_username },
       });

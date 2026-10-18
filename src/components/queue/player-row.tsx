@@ -161,7 +161,11 @@ export function usePlayerActions(p: Player) {
   const team = (n: 1 | 2) => t(`team.${n}`);
   const move = (status: Player["status"], teamNo: 1 | 2 | null) =>
     act("move_player", { p_player: p.id, p_status: status, p_team: teamNo }, {
-      optimistic: { ids: [p.id], patch: (x) => ({ ...x, status, team: teamNo }) },
+      // Off a team lands at the end of the queue (0043); the RPC result reconciles the exact key.
+      optimistic: {
+        ids: [p.id],
+        patch: (x) => ({ ...x, status, team: teamNo, ...(x.status === "playing" && status !== "playing" && { sort_key: Date.now() / 1000 }) }),
+      },
       done: status === "playing" ? "done.move_team" : status === "away" ? "done.away" : "done.waiting",
       vars: { name: p.kick_username, team: teamNo ? team(teamNo) : "" },
     });

@@ -616,7 +616,6 @@ export const tr: Record<LabelKey, string> = {
   "teams.add.none": "Bekleyen kimse yok.",
   "teams.add.new": "Yeni oyuncu ekle…",
   "replace.heading": "{name} yerine",
-  "replace.next": "Sıradaki",
   "replace.search": "Bekleyenlerde ara",
   "replace.none": "Yerine girecek bekleyen yok.",
   "error.safe": "Sıran güvende: bu sekmede değil, sunucuda kayıtlı. Tekrar dene ya da sayfayı yenile.",

@@ -249,10 +249,12 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
                     value={`${p.kick_username} ${p.riot_id ?? ""}`}
                     onSelect={pick(() => void (replace ? replaceWith(replace, p) : moveTo(p, team, slot)))}
                   >
+                    {/* Queue position in the queue table's serif numeral, smaller (owner, 2026-10-18:
+                        it replaced the "Next in queue" label). Counted before search, so it stays true. */}
+                    <span className="min-w-4 shrink-0 text-end font-serif text-meta text-muted-foreground tabular-nums select-none">{i + 1}</span>
                     {/* Kick names run to 25 characters: both halves truncate rather than overflow. */}
                     <span className="truncate text-name">{p.kick_username}</span>
                     {riot && p.riot_id && <span className="min-w-0 truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
-                    {replace && i === 0 && <span className="ms-auto shrink-0 text-caption text-muted-foreground">{t("replace.next")}</span>}
                   </CommandItem>
                 ))}
               </CommandGroup>

@@ -628,7 +628,6 @@ export const en = {
   "teams.add.none": "Nobody is waiting.",
   "teams.add.new": "Add a new player…",
   "replace.heading": "Replace {name} with",
-  "replace.next": "Next in queue",
   "replace.search": "Search waiting players",
   "replace.none": "Nobody is waiting to come in.",
   "error.safe": "Your queue is safe: it is saved on the server, not in this tab. Try again, or reload the page.",

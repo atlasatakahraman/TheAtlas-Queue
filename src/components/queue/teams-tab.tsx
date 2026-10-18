@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown, Shuffle, Trophy, UserPlus, UsersRound } from "lucide-react";
+import { ChevronDown, ListEnd, Shuffle, Trophy, UserMinus, UserPlus, UsersRound } from "lucide-react";
 import { Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
@@ -23,10 +23,10 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Kbd } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useStored } from "@/components/use-client-state";
 import { isError, type QueueView } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
@@ -203,9 +203,11 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
     onClose();
     f();
   };
-  // Replace can also take the outgoing player out of the queue (0046, owner 2026-10-18): the footer
-  // switch, off each time the list opens (it remounts per row), or Shift+Enter for one pick. cmdk
-  // runs our keydown before its own Enter, so the ref is set when onSelect reads it.
+  // Replace can also take the outgoing player out of the queue (0046, owner 2026-10-18): the
+  // To queue | Remove toggle under the search box (owner: simpler and closer to hand than the
+  // footer switch it replaced), back on To queue each time the list opens (it remounts per row),
+  // or Shift+Enter for one pick. cmdk runs our keydown before its own Enter, so the ref is set when
+  // onSelect reads it.
   const [remove, setRemove] = useState(false);
   const shift = useRef(false);
   const choose = (p: Player) => {
@@ -249,6 +251,25 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
       >
         <Command onKeyDown={(e) => { if (e.key === "Enter") shift.current = e.shiftKey; }}>
           <CommandInput placeholder={t(replace ? "replace.search" : "teams.add.search")} />
+          {replace && (
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              aria-label={t("replace.outgoing", { name: replace.kick_username })}
+              value={remove ? "remove" : "queue"}
+              onValueChange={(v) => v && setRemove(v === "remove")}
+              className="grid w-auto grid-cols-2 px-2 pt-2"
+            >
+              <ToggleGroupItem value="queue" className="h-8 text-meta max-md:h-11">
+                <ListEnd aria-hidden />
+                {t("replace.to_queue")}
+              </ToggleGroupItem>
+              <ToggleGroupItem value="remove" className="h-8 text-meta max-md:h-11" aria-keyshortcuts="Shift+Enter">
+                <UserMinus aria-hidden />
+                {t("replace.remove")}
+              </ToggleGroupItem>
+            </ToggleGroup>
+          )}
           <CommandList className="max-h-72">
             <CommandEmpty>{t(replace ? "replace.none" : "teams.add.none")}</CommandEmpty>
             {waiting.length > 0 && (
@@ -286,15 +307,6 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
               </CommandItem>
             </CommandGroup>}
           </CommandList>
-          {replace && (
-            <div className="flex items-center gap-2 border-t px-3 py-2">
-              <Switch id="replace-remove" checked={remove} onCheckedChange={setRemove} />
-              <Label htmlFor="replace-remove" className="min-w-0 flex-1 cursor-pointer text-meta break-words">
-                {t("replace.remove", { name: replace.kick_username })}
-              </Label>
-              <Kbd className="border border-row-edge bg-transparent max-md:hidden" aria-label={t("replace.remove_keys")}>⇧↵</Kbd>
-            </div>
-          )}
         </Command>
       </PopoverContent>
     </Popover>

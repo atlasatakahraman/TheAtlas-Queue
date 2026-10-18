@@ -1,7 +1,8 @@
 "use client";
 import { Dices, DoorClosed, DoorOpen, RefreshCw, Shuffle, Swords, Trash2, UserPlus, UsersRound } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/i18n";
+import { CustomPickDialog } from "@/components/queue/custom-pick-dialog";
 import { useAct, useCanWrite, useQueue } from "@/components/queue/store";
 import { type PickSource, useDrawActions, usePick } from "@/components/queue/teams-tab";
 import { useUi } from "@/components/queue/ui";
@@ -42,6 +43,9 @@ export function Toolbar() {
   const { draw, reroll, shuffle, pick, clearTeams, clearQueue } = useDrawActions();
   const { source, setSource, sources, live, pool, sizes } = usePick();
   const playing = players.filter((p) => p.status === "playing").length;
+  const [customOpen, setCustomOpen] = useState(false);
+  const openCustom = () => setCustomOpen(true);
+  const sourceRef = useRef<HTMLButtonElement>(null);
   // A disabled button says why (D25).
   const offline = !canWrite ? t("why.offline") : null;
   // For the next load's skeleton, which draws as many ×n (geometry.ts).
@@ -79,18 +83,30 @@ export function Toolbar() {
           </Tip>
         ))}
         <Select value={source} onValueChange={(v) => setSource(v as PickSource)}>
-          <SelectTrigger aria-label={t("pick.source")} className="h-9! rounded-l-none border-0 border-l border-input max-md:h-11!">
+          <SelectTrigger ref={sourceRef} aria-label={t("pick.source")} className="h-9! rounded-l-none border-0 border-l border-input max-md:h-11!">
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper" align="end">
             {sources.map((s) => (
-              <SelectItem key={s} value={s}>
+              <SelectItem
+                key={s}
+                value={s}
+                // Custom… opens its dialog every time it is chosen, again included, which
+                // onValueChange never reports (spec § 3). Mouse selects on pointer-up, touch on
+                // click, keys on Enter or Space; opening twice is harmless.
+                {...(s === "custom" && {
+                  onPointerUp: openCustom,
+                  onClick: openCustom,
+                  onKeyDown: (e: React.KeyboardEvent) => (e.key === "Enter" || e.key === " ") && openCustom(),
+                })}
+              >
                 {t(`pick.source.${s}`)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
+      <CustomPickDialog open={customOpen} onOpenChange={setCustomOpen} returnFocus={sourceRef} />
 
       <DropdownMenu>
         <Tip label={offline}>

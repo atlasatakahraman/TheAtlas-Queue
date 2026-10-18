@@ -79,14 +79,13 @@ function PickBody({ draw }: { draw: Draw }) {
   const { pick: pickAgain } = useDrawActions();
   const { announceSaves } = useServerActions();
   const channelId = useQueue((v) => v.channel.id);
-  // The pool the reveal runs over: this browser's pick source as the pick found it, the picked
-  // and saved names included. ponytail: a draw row does not record its source, so another
-  // member's pick from a different source shows this browser's pool; where it stops is still the
-  // server's.
+  // The pool the reveal runs over, the picked and saved names included: the pick's own source
+  // (0045) and, for a custom pick, the pool it recorded (0047), so another member's pick shows
+  // what that member picked from. A draw from before either falls back to this browser's.
   const [pool] = useState(() => {
     const view = store.get();
     const named = new Set([...picked.map((e) => e.id), ...saved.map((s) => s.id)]);
-    const rest = pickPool(view, source, custom).filter((p) => !named.has(p.id));
+    const rest = pickPool(view, draw.result.source ?? source, draw.result.pool ?? custom).filter((p) => !named.has(p.id));
     return [...rest, ...[...named].flatMap((id) => view.players.find((p) => p.id === id) ?? [])];
   });
   const [step, setStep] = useState(staged ? 0 : slots.length);

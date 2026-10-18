@@ -52,8 +52,15 @@ export type Draw = {
   kind: "teams" | "pick";
   // A pick's requested N (0042), so Pick again asks for the same count after a save shortened it.
   n: number;
-  // source: the pick's source, on picks since 0045; older draws have none.
-  result: { teams?: [DrawEntry[], DrawEntry[]]; picked?: DrawEntry[]; saved?: DrawSave[]; source?: "waiting" | "teams" | "all" | "custom" };
+  // source: the pick's source, on picks since 0045; older draws have none. pool: a custom pick's
+  // eligible ids, since 0047.
+  result: {
+    teams?: [DrawEntry[], DrawEntry[]];
+    picked?: DrawEntry[];
+    saved?: DrawSave[];
+    source?: "waiting" | "teams" | "all" | "custom";
+    pool?: string[];
+  };
   rerolled_from: string | null;
   created_by: string | null;
   created_at: string;

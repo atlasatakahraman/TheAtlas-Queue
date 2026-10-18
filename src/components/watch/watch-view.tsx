@@ -131,7 +131,10 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
           <section {...sec(enter(), "flex flex-col gap-4")} aria-labelledby="w-teams">
             <h2 id="w-teams" className="sr-only">{t("tab.teams")}</h2>
             <Headline score={snap.score} />
-            {reveal?.kind === "pick" && <WatchPick draw={reveal} players={snap.players} style={snap.draw_reveal} onDone={closeReveal} />}
+            {/* Keyed per draw, as the dashboard's PickBody is: a pick that lands while the last one's
+                dialog is open starts its own reveal instead of inheriting the finished step and the
+                old close timer. */}
+            {reveal?.kind === "pick" && <WatchPick key={reveal.id} draw={reveal} players={snap.players} style={snap.draw_reveal} onDone={closeReveal} />}
             <div className={TEAMS_GRID}>
               {rosters.map((roster, i) => (
                 <TeamCard key={i} team={(i + 1) as 1 | 2} roster={roster} size={snap.team_size} landing={landing} />

@@ -246,6 +246,8 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
                 {waiting.map((p, i) => (
                   <CommandItem
                     key={p.id}
+                    // Baseline, not centre: the smaller serif numeral floated up like a superscript.
+                    className="items-baseline"
                     value={`${p.kick_username} ${p.riot_id ?? ""}`}
                     onSelect={pick(() => void (replace ? replaceWith(replace, p) : moveTo(p, team, slot)))}
                   >

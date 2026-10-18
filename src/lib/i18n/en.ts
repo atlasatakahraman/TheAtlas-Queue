@@ -219,6 +219,7 @@ export const en = {
   "done.pick.waiting": "{n} picked from waiting.",
   "done.pick.teams": "{n} picked from the teams.",
   "done.pick.all": "{n} picked from the whole queue.",
+  "done.pick.custom": "{n} picked from your list.",
   // Moderation.
   "mod.show": "Show",
   "mod.empty.title": "No sanctions yet",
@@ -306,6 +307,7 @@ export const en = {
   "act.pick_from_waiting": "{actor} picked {n} from waiting",
   "act.pick_from_teams": "{actor} picked {n} from the teams",
   "act.pick_from_all": "{actor} picked {n} from the whole queue",
+  "act.pick_from_custom": "{actor} picked {n} from a custom list",
   "act.shuffle_teams": "{actor} shuffled the teams",
   "act.clear_teams": "{actor} cleared the teams",
   "act.clear_history": "{actor} cleared the history",
@@ -597,6 +599,7 @@ export const en = {
   "pick.source.waiting": "Waiting",
   "pick.source.teams": "Teams",
   "pick.source.all": "Whole queue",
+  "pick.source.custom": "Custom…",
   "done.clear_queue": "Queue cleared.",
   "done.shuffle_teams": "Teams shuffled.",
   "done.clear_teams": "Teams cleared.",

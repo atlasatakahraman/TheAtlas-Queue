@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useStored } from "@/components/use-client-state";
+import { customPoolKey, useStored, useStoredIds } from "@/components/use-client-state";
 import { isError, type QueueView } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
@@ -39,7 +39,7 @@ export { REVEAL };
 
 // Draw, reroll, shuffle, pick and the clears, shared by the toolbar, the Teams tab, the page
 // menu, the command palette and the global keys.
-export type PickSource = "waiting" | "teams" | "all";
+export type PickSource = "waiting" | "teams" | "all" | "custom";
 
 export function useDrawActions() {
   const act = useAct();
@@ -53,14 +53,18 @@ export function useDrawActions() {
     draw: () => act("draw_teams", { p_base: base(), p_reroll: false }, { done: "done.draw" }).then(stale),
     reroll: () => act("draw_teams", { p_base: base(), p_reroll: true }, { done: "done.reroll" }).then(stale),
     shuffle: () => act("shuffle_teams", { p_base: base() }, { done: "done.shuffle_teams" }).then(stale),
-    pick: (n: number, source: PickSource = "waiting", again = false) =>
+    // ids: this browser's live custom pool (usePick().live()), sent only for "custom" (0045). An
+    // empty one stops here: the server would call it a bad request, not too few players.
+    pick: async (n: number, source: PickSource = "waiting", again = false, ids: readonly string[] = []) => {
+      if (source === "custom" && ids.length === 0) return void toast(t("error.draw.not_enough"));
       // A pick moves nobody; Undo gives back the protected picks it used, and those Pick again
       // refunded (0042).
-      act("pick_players", { p_n: n, p_source: source, p_base: base(), p_again: again }, {
+      return act("pick_players", { p_n: n, p_source: source, p_base: base(), p_again: again, ...(source === "custom" && { p_ids: [...ids] }) }, {
         done: `done.pick.${source}`,
         vars: { n },
         undoable: (r) => again || r.rows.some((row) => row._t === "draws" && ((row as unknown as Draw).result?.saved?.length ?? 0) > 0),
-      }).then(stale),
+      }).then(stale);
+    },
     // The clears ask first (owner, 2026-09-27), wherever they are pressed from.
     clearTeams: async () => {
       const n = store.get().players.filter((p) => p.status === "playing").length;
@@ -84,18 +88,23 @@ export function useDrawActions() {
   };
 }
 
-const PICK_SOURCES = ["waiting", "teams", "all"] as const;
+const PICK_SOURCES = ["waiting", "teams", "all", "custom"] as const;
 
 // Pick's source (per browser, one for every pick control) and the ×n it can fill. The pool counts
 // as pick_players does: the source's statuses, less anyone under a live ban or punishment. A ×n
 // larger than the pool is hidden (owner, 2026-09-27); ×1 stays, disabled, when the pool is empty.
+// Custom's pool is the ticked list saved for this channel in this browser, read live (C5).
 export function usePick() {
+  const store = useStore();
   const [source, setSource] = useStored<PickSource>("queue.pick-source", "waiting", PICK_SOURCES);
-  const pool = useQueue((v) => pickPool(v, source).length);
-  return { source, setSource, sources: PICK_SOURCES, pool, sizes: PICK_SIZES.filter((n) => n === 1 || n <= pool) };
+  const channelId = useQueue((v) => v.channel.id);
+  const [custom, setCustom] = useStoredIds(customPoolKey(channelId));
+  const pool = useQueue((v) => pickPool(v, source, custom).length);
+  const live = () => pickPool(store.get(), source, custom).map((p) => p.id);
+  return { source, setSource, sources: PICK_SOURCES, custom, setCustom, live, pool, sizes: PICK_SIZES.filter((n) => n === 1 || n <= pool) };
 }
 
-export function pickPool({ players, moderation }: QueueView, source: PickSource): Player[] {
+export function pickPool({ players, moderation }: QueueView, source: PickSource, custom: readonly string[] = []): Player[] {
   const now = Date.now();
   const barred = moderation.filter(
     (m) =>
@@ -104,9 +113,14 @@ export function pickPool({ players, moderation }: QueueView, source: PickSource)
       (!m.expires_at || Date.parse(m.expires_at) > now) &&
       (m.games_left === null || m.games_left > 0),
   );
+  const ticked = new Set(custom);
   return players.filter(
     (p) =>
-      (source === "waiting" ? p.status === "waiting" : source === "teams" ? p.status === "playing" : p.status === "waiting" || p.status === "playing") &&
+      (source === "waiting"
+        ? p.status === "waiting"
+        : source === "teams"
+          ? p.status === "playing"
+          : (p.status === "waiting" || p.status === "playing") && (source !== "custom" || ticked.has(p.id))) &&
       !barred.some(
         (m) =>
           m.kick_username.toLowerCase() === p.kick_username.toLowerCase() ||
@@ -697,7 +711,7 @@ export function TeamsTab() {
             </Tip>
             <DropdownMenuContent align="end" className="min-w-44 p-1.5">
               {picking.sizes.map((n) => (
-                <DropdownMenuItem key={n} onSelect={() => void pick(n, picking.source)}>
+                <DropdownMenuItem key={n} onSelect={() => void pick(n, picking.source, false, picking.live())}>
                   {t("action.pick.n", { n })}
                 </DropdownMenuItem>
               ))}

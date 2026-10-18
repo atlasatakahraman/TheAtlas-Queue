@@ -75,7 +75,7 @@ function PickBody({ draw }: { draw: Draw }) {
   const typing = useRevealMotion();
   const motion = useMotion();
   const staged = motion && STAGED.includes(setting) ? (setting as Staged) : null;
-  const { source } = usePick();
+  const { source, custom, live: livePool } = usePick();
   const { pick: pickAgain } = useDrawActions();
   const { announceSaves } = useServerActions();
   const channelId = useQueue((v) => v.channel.id);
@@ -86,7 +86,7 @@ function PickBody({ draw }: { draw: Draw }) {
   const [pool] = useState(() => {
     const view = store.get();
     const named = new Set([...picked.map((e) => e.id), ...saved.map((s) => s.id)]);
-    const rest = pickPool(view, source).filter((p) => !named.has(p.id));
+    const rest = pickPool(view, source, custom).filter((p) => !named.has(p.id));
     return [...rest, ...[...named].flatMap((id) => view.players.find((p) => p.id === id) ?? [])];
   });
   const [step, setStep] = useState(staged ? 0 : slots.length);
@@ -195,7 +195,7 @@ function PickBody({ draw }: { draw: Draw }) {
             size="lg"
             className="max-md:h-11"
             disabled={!canWrite}
-            onClick={() => void pickAgain(draw.n, source, true)}
+            onClick={() => void pickAgain(draw.n, source, true, livePool())}
           >
             <RotateCcw aria-hidden />
             {t("pick.again")}

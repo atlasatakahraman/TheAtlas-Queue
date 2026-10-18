@@ -40,7 +40,7 @@ export function Toolbar() {
   const players = useQueue((v) => v.players);
   const standingTeams = useQueue((v) => v.draw?.kind === "teams");
   const { draw, reroll, shuffle, pick, clearTeams, clearQueue } = useDrawActions();
-  const { source, setSource, sources, pool, sizes } = usePick();
+  const { source, setSource, sources, live, pool, sizes } = usePick();
   const playing = players.filter((p) => p.status === "playing").length;
   // A disabled button says why (D25).
   const offline = !canWrite ? t("why.offline") : null;
@@ -72,7 +72,7 @@ export function Toolbar() {
               className="rounded-none px-2.5 tabular-nums max-md:h-11"
               disabled={!canWrite || pool === 0}
               aria-label={t("action.pick.n", { n })}
-              onClick={() => void pick(n, source)}
+              onClick={() => void pick(n, source, false, live())}
             >
               ×{n}
             </Button>

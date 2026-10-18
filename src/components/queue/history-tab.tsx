@@ -72,6 +72,7 @@ const LOOK: Record<string, [LucideIcon, string, Exclude<Kind, "all">]> = {
   pick_from_waiting: [Hand, "text-brand", "teams"],
   pick_from_teams: [Hand, "text-brand", "teams"],
   pick_from_all: [Hand, "text-brand", "teams"],
+  pick_from_custom: [Hand, "text-brand", "teams"],
   shuffle_teams: [Shuffle, "text-brand", "teams"],
   clear_teams: [Eraser, "text-destructive", "teams"],
   clear_moderation: [Trash2, "text-destructive", "moderation"],

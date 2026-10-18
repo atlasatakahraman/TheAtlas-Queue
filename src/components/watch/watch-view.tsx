@@ -343,7 +343,9 @@ function WatchPick({ draw, players, style = "typewriter", onDone }: {
     ...picked.map((e) => ({ entry: e as DrawEntry | null, save: saved.find((s) => s.standin_id === e.id) })),
     ...saved.filter((s) => !s.standin_id).map((s) => ({ entry: null, save: s as DrawSave | undefined })),
   ];
-  const pool = players.filter((p) => p.status === "playing");
+  // A custom pick can land on anyone waiting or playing, so its wheel runs over both (spec § 3);
+  // every other pick, and a draw from before 0045 with no source, keeps the teams.
+  const pool = players.filter((p) => p.status === "playing" || (draw.result.source === "custom" && p.status === "waiting"));
   const find = (id: string | null | undefined) => (id ? pool.find((p) => p.id === id) : undefined);
   const saveOf = (s: DrawSave | undefined, entry: DrawEntry | null): Save | undefined => {
     const prot = s && find(s.id);

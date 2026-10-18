@@ -132,6 +132,7 @@ function Shell({ initialTab, account, game, settings }: { initialTab: Tab; accou
       setAddAt(null);
     }
   }, []);
+  const [replacing, setReplacing] = useState<{ id: string; v: number } | null>(null);
   const [editing, setEditing] = useState<Player | null>(null);
   const [sanction, setSanction] = useState<SanctionDraft | null>(null);
   const [entering, setEntering] = useState(true);
@@ -194,7 +195,7 @@ function Shell({ initialTab, account, game, settings }: { initialTab: Tab; accou
   const active = tabs.indexOf(tab);
 
   return (
-    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, addAt, setAddAt, editing, setEditing, sanction, setSanction, focusSearch, entering, account, game: game?.n ?? null, settings }}>
+    <UiContext.Provider value={{ tab, setTab, palette, setPalette, adding, setAdding, addTo, setAddTo, addAt, setAddAt, replacing, setReplacing, editing, setEditing, sanction, setSanction, focusSearch, entering, account, game: game?.n ?? null, settings }}>
       <SearchRefContext.Provider value={search}>
       <PageMenu>
       {/* The top bar runs the full width on its own ground (August's header); its content keeps

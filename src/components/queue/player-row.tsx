@@ -2,6 +2,7 @@
 import {
   ArrowDown,
   ArrowDownToLine,
+  ArrowDownUp,
   ArrowUp,
   ArrowLeftRight,
   ArrowUpToLine,
@@ -173,6 +174,13 @@ export function usePlayerActions(p: Player) {
   const moveToTeam = useMoveTo();
   return {
     moveTo: (n: 1 | 2) => moveToTeam(p, n),
+    // Replace (spec 2026-10-18 X1–X5): the Teams tab opens Add's list on this row, wherever this
+    // was pressed from.
+    replace: () => {
+      if (p.status !== "playing") return;
+      ui.setTab("teams");
+      ui.setReplacing({ id: p.id, v: p.changed_v });
+    },
     toWaiting: () => move("waiting", null),
     toggleAway: () => (p.status === "away" ? move("waiting", null) : move("away", null)),
     remove: () =>
@@ -231,6 +239,7 @@ export function usePlayerMenu(p: Player): Item[][] {
   const refresh = useRefreshRank(p);
   const teamAdd = useContext(TeamAddContext);
   const room = useTeamRoom();
+  const waiting = useQueue((v) => v.players.some((x) => x.status === "waiting"));
   const punished = p.status === "punished";
   // Add player above / below (D37): a team row opens its card's add list on the row; a queue row
   // opens Add player. Either lands at the key beside this row.
@@ -272,6 +281,21 @@ export function usePlayerMenu(p: Player): Item[][] {
       // (owner, 2026-09-27).
       { label: t("menu.move_to", { team: t("team.1") }), icon: UserPlus, onSelect: () => a.moveTo(1), tone: "text-team-1", write: true, disabled: punished || p.team === 1 || room(1) < 1 },
       { label: t("menu.move_to", { team: t("team.2") }), icon: UserPlus, onSelect: () => a.moveTo(2), tone: "text-team-2", write: true, disabled: punished || p.team === 2 || room(2) < 1 },
+      ...(p.status === "playing"
+        ? [{
+            label: t("menu.replace"),
+            icon: ArrowDownUp,
+            shortcut: "R",
+            // A roster row's closing menu would hand focus back to its trigger and dismiss the list
+            // it opened. Elsewhere (the palette, the queue table) nothing would clear the flag.
+            onSelect: () => {
+              if (teamAdd) keepFocus = true;
+              a.replace();
+            },
+            write: true,
+            disabled: !waiting,
+          }]
+        : []),
     ],
     [
       ...(punished ? [{ label: t("menu.lift"), icon: Undo2, onSelect: a.lift, write: true }] : []),
@@ -419,6 +443,7 @@ function QuickActions({ player }: { player: Player }) {
   const touch = useIsTouch();
   const room = useTeamRoom();
   const size = useQueue((v) => v.settings.team_size);
+  const waiting = useQueue((v) => v.players.some((x) => x.status === "waiting"));
   const punished = player.status === "punished";
   const tone = (n: 1 | 2) => (n === 1 ? "text-team-1 hover:text-team-1" : "text-team-2 hover:text-team-2");
   const full = (n: 1 | 2) => (room(n) < 1 ? t("why.team_full", { team: t(`team.${n}`), n: size - room(n), size }) : null);
@@ -427,6 +452,7 @@ function QuickActions({ player }: { player: Player }) {
   const moves: Move[] = player.team
     ? [
         { label: t("menu.move_to", { team: t(`team.${other}`) }), body: <ArrowLeftRight aria-hidden />, tone: tone(other), run: () => a.moveTo(other), why: full(other) },
+        { label: t("menu.replace"), body: <ArrowDownUp aria-hidden />, tone: "text-muted-foreground", run: a.replace, why: waiting ? null : t("replace.none") },
         { label: t("menu.to_waiting"), body: <Undo2 aria-hidden />, tone: "text-muted-foreground", run: a.toWaiting },
       ]
     : ([1, 2] as const).map((n) => ({
@@ -520,6 +546,24 @@ export function useMoveTo() {
       },
       done: "done.move_team",
       vars: { name: p.kick_username, team: t(`team.${team}`) },
+    });
+}
+
+// A waiting player into a team player's team and slot; the one leaving goes to the end of the
+// queue (0044). One write, one Undo.
+export function useReplace() {
+  const act = useAct();
+  return (out: Player, into: Player) =>
+    act("replace_player", { p_out: out.id, p_in: into.id }, {
+      optimistic: {
+        ids: [out.id, into.id],
+        patch: (x) =>
+          x.id === out.id
+            ? { ...x, status: "waiting", team: null, team_slot: null, sort_key: Date.now() / 1000 }
+            : { ...x, status: "playing", team: out.team, team_slot: out.team_slot },
+      },
+      done: "done.replace",
+      vars: { out: out.kick_username, in: into.kick_username },
     });
 }
 
@@ -637,6 +681,7 @@ export function PlayerRow({
       return handled();
     }
     if (k === "Delete" && canWrite) return (void a.remove(), handled());
+    if ((k === "r" || k === "R") && canWrite && player.status === "playing") return (a.replace(), handled());
   }
 
   const edge =

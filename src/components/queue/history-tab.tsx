@@ -1,5 +1,6 @@
 "use client";
 import {
+  ArrowDownUp,
   ArrowLeftRight,
   ArrowUpDown,
   Ban,
@@ -58,6 +59,7 @@ const LOOK: Record<string, [LucideIcon, string, Exclude<Kind, "all">]> = {
   update_player: [Pencil, "text-muted-foreground", "queue"],
   move_player: [ArrowLeftRight, "text-muted-foreground", "queue"],
   move_players: [ArrowLeftRight, "text-muted-foreground", "teams"],
+  replace_player: [ArrowDownUp, "text-muted-foreground", "teams"],
   settle: [Hourglass, "text-warning", "moderation"],
   remove_players: [UserMinus, "text-muted-foreground", "queue"],
   reorder_player: [ArrowUpDown, "text-muted-foreground", "queue"],
@@ -215,9 +217,14 @@ function category(a: Activity): Exclude<Kind, "all"> | undefined {
 function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) {
   const { t } = useT();
   const toTeam =
-    (a.action === "move_player" && a.payload.status === "playing") || a.action === "move_players" ? (a.payload.team === 2 ? 2 : 1) : null;
+    (a.action === "move_player" && a.payload.status === "playing") || a.action === "move_players" || a.action === "replace_player"
+      ? (a.payload.team === 2 ? 2 : 1)
+      : null;
   const [Icon, tone] = a.action === "set_join_open" && a.payload.open ? [DoorOpen, "text-success"] : (LOOK[a.action] ?? UNDO);
-  const where = toTeam
+  // Replace names who came in, in the team's colour (0044 payload {out, in, team}).
+  const where = a.action === "replace_player"
+    ? String(a.payload.in ?? "")
+    : toTeam
     ? t(`team.${toTeam}`)
     : a.action === "move_player"
       ? t(a.payload.status === "away" ? "act.where.away" : "act.where.waiting")

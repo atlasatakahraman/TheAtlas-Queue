@@ -4,7 +4,7 @@ import { Fragment, useCallback, useContext, useEffect, useMemo, useState } from 
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
-import { draggedPlayer, PlayerRow, TeamAddContext, useMoveTo, useRanks, useRiotIds } from "@/components/queue/player-row";
+import { activeSanctions, draggedPlayer, PlayerRow, TeamAddContext, useMoveTo, useRanks, useReplace, useRiotIds } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typed, useMotion } from "@/components/prefs";
@@ -175,49 +175,75 @@ function EmptySlot({ n }: { n: number }) {
 // through Add player, which then moves them here. It opens on what was clicked: the header's
 // button, the empty slot itself (owner, 2026-09-27), or a row's Add player above / below, which
 // lands the player in that row's slot or the next (D37, slots since 0028).
-function AddToTeam({ team, at, slot, onClose }: { team: 1 | 2; at: HTMLElement | null; slot?: number; onClose: () => void }) {
+// With `replace` (spec 2026-10-18 X1–X5) it is Replace on that player's row: the waiting players
+// who may play, next in line first and preselected (Enter takes them), with no New player.
+function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTMLElement | null; slot?: number; replace?: Player; onClose: () => void }) {
   const { t } = useT();
   const ui = useUi();
   const moveTo = useMoveTo();
+  const replaceWith = useReplace();
   const riot = useRiotIds();
   // Select the stable array and filter outside: a selector that builds a new array makes
   // useSyncExternalStore see a new snapshot every render and loop.
   const players = useQueue((v) => v.players);
-  const waiting = useMemo(() => players.filter((p) => p.status === "waiting"), [players]);
+  const moderation = useQueue((v) => v.moderation);
+  const waiting = useMemo(
+    () =>
+      players.filter((p) => {
+        if (p.status !== "waiting") return false;
+        if (!replace) return true;
+        // The server refuses them too (draw.barred); left out so Next in queue is someone who can play.
+        const s = activeSanctions(moderation, p.kick_username);
+        return !s.banned && !s.punish;
+      }),
+    [players, moderation, replace],
+  );
   const pick = (f: () => void) => () => {
     onClose();
     f();
   };
+  // Replace finds its row each time it measures, so the list stays on it as the rosters move.
+  const anchor = replace
+    ? { getBoundingClientRect: () => document.querySelector(`[data-player="${replace.id}"]`)?.getBoundingClientRect() ?? new DOMRect() }
+    : at;
   return (
-    <Popover open={!!at} onOpenChange={(o) => !o && onClose()}>
-      {at && <PopoverAnchor virtualRef={{ current: at }} />}
+    <Popover open={!!anchor} onOpenChange={(o) => !o && onClose()}>
+      {anchor && <PopoverAnchor virtualRef={{ current: anchor }} />}
       <PopoverContent
         align={at?.dataset.slotAdd === undefined ? "end" : "start"}
         className="w-72 p-0"
         // Pressing another of this card's add targets must not close first and reopen in a race
         // (owner, 2026-09-27: the list jumped, or stayed shut): the card opens it there instead.
+        // Replace's own row (its button, R) keeps it open the same way.
         onInteractOutside={(e) => {
-          const hit = (e.target as Element | null)?.closest?.("[data-add-target]");
+          const target = e.target as Element | null;
+          if (replace && target?.closest?.(`[data-player="${replace.id}"]`)) return e.preventDefault();
+          const hit = target?.closest?.("[data-add-target]");
           if (hit && hit.closest("section") === at?.closest("section")) e.preventDefault();
         }}
       >
         <Command>
-          <CommandInput placeholder={t("teams.add.search")} />
+          <CommandInput placeholder={t(replace ? "replace.search" : "teams.add.search")} />
           <CommandList className="max-h-72">
-            <CommandEmpty>{t("teams.add.none")}</CommandEmpty>
+            <CommandEmpty>{t(replace ? "replace.none" : "teams.add.none")}</CommandEmpty>
             {waiting.length > 0 && (
-              <CommandGroup heading={t("teams.add.waiting")}>
-                {waiting.map((p) => (
-                  <CommandItem key={p.id} value={`${p.kick_username} ${p.riot_id ?? ""}`} onSelect={pick(() => void moveTo(p, team, slot))}>
+              <CommandGroup heading={replace ? t("replace.heading", { name: replace.kick_username }) : t("teams.add.waiting")}>
+                {waiting.map((p, i) => (
+                  <CommandItem
+                    key={p.id}
+                    value={`${p.kick_username} ${p.riot_id ?? ""}`}
+                    onSelect={pick(() => void (replace ? replaceWith(replace, p) : moveTo(p, team, slot)))}
+                  >
                     {/* Kick names run to 25 characters: both halves truncate rather than overflow. */}
                     <span className="truncate text-name">{p.kick_username}</span>
                     {riot && p.riot_id && <span className="min-w-0 truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}
+                    {replace && i === 0 && <span className="ms-auto shrink-0 text-caption text-muted-foreground">{t("replace.next")}</span>}
                   </CommandItem>
                 ))}
               </CommandGroup>
             )}
-            <CommandSeparator />
-            <CommandGroup>
+            {!replace && <CommandSeparator />}
+            {!replace && <CommandGroup>
               <CommandItem
                 value="__new"
                 onSelect={pick(() => {
@@ -229,7 +255,7 @@ function AddToTeam({ team, at, slot, onClose }: { team: 1 | 2; at: HTMLElement |
                 <UserPlus aria-hidden />
                 {t("teams.add.new")}
               </CommandItem>
-            </CommandGroup>
+            </CommandGroup>}
           </CommandList>
         </Command>
       </PopoverContent>
@@ -509,9 +535,13 @@ export function TeamsTab() {
   const victoryWhy =
     offline ??
     (landing ? t("why.draw_landing") : rosters.some((r) => r.length === 0) ? t("why.victory_empty") : recording ? t("why.victory_pending") : null);
+  // Replace (X2): opened from anywhere, shown here on the row; gone once that player changes.
+  const r = ui.replacing;
+  const out = r ? players.find((p) => p.id === r.id && p.changed_v === r.v && p.status === "playing") : undefined;
 
   return (
     <div className="flex flex-col gap-6">
+      {out && <AddToTeam key={out.id} team={out.team === 2 ? 2 : 1} at={null} replace={out} onClose={() => ui.setReplacing(null)} />}
       {/* Team 1 over its card on the left, vs in the middle, team 2 on the right (owner, 2026-09-23). */}
       <div style={e3.style} className={cn("flex flex-col gap-1", e3.className)}>
         <h2 className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-x-4 font-serif text-headline max-md:text-title">

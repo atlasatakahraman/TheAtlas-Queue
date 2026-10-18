@@ -22,6 +22,12 @@ export type Ui = {
   // team slot (0028); null is the end, or the first empty slot.
   addAt: number | null;
   setAddAt: (key: number | null) => void;
+  // The team player whose row has Replace open (spec 2026-10-18 X2): set from the row, its menus,
+  // R or ⌘K, which also switch to Teams; the Teams tab opens the list on that row. `v` is the row's
+  // changed_v when opened: any write to that player since (chat !leave, another tab) closes it for
+  // good instead of reopening it when they next join a team.
+  replacing: { id: string; v: number } | null;
+  setReplacing: (r: { id: string; v: number } | null) => void;
   editing: Player | null;
   setEditing: (p: Player | null) => void;
   sanction: SanctionDraft | null;

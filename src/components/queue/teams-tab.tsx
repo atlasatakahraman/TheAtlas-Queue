@@ -212,6 +212,15 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
       <PopoverContent
         align={at?.dataset.slotAdd === undefined ? "end" : "start"}
         className="w-72 p-0"
+        // Opened from the Queue tab or ⌘K, the row can sit below the fold (Team 2 under Team 1 on
+        // narrow screens), leaving the list pinned to the viewport edge away from it. Bring the row
+        // in, as the palette's Show in the queue does; globals.css keeps it smooth or instant. A row
+        // already in view (its own button, R) stays put.
+        onOpenAutoFocus={() => {
+          const row = replace && document.querySelector(`[data-player="${replace.id}"]`);
+          const r = row && row.getBoundingClientRect();
+          if (r && (r.top < 0 || r.bottom > innerHeight)) row.scrollIntoView({ block: "center" });
+        }}
         // Pressing another of this card's add targets must not close first and reopen in a race
         // (owner, 2026-09-27: the list jumped, or stayed shut): the card opens it there instead.
         // Replace's own row (its button, R) keeps it open the same way.

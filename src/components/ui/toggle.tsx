@@ -12,6 +12,11 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border border-input bg-transparent hover:bg-muted",
+        // A two-way choice inside a popover, where data-[state=on]:bg-muted is nearly the popover's
+        // own ground: the chosen side takes the primary fill, the other reads muted (Replace's
+        // To queue | Remove, 2026-10-18).
+        segment:
+          "border border-input bg-transparent text-muted-foreground hover:bg-muted data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90 data-[state=on]:hover:text-primary-foreground",
       },
       size: {
         default:

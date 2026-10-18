@@ -254,7 +254,7 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
           {replace && (
             <ToggleGroup
               type="single"
-              variant="outline"
+              variant="segment"
               aria-label={t("replace.outgoing", { name: replace.kick_username })}
               value={remove ? "remove" : "queue"}
               onValueChange={(v) => v && setRemove(v === "remove")}

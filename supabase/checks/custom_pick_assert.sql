@@ -118,6 +118,18 @@ begin
   if d #> '{activity,payload}' <> jsonb_build_object('draw', d -> 'id', 'n', 2, 'saved', 0) then
     raise exception '6: payload %', d #> '{activity,payload}';
   end if;
+
+  -- 8. A custom pick records its eligible pool, ineligible ids dropped (0047), so /watch and every
+  --    dashboard animate over the ticked names; the other sources record none.
+  d := pg_temp.pick(ch, 1, 'custom', pg_temp.ids('{a01,p01,b01,d01,o01,w02,t03}'));
+  if array(select x::uuid from jsonb_array_elements_text(d #> '{result,pool}') x order by 1)
+     <> array(select x from unnest(pg_temp.ids('{w02,t03}')) x order by 1) then
+    raise exception '8: pool %', d #> '{result,pool}';
+  end if;
+  foreach src in array array['waiting', 'teams', 'all'] loop
+    d := pg_temp.pick(ch, 1, src, null);
+    if d -> 'result' ? 'pool' then raise exception '8: % recorded a pool', src; end if;
+  end loop;
 end $$;
 
 -- 7. anon cannot execute it.

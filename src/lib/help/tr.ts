@@ -177,7 +177,7 @@ export const tr: Help = {
       {
         id: "pick",
         title: "Oyuncu çekmek",
-        body: ["**Çek** ×1, ×2, ×3, ×4 ya da ×5 kaynağından o kadar oyuncuyu rastgele alır: **Bekleyenler**, **Takımlar** ya da **Tüm sıra**. Yasaklı ve cezalı oyuncular dışarıda kalır; kaynağın dolduramayacağı sayı gizlenir."],
+        body: ["**Çek** ×1, ×2, ×3, ×4 ya da ×5 kaynağından o kadar oyuncuyu rastgele alır: **Bekleyenler**, **Takımlar**, **Tüm sıra** ya da **Özel…**. Yasaklı ve cezalı oyuncular dışarıda kalır; kaynağın dolduramayacağı sayı gizlenir.", "**Özel…** kimlerin seçilebileceğini işaretlediğin bir liste açar: isimle ara ya da Bekleyenler, Takım 1 veya Takım 2'nin hepsini tek seferde işaretle. Listen bu tarayıcıda bu kanal için saklanır ve sen değiştirene kadar her Çek düğmesi onu kullanır. Özel seçim kimseyi korumaz."],
       },
       {
         id: "fair-play",

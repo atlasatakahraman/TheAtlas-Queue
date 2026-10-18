@@ -176,7 +176,7 @@ export const en: Help = {
       {
         id: "pick",
         title: "Picking players",
-        body: ["**Pick** ×1, ×2, ×3, ×4 or ×5 takes that many players at random from its source: **Waiting**, **Teams** or **Whole queue**. Banned and punished players are left out, and a size the source cannot fill is hidden."],
+        body: ["**Pick** ×1, ×2, ×3, ×4 or ×5 takes that many players at random from its source: **Waiting**, **Teams**, **Whole queue** or **Custom…**. Banned and punished players are left out, and a size the source cannot fill is hidden.", "**Custom…** opens a list where you tick who can be picked: search by name, or tick all of Waiting, Team 1 or Team 2 at once. Your list is saved in this browser for this channel, and every Pick button uses it until you change it. A custom pick never protects anyone."],
       },
       {
         id: "fair-play",

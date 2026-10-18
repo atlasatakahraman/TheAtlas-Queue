@@ -696,13 +696,25 @@ and left it in Stage 10). An `sr-only` `h1` keeps the heading; the streamer's su
 when set. Right: **the toolbar**, the same on every tab.
 
 **Toolbar.** Add player · **Pick ×1 ×2 ×3 ×4 ×5** (×5 and ×4 owner, 2026-09-29) with its source (*Waiting*, *Teams*, *Whole
-queue*; remembered per browser, and every pick control uses it) · **Shuffle ▾** (Draw teams `D`, Reroll `R`, Shuffle current
+queue*, *Custom…*; remembered per browser, and every pick control uses it) · **Shuffle ▾** (Draw teams `D`, Reroll `R`, Shuffle current
 teams, Clear teams) · **Clear queue** (destructive ghost). Everything in it has an Undo toast.
 Under 768px the labels become `sr-only` and the icons stay.
 
 *Pick rule* (owner, 2026-09-27): the pool is what `pick_players` would draw from, the source's
 players less anyone banned or punished. A size the pool cannot fill is not shown, anywhere;
 ×1 stays, disabled, when the pool is empty.
+
+*Custom pick* (owner, 2026-10-18, migration 0045, ADR 0087): **Custom…**, last in the source
+select, opens a `ResponsiveDialog` to tick the pool by hand, every time it is chosen. A name
+search (case-insensitive), the group toggles *Waiting / Team 1 / Team 2* (a `Checkbox` each, a
+dash when partly ticked), the eligible players grouped the same way (waiting or on a team, not
+banned or punished; nobody else is listed), a 1–10 stepper capped at the ticked count and
+**Pick N** (disabled at 0). Ticks save at once, per channel in this browser
+(`queue.custom-pool.<channel id>`, at most 512 ids), and a player who leaves drops out. While the
+source is Custom, every pick control picks from that saved pool, so the dialog is needed only to
+change it. The server takes the ids (`p_ids`) and applies the same rule. A custom pick has **no
+protection**: protection stays immunity from *Pick from Teams*. Closing returns focus to the
+source select. `/watch` spins a custom pick's wheel over waiting and playing players.
 
 **Page menu.** Right-click anywhere on the dashboard, kept short (owner, 2026-09-23): a header
 *Queue management (N players)*, **Add player** first, then Draw teams, Pick 1, Clear queue,

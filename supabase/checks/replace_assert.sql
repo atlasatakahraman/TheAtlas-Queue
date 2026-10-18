@@ -1,4 +1,4 @@
--- 0044 assertions (spec 2026-10-18 § 2 and § 6, X1–X5). Local stack only:
+-- 0044 assertions (spec 2026-10-18 § 2 and § 6, X1–X5), plus 0046's removal (case 6). Local stack only:
 -- `bun run supabase:check supabase/checks/replace_assert.sql` (wrapped in begin … rollback).
 -- Raises on the first failure; the last select returns 'replace ok'.
 
@@ -9,6 +9,9 @@ $$;
 create function pg_temp.row(p_name text) returns jsonb language sql as $$
   select jsonb_build_object('status', status, 'team', team, 'slot', team_slot, 'key', sort_key)
   from public.players where id = pg_temp.id(p_name)
+$$;
+create function pg_temp.gone(p_name text) returns jsonb language sql as $$
+  select jsonb_build_object('gone', deleted_at is not null) from public.players where id = pg_temp.id(p_name)
 $$;
 create function pg_temp.act(r jsonb) returns bigint language sql as $$
   select (e ->> 'id')::bigint from jsonb_array_elements(r -> 'rows') e where e ->> '_t' = 'activity' limit 1
@@ -113,9 +116,29 @@ begin
   perform pg_temp.expect('w01', 'w03', 'request.invalid');  -- outgoing not playing
   if pg_temp.version() <> v then raise exception 'case 2: a refused replace wrote'; end if;
 
-  -- 5. anon cannot execute it; authenticated can.
-  if has_function_privilege('anon', 'public.replace_player(uuid, uuid, uuid, uuid)', 'execute')
-     or not has_function_privilege('authenticated', 'public.replace_player(uuid, uuid, uuid, uuid)', 'execute') then
+  -- 6. With removal (0046, owner 2026-10-18): w03 takes t07's team and slot (team 2, slot 4) and
+  --    t07 leaves the queue, keeping its key; one activity with removed: true; undo brings t07 back.
+  before := jsonb_build_object('t07', pg_temp.row('t07') || pg_temp.gone('t07'), 'w03', pg_temp.row('w03') || pg_temp.gone('w03'));
+  r := public.replace_player(ch, pg_temp.id('t07'), pg_temp.id('w03'), gen_random_uuid(), true);
+  if pg_temp.row('w03') - 'key' <> '{"status":"playing","team":2,"slot":4}'::jsonb then
+    raise exception 'case 6: w03 is %', pg_temp.row('w03');
+  end if;
+  if pg_temp.gone('t07') <> '{"gone":true}'::jsonb or pg_temp.row('t07') -> 'key' <> before #> '{t07,key}' then
+    raise exception 'case 6: t07 is % %', pg_temp.row('t07'), pg_temp.gone('t07');
+  end if;
+  select * into a from public.activity where id = pg_temp.act(r);
+  if a.action <> 'replace_player' or a.payload <> '{"out":"t07","in":"w03","team":2,"removed":true}'::jsonb then
+    raise exception 'case 6: activity is % %', a.action, a.payload;
+  end if;
+  perform public.undo(ch, pg_temp.act(r), gen_random_uuid());
+  if jsonb_build_object('t07', pg_temp.row('t07') || pg_temp.gone('t07'), 'w03', pg_temp.row('w03') || pg_temp.gone('w03')) <> before then
+    raise exception 'case 6: undo left t07 % %, w03 %', pg_temp.row('t07'), pg_temp.gone('t07'), pg_temp.row('w03');
+  end if;
+
+  -- 5. anon cannot execute it; authenticated can. The four-argument form is gone (0046).
+  if has_function_privilege('anon', 'public.replace_player(uuid, uuid, uuid, uuid, boolean)', 'execute')
+     or not has_function_privilege('authenticated', 'public.replace_player(uuid, uuid, uuid, uuid, boolean)', 'execute')
+     or to_regprocedure('public.replace_player(uuid, uuid, uuid, uuid)') is not null then
     raise exception 'case 5: grants are wrong';
   end if;
 end $$;

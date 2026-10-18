@@ -236,7 +236,9 @@ function Line({ a, clock }: { a: Activity; clock: Intl.DateTimeFormat | null }) 
       ? "act.stream_offline_cleared"
       : a.action === "set_join_open"
         ? a.payload.open ? "act.join_opened" : "act.join_closed"
-        : `act.${a.action}`;
+        : a.action === "replace_player" && a.payload.removed
+          ? "act.replace_player_removed"  // 0046: the outgoing player left the queue
+          : `act.${a.action}`;
   const text = isLabelKey(key) ? t(key as LabelKey, { n: String(a.payload.count ?? a.payload.n ?? "") }) : t("act.other", { action: a.action });
   const savedText = a.action === "pick_from_teams" && Number(a.payload.saved) > 0 ? t("act.saved", { n: String(a.payload.saved) }) : "";
   const name = "font-medium text-foreground";

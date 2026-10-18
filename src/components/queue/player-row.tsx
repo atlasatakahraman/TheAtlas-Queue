@@ -550,16 +550,18 @@ export function useMoveTo() {
 // queue (0044). One write, one Undo.
 export function useReplace() {
   const act = useAct();
-  return (out: Player, into: Player) =>
-    act("replace_player", { p_out: out.id, p_in: into.id }, {
+  // remove (0046): the outgoing player leaves the queue instead of going to its end. Sent only when
+  // set, so the call reads as 0044's otherwise.
+  return (out: Player, into: Player, remove = false) =>
+    act("replace_player", { p_out: out.id, p_in: into.id, ...(remove && { p_remove: true }) }, {
       optimistic: {
         ids: [out.id, into.id],
         patch: (x) =>
           x.id === out.id
-            ? { ...x, status: "waiting", team: null, team_slot: null, sort_key: Date.now() / 1000 }
+            ? remove ? null : { ...x, status: "waiting", team: null, team_slot: null, sort_key: Date.now() / 1000 }
             : { ...x, status: "playing", team: out.team, team_slot: out.team_slot },
       },
-      done: "done.replace",
+      done: remove ? "done.replace_removed" : "done.replace",
       vars: { out: out.kick_username, in: into.kick_username },
     });
 }

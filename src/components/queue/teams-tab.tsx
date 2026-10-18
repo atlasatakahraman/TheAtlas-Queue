@@ -1,6 +1,6 @@
 "use client";
 import { ChevronDown, Shuffle, Trophy, UserPlus, UsersRound } from "lucide-react";
-import { Fragment, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
@@ -23,6 +23,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { Kbd } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
@@ -202,6 +203,15 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
     onClose();
     f();
   };
+  // Replace can also take the outgoing player out of the queue (0046, owner 2026-10-18): the footer
+  // switch, off each time the list opens (it remounts per row), or Shift+Enter for one pick. cmdk
+  // runs our keydown before its own Enter, so the ref is set when onSelect reads it.
+  const [remove, setRemove] = useState(false);
+  const shift = useRef(false);
+  const choose = (p: Player) => {
+    onClose();
+    void (replace ? replaceWith(replace, p, remove || shift.current) : moveTo(p, team, slot));
+  };
   // Opened from the Queue tab or ⌘K, the row can sit below the fold (Team 2 under Team 1 on narrow
   // screens), leaving the list pinned to the viewport edge away from it. Bring the row in once the
   // tab has laid out, as the palette's Show in the queue does; globals.css keeps it smooth or
@@ -237,7 +247,7 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
           if (hit && hit.closest("section") === at?.closest("section")) e.preventDefault();
         }}
       >
-        <Command>
+        <Command onKeyDown={(e) => { if (e.key === "Enter") shift.current = e.shiftKey; }}>
           <CommandInput placeholder={t(replace ? "replace.search" : "teams.add.search")} />
           <CommandList className="max-h-72">
             <CommandEmpty>{t(replace ? "replace.none" : "teams.add.none")}</CommandEmpty>
@@ -249,7 +259,7 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
                     // Baseline, not centre: the smaller serif numeral floated up like a superscript.
                     className="items-baseline"
                     value={`${p.kick_username} ${p.riot_id ?? ""}`}
-                    onSelect={pick(() => void (replace ? replaceWith(replace, p) : moveTo(p, team, slot)))}
+                    onSelect={() => choose(p)}
                   >
                     {/* Queue position in the queue table's serif numeral, smaller (owner, 2026-10-18:
                         it replaced the "Next in queue" label). Counted before search, so it stays true. */}
@@ -276,6 +286,15 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
               </CommandItem>
             </CommandGroup>}
           </CommandList>
+          {replace && (
+            <div className="flex items-center gap-2 border-t px-3 py-2">
+              <Switch id="replace-remove" checked={remove} onCheckedChange={setRemove} />
+              <Label htmlFor="replace-remove" className="min-w-0 flex-1 cursor-pointer text-meta break-words">
+                {t("replace.remove", { name: replace.kick_username })}
+              </Label>
+              <Kbd className="border border-row-edge bg-transparent max-md:hidden" aria-label={t("replace.remove_keys")}>⇧↵</Kbd>
+            </div>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

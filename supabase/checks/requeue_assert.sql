@@ -1,4 +1,4 @@
--- 0043 assertions (spec 2026-10-18 § 1, R1–R5). Local stack only:
+-- 0043 assertions (spec 2026-10-18 § 1, R1–R5), and 0048's one end (case 10). Local stack only:
 -- `bun run supabase:check supabase/checks/requeue_assert.sql` (wrapped in begin … rollback).
 -- Raises on the first failure; the last select returns 'requeue ok'.
 -- Undo refuses once a later write touched the same rows (undo.changed), so each undo runs right
@@ -152,6 +152,29 @@ begin
   if exists (select 1 from public.players where channel_id = ch and status = 'playing'
              and sort_key <> right(kick_username, 2)::int) then
     raise exception 'case 6: a winner lost their key';
+  end if;
+
+  -- 10. The end is past every key, not just the clock (0048): a drag to the bottom keys the last
+  -- player + 1 s, and a player sent off a team (move, clear, settle) still lands after them.
+  perform pg_temp.seed();
+  update public.players set sort_key = extract(epoch from clock_timestamp()) + 100 where id = pg_temp.id('w05');
+  r := public.move_player(ch, pg_temp.id('t01'), 'waiting', null, gen_random_uuid(), null);
+  if pg_temp.key('t01') <= pg_temp.key('w05') then
+    raise exception 'case 10: move landed at % above the dragged w05 at %', pg_temp.key('t01'), pg_temp.key('w05');
+  end if;
+  r := public.clear_teams(ch, gen_random_uuid());
+  if (select min(sort_key) from public.players where channel_id = ch and kick_username like 't%' and kick_username <> 't01')
+     <= pg_temp.key('t01') then
+    raise exception 'case 10: clear_teams landed above the previous end';
+  end if;
+  perform pg_temp.seed();
+  update public.players set sort_key = extract(epoch from clock_timestamp()) + 100 where id = pg_temp.id('w05');
+  update public.players set status = 'punished', team = null, team_slot = null, punished_from_team = true
+  where id = pg_temp.id('t02');
+  perform private.settle(ch, 0, 'qa');
+  if (select status from public.players where id = pg_temp.id('t02')) <> 'waiting'
+     or pg_temp.key('t02') <= pg_temp.key('w05') then
+    raise exception 'case 10: settle left t02 % at key %', (select status from public.players where id = pg_temp.id('t02')), pg_temp.key('t02');
   end if;
 end $$;
 

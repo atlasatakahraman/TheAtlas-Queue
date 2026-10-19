@@ -162,10 +162,10 @@ export function usePlayerActions(p: Player) {
   const team = (n: 1 | 2) => t(`team.${n}`);
   const move = (status: Player["status"], teamNo: 1 | 2 | null) =>
     act("move_player", { p_player: p.id, p_status: status, p_team: teamNo }, {
-      // Off a team lands at the end of the queue (0043); the RPC result reconciles the exact key.
+      // Off a team lands at the end of the queue (0043, 0048).
       optimistic: {
         ids: [p.id],
-        patch: (x) => ({ ...x, status, team: teamNo, ...(x.status === "playing" && status !== "playing" && { sort_key: Date.now() / 1000 }) }),
+        patch: (x) => ({ ...x, status, team: teamNo, ...(x.status === "playing" && status !== "playing" && { sort_key: endKey(store.get().players) }) }),
       },
       done: status === "playing" ? "done.move_team" : status === "away" ? "done.away" : "done.waiting",
       vars: { name: p.kick_username, team: teamNo ? team(teamNo) : "" },
@@ -550,6 +550,7 @@ export function useMoveTo() {
 // queue (0044). One write, one Undo.
 export function useReplace() {
   const act = useAct();
+  const store = useStore();
   // remove (0046): the outgoing player leaves the queue instead of going to its end. Sent only when
   // set, so the call reads as 0044's otherwise.
   return (out: Player, into: Player, remove = false) =>
@@ -558,7 +559,7 @@ export function useReplace() {
         ids: [out.id, into.id],
         patch: (x) =>
           x.id === out.id
-            ? remove ? null : { ...x, status: "waiting", team: null, team_slot: null, sort_key: Date.now() / 1000 }
+            ? remove ? null : { ...x, status: "waiting", team: null, team_slot: null, sort_key: endKey(store.get().players) }
             : { ...x, status: "playing", team: out.team, team_slot: out.team_slot },
       },
       done: remove ? "done.replace_removed" : "done.replace",
@@ -581,6 +582,10 @@ function edgeAt(e: React.DragEvent<HTMLElement>, d: Player): "before" | "after" 
   const i = rows.indexOf(row);
   return rows[at === "before" ? i - 1 : i + 1]?.dataset.player === d.id ? null : at;
 }
+
+// The optimistic end of the queue: past the clock and past every key, as private.requeue keys it
+// (0048). The RPC result reconciles the exact value.
+export const endKey = (players: Player[]) => Math.max(Date.now() / 1000, ...players.map((x) => x.sort_key)) + 0.001;
 
 // The new place is the midpoint between the target and its neighbour on that side.
 // The key between target and its neighbour on that side, leaving out the player being moved.

@@ -4,7 +4,7 @@ import { Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState
 import { toast } from "sonner";
 import { useT } from "@/components/i18n";
 import { confirm } from "@/components/queue/confirm";
-import { activeSanctions, draggedPlayer, PlayerRow, TeamAddContext, useMoveTo, useRanks, useReplace, useRiotIds } from "@/components/queue/player-row";
+import { activeSanctions, draggedPlayer, endKey, PlayerRow, TeamAddContext, useMoveTo, useRanks, useReplace, useRiotIds } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useQueue, useStore } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Typed, useMotion } from "@/components/prefs";
@@ -535,6 +535,7 @@ function RevealEnd({ duration }: { duration: number }) {
 // 2026-09-27). Cards, rows and fields keep their own drops; the Teams tab is mounted only while open.
 function useDropOut() {
   const act = useAct();
+  const store = useStore();
   useEffect(() => {
     const out = (e: DragEvent) => {
       const d = draggedPlayer();
@@ -551,8 +552,8 @@ function useDropOut() {
       if (!d) return;
       e.preventDefault();
       void act("move_player", { p_player: d.id, p_status: "waiting", p_team: null }, {
-        // Off a team lands at the end of the queue (0043); the RPC result reconciles the exact key.
-        optimistic: { ids: [d.id], patch: (x) => ({ ...x, status: "waiting", team: null, sort_key: Date.now() / 1000 }) },
+        // Off a team lands at the end of the queue (0043, 0048).
+        optimistic: { ids: [d.id], patch: (x) => ({ ...x, status: "waiting", team: null, sort_key: endKey(store.get().players) }) },
         done: "done.waiting",
         vars: { name: d.kick_username },
       });
@@ -563,7 +564,7 @@ function useDropOut() {
       document.removeEventListener("dragover", over);
       document.removeEventListener("drop", drop);
     };
-  }, [act]);
+  }, [act, store]);
 }
 
 export function TeamsTab() {

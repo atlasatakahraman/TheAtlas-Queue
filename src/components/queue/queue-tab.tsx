@@ -56,9 +56,12 @@ export function QueueTab() {
   const q = query.trim().toLowerCase();
   const ids = useRiotIds();
   const sort = useQueueSort(useRanks());
+  // The numeral is the place among waiting players, barred ones included, as chat !position and
+  // Replace count it (review 2026-10-19); other statuses hold no place, so they show none.
+  let place = 0;
   const shown = sortPlayers(
     players
-      .map((p, i) => ({ p, n: i + 1 }))
+      .map((p) => ({ p, n: p.status === "waiting" ? ++place : undefined }))
       .filter(
         ({ p }) =>
           (filter === "all" || p.status === filter) &&

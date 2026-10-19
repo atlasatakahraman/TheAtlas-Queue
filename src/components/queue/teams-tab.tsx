@@ -207,15 +207,18 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
   // useSyncExternalStore see a new snapshot every render and loop.
   const players = useQueue((v) => v.players);
   const moderation = useQueue((v) => v.moderation);
+  // Numbered before the barred are left out, so a place matches the queue table and !position.
   const waiting = useMemo(
     () =>
-      players.filter((p) => {
-        if (p.status !== "waiting") return false;
-        if (!replace) return true;
-        // The server refuses them too (draw.barred); left out so Next in queue is someone who can play.
-        const s = activeSanctions(moderation, p.kick_username);
-        return !s.banned && !s.punish;
-      }),
+      players
+        .filter((p) => p.status === "waiting")
+        .map((p, i) => ({ p, n: i + 1 }))
+        .filter(({ p }) => {
+          if (!replace) return true;
+          // The server refuses them too (draw.barred); left out so Next in queue is someone who can play.
+          const s = activeSanctions(moderation, p.kick_username);
+          return !s.banned && !s.punish;
+        }),
     [players, moderation, replace],
   );
   const pick = (f: () => void) => () => {
@@ -293,7 +296,7 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
             <CommandEmpty>{t(replace ? "replace.none" : "teams.add.none")}</CommandEmpty>
             {waiting.length > 0 && (
               <CommandGroup heading={replace ? t("replace.heading", { name: replace.kick_username }) : t("teams.add.waiting")}>
-                {waiting.map((p, i) => (
+                {waiting.map(({ p, n }) => (
                   <CommandItem
                     key={p.id}
                     // Baseline, not centre: the smaller serif numeral floated up like a superscript.
@@ -301,9 +304,9 @@ function AddToTeam({ team, at, slot, replace, onClose }: { team: 1 | 2; at: HTML
                     value={`${p.kick_username} ${p.riot_id ?? ""}`}
                     onSelect={() => choose(p)}
                   >
-                    {/* Queue position in the queue table's serif numeral, smaller (owner, 2026-10-18:
-                        it replaced the "Next in queue" label). Counted before search, so it stays true. */}
-                    <span className="min-w-4 shrink-0 text-end font-serif text-meta text-muted-foreground tabular-nums select-none">{i + 1}</span>
+                    {/* Place in the queue, the queue table's serif numeral, smaller (owner, 2026-10-18:
+                        it replaced the "Next in queue" label). Counted before search and barring. */}
+                    <span className="min-w-4 shrink-0 text-end font-serif text-meta text-muted-foreground tabular-nums select-none">{n}</span>
                     {/* Kick names run to 25 characters: both halves truncate rather than overflow. */}
                     <span className="truncate text-name">{p.kick_username}</span>
                     {riot && p.riot_id && <span className="min-w-0 truncate font-mono text-code text-muted-foreground">{p.riot_id}</span>}

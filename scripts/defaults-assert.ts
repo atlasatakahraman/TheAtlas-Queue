@@ -45,6 +45,7 @@ const retention = [
   `delete from public.activity where created_at < now() - interval '${k.historyDays} days'`,
   `delete from public.riot_cache where fetched_at < now() - interval '${k.rankDays} days'`,
   `coalesce(last_seen_at, created_at) < now() - interval '${k.badgeDays} days'`,
+  `coalesce(perk_reset_at, '-infinity') < now() - interval '${k.subscriptionDays} days'`,
 ]
   .map((s) => `  if strpos(pg_get_functiondef('private.retention()'::regprocedure), ${q(s)}) = 0 then raise exception 'defaults: retention() does not say %', ${q(s)} using errcode = 'XX000'; end if;`)
   .join("\n");

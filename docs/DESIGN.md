@@ -955,7 +955,8 @@ Sections, in order: **Commands** · **Joining** (Stage 14, D23) · **Riot** · *
   left while the perk is on, only for a viewer with one of the perk badges; anyone else reads
   *@name, protected picks are for Subscribers and VIPs.* (the chosen badges, joined like the
   badge picker's sentence, in the stream language), at most once per viewer per 30 s; staff get
-  no exception (owner, 2026-09-29, migration 0039). `!komutlar` and `!commands` (fixed, in either language): the
+  no exception (owner, 2026-09-29, migration 0039). A refill from a Kick sub event names the
+  refilled viewers in one line per event (migration 0049). `!komutlar` and `!commands` (fixed, in either language): the
   channel's commands in one line and the wiki's commands page, at most once per 30 s per
   channel. **Watch** (owner's ask, 2026-09-29), the sixth command field in **Commands**, default
   `!izle`, all six distinct (migration 0034): the channel's `/watch` link in the stream language,
@@ -1101,7 +1102,8 @@ Joining
   again from chat once that many later games are recorded. Games taken back do not count.
 - **Subscribers only**: a switch; on, the [badge picker](#badge-picker) under it (default
   Subscriber) says who may join, one live sentence under it (*Only subscribers and VIPs can join
-  from chat*). Moderators and the streamer always pass it.
+  from chat*). Moderators and the streamer always pass it. A sub recorded from Kick's events
+  passes as the Subscriber badge, without the badge in chat ([Subscriber perk](#subscriber-perk)).
 - Numbers wait for Save (ADR 0033), switches and the picker save as they change.
 
 **The toolbar** gets one button at its right end (`ml-auto`), so it moves nothing before it:
@@ -1688,6 +1690,24 @@ viewer cannot opt out or save uses.
 
 **Who qualifies (P4).** A player whose latest known badges (they refresh from every chat message,
 P10) include one of the chosen perk badges and who has a use left in the window. One shared quota.
+A sub recorded from Kick's events counts as the Subscriber badge (below).
+
+**Subscriptions from Kick (owner, 2026-10-19, migration 0049, ADR 0091).** Kick's
+`channel.subscription.new`, `.renewal` and `.gifts` events record who subscribed and until when.
+From the moment one arrives, that viewer counts as having the **Subscriber** badge until the sub
+ends, whether they've chatted or not: a giftee waiting quietly in the queue, or someone with a
+hidden badge. One check (`private.badges`) feeds the subs-only join gate, the subscriber tag,
+`!hak` and protection, so they can't disagree. Only official events: Kick's public API has no
+subscriber lookup, and the unauthenticated `api/v2` one was rejected as unofficial.
+
+**Refill (S2, S3, S6).** Settings → Perks → *Refill protection on* chooses which events refill:
+*Gifted sub* (the default), *New sub*, *Renewal*. A refill gives every use back at once: uses
+spent before it stop counting, and the window runs on from there; it never stacks above the
+limit. On a gift, the gifter and every giftee refill. An anonymous gifter has no id and can't be
+refilled, and a gift doesn't make the gifter a subscriber. Chat hears it once per event, with
+every refilled name that's in the queue and gets the perk: *@a, @b, your protection is refilled!
+3 left.* (`chat.perk.refilled`). A recorded sub is deleted once it has ended and its last refill
+is older than 90 days, the longest window.
 
 **The stand-in (P5).** Random among the unprotected team players not already picked. A protected
 player is never a stand-in.

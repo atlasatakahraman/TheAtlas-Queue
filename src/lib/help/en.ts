@@ -138,7 +138,7 @@ export const en: Help = {
               `**Queue limit**: at most this many players who are not in a game, from 1 to ${L.queue_max[1]}. ${L.queue_max[0]} means no limit.`,
               `**Sit out after a game**: a player who just played waits this many recorded games before joining from chat again, up to ${L.join_cooldown[1]}. ${L.join_cooldown[0]} is off.`,
               "**Only while live**: on by default. While the stream is offline, chat joins are turned away until it goes live. You and your moderators can still join, and adding by hand always works. Kick reports a stream starting or ending on its own schedule, sometimes a few minutes late, so joining can open or close a little after the stream does. Turn the switch off if that gets in the way.",
-              "**Subscribers only**: only viewers with a chosen badge can join. You and your moderators always pass.",
+              "**Subscribers only**: only viewers with a chosen badge can join. Someone Kick reported as subscribed counts as a subscriber, even without the badge in chat. You and your moderators always pass.",
             ],
           },
         ],
@@ -265,6 +265,14 @@ export const en: Help = {
         ],
       },
       {
+        id: "refill",
+        title: "Subscriptions and refills",
+        body: [
+          "Kick tells Queue when someone subscribes, renews or is gifted a sub. From then until the sub ends, they count as a subscriber, even before they chat or with their badge hidden.",
+          "**Refill protection on** chooses which of those give every protected pick back at once: **Gifted sub** (the default), **New sub**, **Renewal**. A refill starts the count again, so picks used before it no longer count; it never goes above the limit. A gifted sub refills the gifter too, unless they gift anonymously. When replies are on, chat hears who was refilled.",
+        ],
+      },
+      {
         id: "badges",
         title: "Badges",
         body: ["Choose which Kick badges qualify: subscriber, VIP, OG, founder or gifter. The same picker chooses who may join when joining is for subscribers only."],
@@ -359,6 +367,7 @@ export const en: Help = {
             list: [
               "**Streamers and moderators**: your Kick name, id and picture from signing in with Kick, and your channel's settings.",
               "**Viewers in a queue**: the Kick name and id from chat, the Riot ID they gave, their badges, and their rank looked up from Riot.",
+              "**Subscriptions**: when Kick reports a sub, the viewer's Kick id, when it ends, and when it last refilled their protection. Never shown to anyone.",
               "**Moderation**: sanctions with their reasons, kept with the channel. Reasons are seen only on the dashboard.",
               "**Games**: who played and who won, and the records they make.",
               "**Chat replies**: when a streamer turns them on, Kick's permission to write in their chat, stored encrypted. Turning replies off revokes and deletes it.",
@@ -381,6 +390,7 @@ export const en: Help = {
               `Games and records: ${s.games_retention_days} days, or what the streamer sets.`,
               `A looked-up rank: ${k.rankDays} days.`,
               `A moderator's access from a chat badge: ${k.badgeDays} days after the badge was last seen.`,
+              `A subscription: until it ends, and ${k.subscriptionDays} days after its last refill.`,
             ],
           },
         ],
@@ -389,7 +399,7 @@ export const en: Help = {
         id: "delete",
         title: "Deleting your data",
         body: [
-          "A streamer can delete their channel and everything in it from **Settings → Your data** with **Delete my data**: the queue, teams, games and records, moderation, overlays, history, settings and the chat replies permission, and Kick stops sending the channel's chat here. It asks for the channel's name typed again, and it cannot be undone. Signing in again starts a new, empty channel.",
+          "A streamer can delete their channel and everything in it from **Settings → Your data** with **Delete my data**: the queue, teams, games and records, moderation, subscriptions, overlays, history, settings and the chat replies permission, and Kick stops sending the channel's chat here. It asks for the channel's name typed again, and it cannot be undone. Signing in again starts a new, empty channel.",
         ],
       },
       {

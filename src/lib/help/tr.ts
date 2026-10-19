@@ -139,7 +139,7 @@ export const tr: Help = {
               `**Sıra sınırı**: oyunda olmayan en fazla bu kadar oyuncu, 1 ile ${L.queue_max[1]} arası. ${L.queue_max[0]} sınır yok demektir.`,
               `**Maç sonrası bekleme**: yeni oynamış bir oyuncu sohbetten yeniden katılmadan önce bu kadar kayıtlı maç bekler, en fazla ${L.join_cooldown[1]}. ${L.join_cooldown[0]} kapalıdır.`,
               "**Yalnızca yayındayken**: varsayılan olarak açık. Yayın kapalıyken sohbetten katılmalar yayın açılana kadar geri çevrilir. Sen ve moderatörlerin yine katılabilir, elle eklemek her zaman çalışır. Kick yayının başladığını ya da bittiğini kendi zamanlamasıyla, bazen birkaç dakika geç bildirir; bu yüzden katılım yayından biraz sonra açılıp kapanabilir. Engel olursa anahtarı kapat.",
-              "**Yalnızca aboneler**: yalnızca seçtiğin rozete sahip izleyiciler katılabilir. Sen ve moderatörlerin her zaman geçersiniz.",
+              "**Yalnızca aboneler**: yalnızca seçtiğin rozete sahip izleyiciler katılabilir. Kick'in abone olduğunu bildirdiği biri, sohbette rozeti görünmese de abone sayılır. Sen ve moderatörlerin her zaman geçersiniz.",
             ],
           },
         ],
@@ -266,6 +266,14 @@ export const tr: Help = {
         ],
       },
       {
+        id: "refill",
+        title: "Abonelikler ve yenileme",
+        body: [
+          "Biri abone olduğunda, aboneliğini yenilediğinde ya da hediye abonelik aldığında Kick bunu Queue'ya bildirir. Abonelik bitene kadar o kişi abone sayılır, henüz sohbete yazmamış ya da rozetini gizlemiş olsa bile.",
+          "**Korumayı yenileyen olaylar** bunlardan hangilerinin tüm korumalı hakları bir kerede geri vereceğini seçer: **Hediye abonelik** (varsayılan), **Yeni abonelik**, **Abonelik yenileme**. Yenileme sayımı baştan başlatır, yani ondan önce kullanılan haklar artık sayılmaz; hak hiçbir zaman sınırın üstüne çıkmaz. Hediye abonelik, gizli değilse hediye edeni de yeniler. Sohbet yanıtları açıksa kimin yenilendiği sohbete yazılır.",
+        ],
+      },
+      {
         id: "badges",
         title: "Rozetler",
         body: ["Hangi Kick rozetlerinin hak kazandırdığını seç: abone, VIP, OG, kurucu ya da hediye eden. Katılım yalnızca abonelere açıkken kimin katılabileceğini de aynı seçici belirler."],
@@ -360,6 +368,7 @@ export const tr: Help = {
             list: [
               "**Yayıncılar ve moderatörler**: Kick ile girişten Kick adın, kimliğin ve resmin, ve kanalının ayarları.",
               "**Sıradaki izleyiciler**: sohbetten Kick adı ve kimliği, verdikleri Riot ID, rozetleri ve Riot'tan getirilen derecesi.",
+              "**Abonelikler**: Kick bir abonelik bildirdiğinde izleyicinin Kick kimliği, aboneliğin ne zaman bittiği ve korumasının en son ne zaman yenilendiği. Kimseye gösterilmez.",
               "**Yönetim**: yaptırımlar ve nedenleri, kanalla birlikte tutulur. Nedenler yalnızca panelde görünür.",
               "**Maçlar**: kimin oynadığı, kimin kazandığı ve bıraktıkları kayıtlar.",
               "**Sohbet yanıtları**: yayıncı açtığında, Kick'in sohbetine yazma izni, şifreli saklanır. Yanıtları kapatmak izni iptal eder ve siler.",
@@ -382,6 +391,7 @@ export const tr: Help = {
               `Maçlar ve kayıtlar: ${s.games_retention_days} gün ya da yayıncının seçtiği.`,
               `Getirilen bir derece: ${k.rankDays} gün.`,
               `Sohbet rozetinden gelen moderatör erişimi: rozet son görüldükten ${k.badgeDays} gün sonra.`,
+              `Bir abonelik: bitene kadar ve son yenilemeden ${k.subscriptionDays} gün sonrasına kadar.`,
             ],
           },
         ],
@@ -390,7 +400,7 @@ export const tr: Help = {
         id: "delete",
         title: "Verilerini silmek",
         body: [
-          "Yayıncı kanalını ve içindeki her şeyi **Ayarlar → Verilerin** bölümündeki **Verilerimi sil** ile silebilir: sıra, takımlar, maçlar ve kayıtlar, moderasyon, overlay'ler, geçmiş, ayarlar ve sohbet yanıtları izni silinir, Kick kanalın sohbetini buraya göndermeyi bırakır. Kanalın adını yeniden yazmanı ister ve geri alınamaz. Yeniden giriş yapınca yeni, boş bir kanal başlar.",
+          "Yayıncı kanalını ve içindeki her şeyi **Ayarlar → Verilerin** bölümündeki **Verilerimi sil** ile silebilir: sıra, takımlar, maçlar ve kayıtlar, moderasyon, abonelikler, overlay'ler, geçmiş, ayarlar ve sohbet yanıtları izni silinir, Kick kanalın sohbetini buraya göndermeyi bırakır. Kanalın adını yeniden yazmanı ister ve geri alınamaz. Yeniden giriş yapınca yeni, boş bir kanal başlar.",
         ],
       },
       {

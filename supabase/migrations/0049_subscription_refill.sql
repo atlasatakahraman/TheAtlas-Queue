@@ -8,8 +8,11 @@
 --   S3  A refill resets the window (perk_reset_at): uses before it stop counting.
 --   S6  On a gift the gifter is refilled too, unless anonymous; only giftees become subscribers.
 --   S5  public.subscriptions is service_role only, written only by ingest_subscription.
+--   Retention (owner, 2026-10-19): a row goes once its sub has ended and its last refill is
+--       older than 90 days (the longest perk window), when it no longer changes anything.
 -- Redefined bodies are the live ones (ingest_chat 0043, pick_players 0047, update_settings and
--- settings_keys 0037, labels_valid 0042); only the badge, perk and settings lines change. Same
+-- settings_keys 0037, labels_valid 0042, retention 0027); only the badge, perk, settings and
+-- retention lines change. Same
 -- signatures, so the live client and webhook are unaffected and this can be applied before a push.
 
 create table public.subscriptions (
@@ -457,6 +460,48 @@ begin
     end loop;
   end loop;
   return true;
+end $function$;
+
+CREATE OR REPLACE FUNCTION private.retention()
+ RETURNS void
+ LANGUAGE plpgsql
+ SET search_path TO ''
+AS $function$
+declare
+  v_ch    uuid;
+  v_ids   uuid[];
+  v_names text[];
+begin
+  delete from public.players where deleted_at < now() - interval '10 minutes';
+  update public.activity set undo = null where undo is not null and created_at < now() - interval '10 minutes';
+  delete from public.draws d
+  where d.created_at < now() - interval '24 hours'
+    and d.id is distinct from (select x.id from public.draws x
+                               where x.channel_id = d.channel_id and x.undone_at is null
+                               order by x.created_at desc limit 1);
+  delete from public.activity where created_at < now() - interval '30 days';
+  delete from public.webhook_events where received_at < now() - interval '1 hour';
+  delete from public.perk_uses u using public.settings s
+  where s.channel_id = u.channel_id and u.used_at < now() - make_interval(days => s.perk_window_days + 1);
+  delete from public.channel_members
+  where source = 'badge' and not blocked and coalesce(last_seen_at, created_at) < now() - interval '30 days';
+  delete from public.riot_cache where fetched_at < now() - interval '7 days';
+  -- 0049: a subscription that no longer counts (ended) nor refills (older than the longest window).
+  delete from public.subscriptions
+  where coalesce(expires_at, '-infinity') < now() and coalesce(perk_reset_at, '-infinity') < now() - interval '90 days';
+  -- 0027: a removed game once its undo window has passed; a game older than the channel's
+  -- retention, recounting the records of the people in it.
+  delete from public.games where removed_at < now() - interval '10 minutes';
+  for v_ch, v_ids in
+    select g.channel_id, array_agg(g.id) from public.games g
+    join public.settings s on s.channel_id = g.channel_id
+    where g.ended_at < now() - make_interval(days => s.games_retention_days)
+    group by g.channel_id
+  loop
+    select array_agg(distinct gp.name) into v_names from public.game_players gp where gp.game_id = any(v_ids);
+    delete from public.games g where g.id = any(v_ids);
+    perform private.recount(v_ch, coalesce(v_names, '{}'));
+  end loop;
 end $function$;
 
 -- Nothing may still test raw chat badges against a badge list.

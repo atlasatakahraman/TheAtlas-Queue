@@ -182,6 +182,21 @@ begin
         and prosrc ~ 'private\.badges\(') <> 2 then
     raise exception 'case 10: a reader skips private.badges';
   end if;
+
+  -- 11. Retention: a row goes once its sub has ended and its last refill is older than 90 days.
+  delete from public.subscriptions where channel_id = ch;
+  insert into public.subscriptions (channel_id, kick_user_id, expires_at, perk_reset_at) values
+    (ch, -4981, now() - interval '1 day', now() - interval '91 days'),   -- goes
+    (ch, -4982, null,                     now() - interval '91 days'),   -- goes (gifter only)
+    (ch, -4983, now() - interval '1 day', null),                         -- goes (never refilled)
+    (ch, -4984, now() - interval '1 day', now() - interval '89 days'),   -- stays: refill still counts
+    (ch, -4985, now() + interval '1 day', now() - interval '91 days'),   -- stays: still a sub
+    (ch, -4986, null,                     now() - interval '1 day');     -- stays: gifter's refill counts
+  perform private.retention();
+  if (select array_agg(kick_user_id order by kick_user_id desc) from public.subscriptions where channel_id = ch)
+     is distinct from array[-4984, -4985, -4986]::bigint[] then
+    raise exception 'case 11: retention kept %', (select array_agg(kick_user_id) from public.subscriptions where channel_id = ch);
+  end if;
 end $$;
 
 select 'subscription ok' as result;

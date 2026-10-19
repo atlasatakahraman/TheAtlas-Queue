@@ -2,7 +2,11 @@ import "server-only";
 import { createPublicKey, verify, type KeyObject } from "node:crypto";
 
 const API = "https://api.kick.com/public/v1";
-export const EVENTS = ["chat.message.sent", "livestream.status.updated"] as const;
+export const EVENTS = [
+  "chat.message.sent", "livestream.status.updated",
+  // A subscription records the viewer as a subscriber and may refill their protection (0049).
+  "channel.subscription.new", "channel.subscription.renewal", "channel.subscription.gifts",
+] as const;
 
 // Kick's webhook signing key as published at docs.kick.com/events/webhook-security. After a
 // failed verify it is refetched from /public-key, at most every 10 minutes, in case Kick rotates.
@@ -109,7 +113,7 @@ export async function kickLive(broadcasterId: number): Promise<Live> {
   return live;
 }
 
-// Creates whichever of the two event subscriptions the channel lacks. Returns null when both
+// Creates whichever of the EVENTS subscriptions the channel lacks. Returns null when both
 // exist, else a short error for channels.subscription_error.
 // ponytail: one filtered list call per channel; one unfiltered call if channel counts grow.
 export async function ensureSubscriptions(broadcasterId: number): Promise<string | null> {

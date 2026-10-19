@@ -118,6 +118,14 @@ export async function keptOnTeam(channelId: string, name: string, left: number) 
   await say(channelId, "chat.perk.saved", { name, uses: left });
 }
 
+// A subscription event refilled protection (0049): one line per event with every name in it, so
+// a gift to many is one message (split at Kick's limit), not one per giftee.
+export async function perkRefilled(channelId: string, users: { username: string; left: number }[]) {
+  const byLeft = new Map<number, string[]>();
+  for (const u of users) byLeft.set(u.left, [...(byLeft.get(u.left) ?? []), u.username]);
+  for (const [uses, names] of byLeft) await say(channelId, "chat.perk.refilled", { name: names.join(", @"), uses });
+}
+
 // !komutlar / !commands (fixed in both languages) and the watch command: each at most once per
 // 30 s per channel.
 // ponytail: per-instance throttle; a second instance may answer once more inside the 30 s.

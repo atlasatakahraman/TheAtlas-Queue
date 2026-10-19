@@ -2,7 +2,7 @@ import { after, NextResponse, type NextRequest } from "next/server";
 import { parseCommand, type Commands } from "@/lib/kick-command";
 import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
-import { answer, isCommandsAsk, listCommands, sendRules, sendWatchLink } from "@/lib/server/chat-replies";
+import { answer, isCommandsAsk, listCommands, perkRefilled, sendRules, sendWatchLink } from "@/lib/server/chat-replies";
 import { kickLive, verifyWebhook } from "@/lib/server/kick";
 
 // Kick → Postgres (spec § Security → Webhook). 401 bad signature or stale timestamp; 200 for
@@ -149,6 +149,43 @@ async function onLive(p: { broadcaster?: { user_id?: number }; is_live?: boolean
   return data ? (p.is_live ? "live" : "offline") : "unknown_channel";
 }
 
+// Kick's subscription events (0049). New and renewal carry one subscriber; gifts carry the giftees
+// and a gifter, who is passed only when named: an anonymous gifter has no id to refill.
+const KINDS = { "channel.subscription.new": "new", "channel.subscription.renewal": "renewal", "channel.subscription.gifts": "gift" } as const;
+type KickUser = { is_anonymous?: boolean; user_id?: number | null; username?: string | null } | null;
+const named = (u: KickUser | undefined): u is { user_id: number; username: string } =>
+  !!u && u.is_anonymous !== true && Number.isSafeInteger(u.user_id) && typeof u.username === "string" && /^\S{1,40}$/u.test(u.username);
+
+async function onSubscription(
+  messageId: string,
+  kind: (typeof KINDS)[keyof typeof KINDS],
+  p: { broadcaster?: { user_id?: number }; subscriber?: KickUser; giftees?: KickUser[]; gifter?: KickUser; expires_at?: string },
+) {
+  const broadcaster = p.broadcaster?.user_id;
+  if (!Number.isSafeInteger(broadcaster) || typeof p.expires_at !== "string" || Number.isNaN(Date.parse(p.expires_at))) return "ignored";
+  const users = (kind === "gift" ? (Array.isArray(p.giftees) ? p.giftees : []) : [p.subscriber]).filter(named);
+  // ingest_subscription refuses more than 100; Kick's largest gift is 100. 200, so no redelivery.
+  if (users.length === 0) return "ignored";
+  if (users.length > 100) return "too_many";
+  const gifter = kind === "gift" && named(p.gifter) ? p.gifter : null;
+  const { data, error } = await adminDb().rpc("ingest_subscription", {
+    p_broadcaster: broadcaster, p_message_id: messageId, p_kind: kind,
+    p_user_ids: users.map((u) => u.user_id), p_usernames: users.map((u) => u.username), p_expires_at: p.expires_at,
+    p_gifter_id: gifter?.user_id ?? null, p_gifter_name: gifter?.username ?? null,
+  });
+  // A refused body (request.invalid) never succeeds on redelivery; anything else is retried.
+  if (error?.code === "P0001") return "invalid";
+  if (error) throw new Error(`ingest_subscription ${error.code}`);
+  // A replayed message id answers { result: 'duplicate' }, with no refilled list.
+  const r = data as { result: string; refilled?: { username: string; left: number }[] } | null;
+  if (!r) return "unknown_channel";
+  if (r.refilled?.length) {
+    const ctx = await context(broadcaster!);
+    if (ctx) after(() => perkRefilled(ctx.channel_id, r.refilled!));
+  }
+  return r.result;
+}
+
 const reply = (status: number) => new NextResponse(null, { status });
 
 export async function POST(request: NextRequest) {
@@ -179,6 +216,7 @@ export async function POST(request: NextRequest) {
   try {
     if (type === "chat.message.sent") result = await onChat(id, payload as Parameters<typeof onChat>[1]);
     else if (type === "livestream.status.updated") result = await onLive(payload as Parameters<typeof onLive>[0]);
+    else if (Object.hasOwn(KINDS, type)) result = await onSubscription(id, KINDS[type as keyof typeof KINDS], payload as Parameters<typeof onSubscription>[2]);
   } catch (e) {
     console.error(JSON.stringify({ route: "kick/webhook", type, error: String(e instanceof Error ? e.message : e).slice(0, 120), ms: Date.now() - started }));
     return reply(500);

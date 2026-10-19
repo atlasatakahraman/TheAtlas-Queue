@@ -720,7 +720,7 @@ export function TeamsTab() {
             </Tip>
             <DropdownMenuContent align="end" className="min-w-44 p-1.5">
               {picking.sizes.map((n) => (
-                <DropdownMenuItem key={n} onSelect={() => void pick(n, picking.source, false, picking.live())}>
+                <DropdownMenuItem key={n} onSelect={() => void pick(n, picking.source)}>
                   {t("action.pick.n", { n })}
                 </DropdownMenuItem>
               ))}

@@ -267,7 +267,7 @@ function RootCommands({ search, run, onPlayer }: { search: string; run: Run; onP
           {t("action.reroll")}
         </CommandItem>
         {picking.sizes.map((n) => (
-          <CommandItem key={n} disabled={!canWrite || picking.pool === 0} onSelect={run(() => void pick(n, picking.source, false, picking.live()))}>
+          <CommandItem key={n} disabled={!canWrite || picking.pool === 0} onSelect={run(() => void pick(n, picking.source))}>
             <Hand aria-hidden />
             {t("action.pick.n", { n })}
           </CommandItem>

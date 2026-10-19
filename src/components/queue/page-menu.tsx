@@ -127,7 +127,7 @@ function PageMenuContent() {
         {t("action.draw")}
         <Keys>D</Keys>
       </ContextMenuItem>
-      <ContextMenuItem disabled={!canWrite || picking.pool === 0} onSelect={() => void pick(1, picking.source, false, picking.live())}>
+      <ContextMenuItem disabled={!canWrite || picking.pool === 0} onSelect={() => void pick(1, picking.source)}>
         <Dices aria-hidden />
         {t("action.pick.n", { n: 1 })}
       </ContextMenuItem>

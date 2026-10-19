@@ -179,9 +179,11 @@ begin
 end $$;
 
 -- 9. The !position line is the only change to ingest_chat (hash of the body without it, pre-0043).
+--    0049 redefines ingest_chat on purpose (private.badges); from then subscription_assert case 10
+--    guards it, so this pin applies only to a database before 0049.
 do $$
 begin
-  if md5(regexp_replace(pg_get_functiondef('public.ingest_chat'::regproc),
+  if to_regprocedure('private.badges(uuid, bigint, text[])') is null and md5(regexp_replace(pg_get_functiondef('public.ingest_chat'::regproc),
        E'\n *where x\\.channel_id = l\\.channel_id and x\\.deleted_at is null and x\\.status = ''waiting'' and [^\n]*', '', 'g'))
      <> '42b414eaf654d6000b6696975d994ca1' then
     raise exception 'case 9: ingest_chat changed beyond the !position line';

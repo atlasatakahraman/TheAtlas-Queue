@@ -36,6 +36,27 @@ Some checks' headers say to prepend their migration (`begin;` + `00NN_….sql` +
 was for running on production before the migration was applied. Locally the migration is already
 replayed, so pass the check file alone.
 
+### When the stack hangs
+
+Docker Desktop on Windows can wedge: it stays up and answers `docker ps`, but stops starting
+containers. The symptoms:
+- `supabase start` sits at "Starting database..." and `db reset` sits at "Recreating database...",
+  with no error, for as long as you wait (15+ minutes on 2026-10-19);
+- the db container shows `Created` in `docker ps -a`, never `Up`;
+- realtime crash-loops with `Failed to detect IP version for DB_HOST: nxdomain`, a side effect of
+  the db being down.
+
+`supabase:start` and `supabase:reset` run `scripts/docker-preflight.ts` first. It does a bare
+`docker run --rm alpine:3 true` (about 2 s when healthy) and fails after 60 s instead of hanging.
+To recover:
+
+```bash
+docker desktop restart
+```
+
+Then kill any `supabase.exe` left waiting, run `bunx --bun supabase stop --no-backup`, and start
+again. A fresh start replays every migration in under a minute.
+
 ### What the local stack differs in
 
 - **`supabase/seed.sql` unschedules `queue-health`.** Migration `0013` schedules it to POST to

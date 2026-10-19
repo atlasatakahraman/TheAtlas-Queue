@@ -10,8 +10,8 @@
     "check:types": "bun --bun tsc --noEmit",
     "check:lint": "bun --bun eslint .",
     "check:secrets": "bun --bun scripts/check-secrets.ts",
-    "supabase:start": "bunx --bun supabase start",
-    "supabase:reset": "bunx --bun supabase db reset",
+    "supabase:start": "bun --bun scripts/docker-preflight.ts && bunx --bun supabase start",
+    "supabase:reset": "bun --bun scripts/docker-preflight.ts && bunx --bun supabase db reset",
     "supabase:check": "bun --bun scripts/check-local.ts"
   },
   "dependencies": {

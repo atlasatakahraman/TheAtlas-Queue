@@ -48,10 +48,12 @@ export function CustomPickDialog({
   const cap = Math.min(MAX_PICK, ticked.size);
   const count = Math.max(1, Math.min(n, cap));
 
-  // Every write keeps only players still listed, so a name that left drops out of the saved pool.
-  const write = (next: Set<string>) => setCustom(rows.filter((p) => next.has(p.id)).map((p) => p.id));
+  // Every write keeps players still in the queue, whatever their status (review 2026-10-19): one
+  // away, punished or banned for a while keeps their tick, and pick_players filters at pick time.
+  // Only a name that left drops out of the saved pool.
+  const write = (next: Set<string>) => setCustom(view.players.filter((p) => next.has(p.id)).map((p) => p.id));
   const toggle = (ids: string[], on: boolean) => {
-    const next = new Set(ticked);
+    const next = new Set(custom);
     for (const id of ids) {
       if (on) next.add(id);
       else next.delete(id);

@@ -156,6 +156,9 @@ export type Channel = {
   created_at: string;
 };
 
+export const REFILL_EVENTS = ["gift", "new", "renewal"] as const;
+export type RefillEvent = (typeof REFILL_EVENTS)[number];
+
 export type WatchSection = "teams" | "queue" | "games" | "moderation" | "riot_ids";
 
 // What /watch/<slug> and /api/watch/<slug> carry (0029's watch_snapshot, a whitelist): Riot only
@@ -219,6 +222,8 @@ export type Settings = {
   perk_uses: number;
   perk_window_days: number;
   perk_badges: string[];
+  // The Kick subscription events that refill protection (0049).
+  perk_refill_on: RefillEvent[];
   // The chat !join rules (0032, D23); adding by hand skips them.
   join_open: boolean;
   queue_max: number;

@@ -42,6 +42,7 @@ import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@
 import { enter, useUi } from "@/components/queue/ui";
 import { Tip } from "@/components/tip";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -52,7 +53,7 @@ import { en } from "@/lib/i18n/en";
 import { tr } from "@/lib/i18n/tr";
 import { isError, type RpcError } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
-import { AFTER_GAME, type AfterGame, DRAW_REVEALS, type Settings, type WatchSection } from "@/types/queue";
+import { AFTER_GAME, type AfterGame, DRAW_REVEALS, REFILL_EVENTS, type Settings, type WatchSection } from "@/types/queue";
 import { SECTION, SECTION_CARD, SETTINGS_GRID, SETTINGS_ITEM, SETTINGS_LIST } from "@/components/queue/geometry";
 import { SETTINGS, SETTINGS_TITLES, type SettingsSection } from "@/components/queue/tabs";
 import { DEFAULTS } from "@/lib/defaults";
@@ -484,7 +485,7 @@ function GamesSection() {
 
 function PerksSection() {
   const { t } = useT();
-  const s = useSection(["perk_enabled", "perk_uses", "perk_window_days", "perk_badges"] as const);
+  const s = useSection(["perk_enabled", "perk_uses", "perk_window_days", "perk_badges", "perk_refill_on"] as const);
   return (
     <Section title={t("settings.perks")} onEnter={() => void s.save()}>
       <SwitchField id="perk_enabled" label={t("settings.perk_enabled")} hint={t("settings.perk_enabled.hint")} checked={s.draft.perk_enabled} onChange={(v) => void s.put("perk_enabled", v)} />
@@ -505,6 +506,21 @@ function PerksSection() {
             effect={(who, on) => t(on ? "settings.perk_badges.on" : "settings.perk_badges.off", { who })}
             result={(who) => t("settings.perk.viewer", { who, uses: s.draft.perk_uses, days: s.draft.perk_window_days })}
           />
+          <div role="group" aria-labelledby="perk_refill_on" aria-describedby="perk_refill_on-hint" className="flex flex-col gap-2">
+            <span id="perk_refill_on" className="text-control font-medium select-none">{t("settings.perk_refill_on")}</span>
+            <div className="flex flex-wrap gap-x-6 gap-y-1">
+              {REFILL_EVENTS.map((e) => (
+                <Label key={e} className="min-h-9 gap-2 font-normal max-md:min-h-11">
+                  <Checkbox
+                    checked={s.draft.perk_refill_on.includes(e)}
+                    onCheckedChange={(c) => void s.put("perk_refill_on", REFILL_EVENTS.filter((x) => (x === e ? c === true : s.draft.perk_refill_on.includes(x))))}
+                  />
+                  {t(`settings.perk_refill.${e}`)}
+                </Label>
+              ))}
+            </div>
+            <span id="perk_refill_on-hint" className="text-meta text-muted-foreground">{t("settings.perk_refill_on.hint")}</span>
+          </div>
         </>
       )}
       <SaveRow s={s} />

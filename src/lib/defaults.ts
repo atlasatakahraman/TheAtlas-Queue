@@ -24,6 +24,7 @@ export const DEFAULTS = {
     perk_uses: 3,
     perk_window_days: 30,
     perk_badges: ["subscriber"],
+    perk_refill_on: ["gift"],
     join_open: true,
     queue_max: 0,
     join_cooldown: 0,

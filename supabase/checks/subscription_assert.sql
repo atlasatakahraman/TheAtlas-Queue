@@ -1,8 +1,8 @@
 -- 0049 assertions (subscription refill, spec 2026-10-18 § 4, S1–S7, rewritten 2026-10-19). Local
 -- stack only: `bun run supabase:check supabase/checks/subscription_assert.sql`. Raises on the first
--- failure; the last select returns 'subscription ok'. Since 0050 the fixture ticks Gift giver and
--- Gift receiver, which is what 0049's gift did, and a giver is eligible after a gift (G5); the
--- giver/receiver split itself is gift_assert.sql.
+-- failure; the last select returns 'subscription ok'. Since 0051 the fixture's perk badges include
+-- Sub receiver and Sub gifter, which is what 0049's gift did, so a giver is eligible after a gift;
+-- the giver/receiver split itself is gift_assert.sql.
 
 -- Each pick is stamped with clock_timestamp() so the next one sees it as the latest (as
 -- protection_assert).
@@ -37,7 +37,7 @@ insert into public.channel_members (channel_id, kick_user_id, role, source) valu
   ('c0000000-0000-4000-8000-000000000049', -149, 'owner', 'owner');
 insert into public.settings (channel_id, team_size, perk_enabled, perk_uses, perk_window_days, perk_badges,
                              join_subs_only, join_badges, perk_refill_on)
-  values ('c0000000-0000-4000-8000-000000000049', 5, true, 2, 30, '{subscriber}', true, '{subscriber}', '{gift,gift_receiver}');
+  values ('c0000000-0000-4000-8000-000000000049', 5, true, 2, 30, '{subscriber,sub_receiver,sub_gifter}', true, '{subscriber}', '{gift}');
 insert into public.players (channel_id, kick_user_id, kick_username, source, joined_at, status, team)
   select 'c0000000-0000-4000-8000-000000000049', -4900 - i, 't' || lpad(i::text, 2, '0'), 'chat',
          now() - make_interval(secs => 100 - i), 'playing', (1 + i % 2)::smallint

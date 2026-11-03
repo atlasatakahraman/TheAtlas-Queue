@@ -1,5 +1,5 @@
--- 0050 assertions (a gift protects its giver, not its receiver, unless ticked; spec 2026-11-03
--- § 1, G1–G7). Local stack only: `bun run supabase:check supabase/checks/gift_assert.sql`. Raises
+-- 0050 + 0051 assertions (a gift protects its giver, not its receiver, unless ticked; spec
+-- 2026-11-03 § 1, G1–G7, and § 1b, B1–B5: badges decide who, refill decides when). Local stack only: `bun run supabase:check supabase/checks/gift_assert.sql`. Raises
 -- on the first failure; the last select returns 'gift ok'.
 
 create function pg_temp.pick(p_ch uuid, p_n integer, p_src text, p_again boolean = false)
@@ -23,7 +23,7 @@ returns jsonb language sql as $$
 $$;
 
 -- Fixture: channel qa-gifts (broadcaster -350), owner qa_gift_owner; perk on, 2 uses per 30 days
--- for subscribers and VIPs, refill left at its default; subscribers only may join. g01..g04 on
+-- for subscribers, VIPs and sub gifters, refill left at its default; subscribers only may join. g01..g04 on
 -- teams, w01 waiting, none with a badge, every use spent yesterday.
 insert into public.profiles (id, kick_user_id, username) values
   ('a0000000-0000-4000-8000-000000000050', -150, 'qa_gift_owner');
@@ -33,7 +33,7 @@ insert into public.channel_members (channel_id, kick_user_id, role, source) valu
   ('c0000000-0000-4000-8000-000000000050', -150, 'owner', 'owner');
 insert into public.settings (channel_id, team_size, perk_enabled, perk_uses, perk_window_days, perk_badges,
                              join_subs_only, join_badges)
-  values ('c0000000-0000-4000-8000-000000000050', 5, true, 2, 30, '{subscriber,vip}', true, '{subscriber}');
+  values ('c0000000-0000-4000-8000-000000000050', 5, true, 2, 30, '{subscriber,vip,sub_gifter}', true, '{subscriber}');
 insert into public.players (channel_id, kick_user_id, kick_username, source, joined_at, status, team)
   select 'c0000000-0000-4000-8000-000000000050', -5000 - i, 'g' || lpad(i::text, 2, '0'), 'chat',
          now() - make_interval(secs => 100 - i), 'playing', (1 + i % 2)::smallint
@@ -54,15 +54,16 @@ declare
 begin
   if private.perk_left(ch, -5001) <> 0 then raise exception 'fixture: g01 should have no uses left'; end if;
 
-  -- G1. The default refills on Gift giver, New sub and Renewal; not on Gift receiver.
+  -- G1 / B1. The default refills on Gift, New sub and Renewal.
   if (select perk_refill_on from public.settings where channel_id = ch) <> '{gift,new,renewal}' then
     raise exception 'G1: default refill %', (select perk_refill_on from public.settings where channel_id = ch);
   end if;
 
-  -- G2. w01 gifts g01 and g21 (not in the queue): the giver is full, the receivers aren't; the
-  --     receivers are still subscribers (Sub tag, subs-only gate) but not protected.
+  -- G2 / B1. w01 gifts g01 and g21 (not in the queue): everyone in the gift is refilled, but with
+  --     Sub receiver unticked the receivers can't use it; they're still subscribers (Sub tag,
+  --     subs-only gate) but not protected.
   r := pg_temp.sub('qa-gift-2', 'gift', array[-5001, -5021], array['g01', 'g21'], -5011, 'w01');
-  if private.perk_left(ch, -5011) <> 2 or private.perk_left(ch, -5001) <> 0 then
+  if private.perk_left(ch, -5011) <> 2 or private.perk_left(ch, -5001) <> 2 then
     raise exception 'G2: giver % / receiver % uses left', private.perk_left(ch, -5011), private.perk_left(ch, -5001);
   end if;
   if not (select is_subscriber from public.players where channel_id = ch and kick_user_id = -5001) then
@@ -79,7 +80,6 @@ begin
      or (r -> 'refilled' -> 0 ->> 'kick_user_id')::bigint <> -5011 then
     raise exception 'G2: reply should name the giver alone: %', r;
   end if;
-  delete from public.perk_uses where channel_id = ch and kick_user_id = -5001;  -- uses left, still not protected
   r := pg_temp.pick(ch, 4, 'teams');
   if exists (select 1 from jsonb_array_elements(r -> 'saved') e
              join public.players p on p.id = (e ->> 'id')::uuid where p.kick_user_id = -5001) then
@@ -89,6 +89,14 @@ begin
   if r ->> 'result' <> 'joined' then raise exception 'G2: receiver turned away at the subs-only gate: %', r; end if;
   r := public.ingest_chat(-350, 'qa-gift-perk', 'perk', null, -5021, 'g21', '{subscriber}');
   if (r ->> 'eligible')::boolean then raise exception 'G2: !perk eligible for a receiver: %', r; end if;
+
+  -- B3. Sub gifter unticked: neither the recent gift nor Kick's chat sub_gifter badge counts.
+  update public.settings set perk_badges = '{subscriber,vip}' where channel_id = ch;
+  if private.perk_eligible(ch, -5011, '{}') or private.perk_eligible(ch, -5011, '{sub_gifter}') then
+    raise exception 'B3: giver eligible with Sub gifter unticked';
+  end if;
+  update public.settings set perk_badges = '{subscriber,vip,sub_gifter}' where channel_id = ch;
+  if not private.perk_eligible(ch, -5099, '{sub_gifter}') then raise exception 'B3: chat sub_gifter badge'; end if;
 
   -- G3. Perk off: the gift is still logged and the giver still recorded.
   update public.settings set perk_enabled = false where channel_id = ch;
@@ -124,18 +132,18 @@ begin
     raise exception 'G6: anonymous gift: %', r;
   end if;
 
-  -- G7. Settings: today's client value and the new one save; an unknown value doesn't.
+  -- G7 / B4. Settings: the refill set and a sub_receiver badge save; gift_receiver no longer does.
   perform public.update_settings(ch, '{"perk_refill_on":["gift","new","renewal"]}', gen_random_uuid());
-  perform public.update_settings(ch, '{"perk_refill_on":["gift_receiver"]}', gen_random_uuid());
+  perform public.update_settings(ch, '{"perk_badges":["subscriber","sub_receiver"]}', gen_random_uuid());
   begin
-    perform public.update_settings(ch, '{"perk_refill_on":["gift_giver"]}', gen_random_uuid());
-    raise exception 'G7: accepted gift_giver';
+    perform public.update_settings(ch, '{"perk_refill_on":["gift_receiver"]}', gen_random_uuid());
+    raise exception 'G7: accepted gift_receiver';
   exception when sqlstate 'P0001' then
     if sqlerrm like 'G7%' then raise; end if;
   end;
 
-  -- G8. Gift receiver ticked: a gift refills both, and the receiver is protected.
-  update public.settings set perk_refill_on = '{gift,gift_receiver,new,renewal}' where channel_id = ch;
+  -- G8 / B2. Sub receiver ticked: a gift refills both, and the receiver is protected.
+  update public.settings set perk_badges = '{subscriber,vip,sub_gifter,sub_receiver}' where channel_id = ch;
   insert into public.perk_uses (channel_id, kick_user_id, used_at)
     select ch, -5001, now() - interval '1 day' from generate_series(1, 2);
   r := pg_temp.sub('qa-gift-8', 'gift', array[-5001], array['g01'], -5011, 'w01');
@@ -148,8 +156,10 @@ begin
     raise exception 'G8: the ticked receiver was not protected: %', r;
   end if;
 
-  -- G9. The untouched 0049 default was moved to the new one.
-  if exists (select 1 from public.settings where perk_refill_on = '{gift}') then raise exception 'G9: {gift} rows left'; end if;
+  -- G9 / B4. The untouched 0049 default was moved to the new one; gift_receiver is gone.
+  if exists (select 1 from public.settings where perk_refill_on = '{gift}' or 'gift_receiver' = any(perk_refill_on)) then
+    raise exception 'G9: old refill values left';
+  end if;
 
   -- G10. One test: nothing but private.perk_eligible reads perk_badges; server-only.
   if exists (select 1 from pg_proc p join pg_namespace s on s.oid = p.pronamespace

@@ -64,7 +64,8 @@ begin
   reset role;
 
   -- No client writes any Stage 2 table directly, and anon reads none of them.
-  foreach t in array array['players', 'draws', 'perk_uses', 'moderation', 'activity', 'webhook_events', 'riot_cache', 'kick_tokens'] loop
+  foreach t in array array['players', 'draws', 'perk_uses', 'moderation', 'activity', 'webhook_events', 'riot_cache', 'kick_tokens',
+                              'subscriptions', 'sub_events'] loop
     begin
       set local role authenticated;
       execute format('delete from public.%I', t);

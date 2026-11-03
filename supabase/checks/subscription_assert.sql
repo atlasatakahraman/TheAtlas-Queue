@@ -1,6 +1,8 @@
 -- 0049 assertions (subscription refill, spec 2026-10-18 § 4, S1–S7, rewritten 2026-10-19). Local
 -- stack only: `bun run supabase:check supabase/checks/subscription_assert.sql`. Raises on the first
--- failure; the last select returns 'subscription ok'.
+-- failure; the last select returns 'subscription ok'. Since 0050 the fixture ticks Gift giver and
+-- Gift receiver, which is what 0049's gift did, and a giver is eligible after a gift (G5); the
+-- giver/receiver split itself is gift_assert.sql.
 
 -- Each pick is stamped with clock_timestamp() so the next one sees it as the latest (as
 -- protection_assert).
@@ -34,8 +36,8 @@ insert into public.channels (id, kick_channel_id, slug, display_name)
 insert into public.channel_members (channel_id, kick_user_id, role, source) values
   ('c0000000-0000-4000-8000-000000000049', -149, 'owner', 'owner');
 insert into public.settings (channel_id, team_size, perk_enabled, perk_uses, perk_window_days, perk_badges,
-                             join_subs_only, join_badges)
-  values ('c0000000-0000-4000-8000-000000000049', 5, true, 2, 30, '{subscriber}', true, '{subscriber}');
+                             join_subs_only, join_badges, perk_refill_on)
+  values ('c0000000-0000-4000-8000-000000000049', 5, true, 2, 30, '{subscriber}', true, '{subscriber}', '{gift,gift_receiver}');
 insert into public.players (channel_id, kick_user_id, kick_username, source, joined_at, status, team)
   select 'c0000000-0000-4000-8000-000000000049', -4900 - i, 't' || lpad(i::text, 2, '0'), 'chat',
          now() - make_interval(secs => 100 - i), 'playing', (1 + i % 2)::smallint
@@ -70,10 +72,10 @@ begin
   if (select expires_at from public.subscriptions where channel_id = ch and kick_user_id = -4911) is not null then
     raise exception 'case 1: the gifter got an expires_at';
   end if;
-  -- w01 has no badge and no sub, so the perk is not theirs and no line names them.
-  if jsonb_array_length(r -> 'refilled') <> 3
+  -- w01 has no badge and no sub, but just gave a gift (0050 G5), so the line names all four.
+  if jsonb_array_length(r -> 'refilled') <> 4
      or exists (select 1 from jsonb_array_elements(r -> 'refilled') e where (e ->> 'left')::int <> 2) then
-    raise exception 'case 1: reply should name the three giftees with 2 left: %', r;
+    raise exception 'case 1: reply should name the giver and three giftees with 2 left: %', r;
   end if;
 
   -- 2. An anonymous gift to t04: t04 is full, and no gifter row appears.
@@ -144,7 +146,7 @@ begin
     end if;
   end loop;
   r := public.ingest_chat(-349, 'qa-sub-perk-w01', 'perk', null, -4911, 'w01', '{}');
-  if (r ->> 'eligible')::boolean then raise exception 'case 9: gifter-only !perk eligible: %', r; end if;
+  if not (r ->> 'eligible')::boolean then raise exception 'case 9: a recent giver''s !perk not eligible (0050 G5): %', r; end if;
 
   -- 4. A recorded sub with no badge: protected in Pick from Teams, through the subs-only gate,
   --    joins as a subscriber; not through a gate for VIPs only; none of it once expired.
@@ -177,10 +179,11 @@ begin
     raise exception 'case 8: grants';
   end if;
 
-  -- 10. One check: every reader of a badge list goes through private.badges.
-  if (select count(*) from pg_proc where oid in ('public.ingest_chat'::regproc, 'public.pick_players'::regproc)
-        and prosrc ~ 'private\.badges\(') <> 2 then
-    raise exception 'case 10: a reader skips private.badges';
+  -- 10. One check: the join gate reads private.badges, and every perk test private.perk_eligible (0050).
+  if (select prosrc !~ 'private\.badges\(' from pg_proc where oid = 'public.ingest_chat'::regproc)
+     or (select count(*) from pg_proc where oid in ('public.ingest_chat'::regproc, 'public.pick_players'::regproc,
+           'public.ingest_subscription'::regproc) and prosrc ~ 'private\.perk_eligible\(') <> 3 then
+    raise exception 'case 10: a reader skips private.badges or private.perk_eligible';
   end if;
 
   -- 11. Retention: a row goes once its sub has ended and its last refill is older than 90 days.

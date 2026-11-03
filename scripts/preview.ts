@@ -1,7 +1,9 @@
 // Deploys a Vercel **preview** (never production) and points the stable alias at it, so Kick
 // has one public URL for webhooks and sign-in. The env rides on this deployment only (-e/-b), not
-// the project's settings; Bun loads the values from .env.local, and nothing is printed.
-// Run: bun --bun scripts/preview.ts   (after `bunx --bun vercel login` and `vercel link`)
+// the project's settings; the values come from .env.local only, and nothing is printed.
+// Run: bun run vercel:preview   (after `bunx --bun vercel login` and `vercel link`)
+// The script passes --env-file=.env.local: without it Bun also loads .env.development.local,
+// whose local-stack URL and keys win and ship a preview that can't reach Supabase.
 import { $ } from "bun";
 
 const ALIAS = "theatlas-queue-preview.vercel.app";
@@ -10,6 +12,9 @@ const RUNTIME = ["AUTH_SECRET", "KICK_CLIENT_ID", "KICK_CLIENT_SECRET", "RIOT_AP
 
 const missing = [...BUILD, ...RUNTIME].filter((k) => !process.env[k]);
 if (missing.length) throw new Error(`.env.local lacks ${missing.join(", ")}`);
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL!.endsWith(".supabase.co")) {
+  throw new Error("NEXT_PUBLIC_SUPABASE_URL is not the hosted project: run `bun run vercel:preview`");
+}
 
 const pair = (k: string) => `${k}=${process.env[k]}`;
 const args = [

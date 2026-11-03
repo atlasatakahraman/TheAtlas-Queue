@@ -269,7 +269,8 @@ export const en: Help = {
         title: "Subscriptions and refills",
         body: [
           "Kick tells Queue when someone subscribes, renews or is gifted a sub. From then until the sub ends, they count as a subscriber, even before they chat or with their badge hidden.",
-          "**Refill protection on** chooses which of those give every protected pick back at once: **Gifted sub** (the default), **New sub**, **Renewal**. A refill starts the count again, so picks used before it no longer count; it never goes above the limit. A gifted sub refills the gifter too, unless they gift anonymously. When replies are on, chat hears who was refilled.",
+          "**Refill protection on** chooses which of those give every protected pick back at once: **Gift giver**, **Gift receiver**, **New sub**, **Renewal**. All but **Gift receiver** are on by default. A refill starts the count again, so picks used before it no longer count; it never goes above the limit. When replies are on, chat hears who was refilled.",
+          "A gift giver is protected for the window after any gift, with or without a badge, unless they gift anonymously. Someone who receives a gifted sub counts as a subscriber (for subscribers-only joins and the Sub tag) but isn't protected unless **Gift receiver** is ticked, or they have another protected badge.",
         ],
       },
       {
@@ -367,7 +368,8 @@ export const en: Help = {
             list: [
               "**Streamers and moderators**: your Kick name, id and picture from signing in with Kick, and your channel's settings.",
               "**Viewers in a queue**: the Kick name and id from chat, the Riot ID they gave, their badges, and their rank looked up from Riot.",
-              "**Subscriptions**: when Kick reports a sub, the viewer's Kick id, when it ends, and when it last refilled their protection. Never shown to anyone.",
+              "**Subscriptions**: when Kick reports a sub, the viewer's Kick id, when it ends, and when it last refilled their protection, and when they last gave a gift. Never shown to anyone.",
+              "**Sub events**: each sub, renewal and gift Kick reports, with the Kick names and ids of the subscribers and the giver, and when. Never shown to viewers.",
               "**Moderation**: sanctions with their reasons, kept with the channel. Reasons are seen only on the dashboard.",
               "**Games**: who played and who won, and the records they make.",
               "**Chat replies**: when a streamer turns them on, Kick's permission to write in their chat, stored encrypted. Turning replies off revokes and deletes it.",
@@ -390,7 +392,8 @@ export const en: Help = {
               `Games and records: ${s.games_retention_days} days, or what the streamer sets.`,
               `A looked-up rank: ${k.rankDays} days.`,
               `A moderator's access from a chat badge: ${k.badgeDays} days after the badge was last seen.`,
-              `A subscription: until it ends, and ${k.subscriptionDays} days after its last refill.`,
+              `A subscription: until it ends, and ${k.subscriptionDays} days after its last refill or gift.`,
+              `A sub event: ${k.subscriptionDays} days.`,
             ],
           },
         ],
@@ -399,7 +402,7 @@ export const en: Help = {
         id: "delete",
         title: "Deleting your data",
         body: [
-          "A streamer can delete their channel and everything in it from **Settings → Your data** with **Delete my data**: the queue, teams, games and records, moderation, subscriptions, overlays, history, settings and the chat replies permission, and Kick stops sending the channel's chat here. It asks for the channel's name typed again, and it cannot be undone. Signing in again starts a new, empty channel.",
+          "A streamer can delete their channel and everything in it from **Settings → Your data** with **Delete my data**: the queue, teams, games and records, moderation, subscriptions and sub events, overlays, history, settings and the chat replies permission, and Kick stops sending the channel's chat here. It asks for the channel's name typed again, and it cannot be undone. Signing in again starts a new, empty channel.",
         ],
       },
       {

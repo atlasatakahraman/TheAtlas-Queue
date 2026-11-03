@@ -156,7 +156,7 @@ export type Channel = {
   created_at: string;
 };
 
-export const REFILL_EVENTS = ["gift", "gift_receiver", "new", "renewal"] as const;
+export const REFILL_EVENTS = ["gift", "new", "renewal"] as const;
 export type RefillEvent = (typeof REFILL_EVENTS)[number];
 
 export type WatchSection = "teams" | "queue" | "games" | "moderation" | "riot_ids";

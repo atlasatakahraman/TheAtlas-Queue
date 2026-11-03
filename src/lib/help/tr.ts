@@ -270,14 +270,14 @@ export const tr: Help = {
         title: "Abonelikler ve yenileme",
         body: [
           "Biri abone olduğunda, aboneliğini yenilediğinde ya da hediye abonelik aldığında Kick bunu Queue'ya bildirir. Abonelik bitene kadar o kişi abone sayılır, henüz sohbete yazmamış ya da rozetini gizlemiş olsa bile.",
-          "**Korumayı yenileyen olaylar** bunlardan hangilerinin tüm korumalı hakları bir kerede geri vereceğini seçer: **Abonelik hediye eden**, **Abonelik hediye alan**, **Yeni abonelik**, **Abonelik yenileme**. **Abonelik hediye alan** dışındakiler varsayılan olarak açıktır. Yenileme sayımı baştan başlatır, yani ondan önce kullanılan haklar artık sayılmaz; hak hiçbir zaman sınırın üstüne çıkmaz. Sohbet yanıtları açıksa kimin yenilendiği sohbete yazılır.",
-          "Hediye eden, gizli hediye etmediyse her hediyeden sonra süre boyunca korunur, rozeti olsun ya da olmasın. Hediye abonelik alan kişi abone sayılır (yalnızca abonelerin katılabildiği sıra ve Abone etiketi için) ama **Abonelik hediye alan** işaretli değilse ya da korunan başka bir rozeti yoksa korunmaz.",
+          "**Korumayı yenileyen olaylar** bunlardan hangilerinin tüm korumalı hakları bir kerede geri vereceğini seçer: **Hediye abonelik**, **Yeni abonelik**, **Abonelik yenileme**; hepsi varsayılan olarak açıktır. Hediye abonelik, hediye edeni ve hediye alan herkesi yeniler; kimin kullanabileceğini rozetler belirler. Yenileme sayımı baştan başlatır, yani ondan önce kullanılan haklar artık sayılmaz; hak hiçbir zaman sınırın üstüne çıkmaz. Sohbet yanıtları açıksa kimin yenilendiği sohbete yazılır.",
+          "**Abonelik hediye eden** işaretliyse, hediye eden gizli hediye etmediyse her hediyeden sonra süre boyunca korunur, sohbete yazsın ya da yazmasın. Hediye abonelik alan kişi abone sayılır (yalnızca abonelerin katılabildiği sıra ve Abone etiketi için) ama yalnızca **Abonelik hediye alan** işaretliyse ya da hak kazandıran başka bir rozeti varsa korunur.",
         ],
       },
       {
         id: "badges",
         title: "Rozetler",
-        body: ["Hangi Kick rozetlerinin hak kazandırdığını seç: abone, VIP, OG, kurucu ya da hediye eden. Katılım yalnızca abonelere açıkken kimin katılabileceğini de aynı seçici belirler."],
+        body: ["Kimin hak kazandığını seç: aboneler, hediye abonelik alanlar, VIP'ler, OG'ler, kurucular ya da hediye edenler. **Abone** kendi aboneliği olan kişidir; **Abonelik hediye alan** hediye abonelik almıştır; **Abonelik hediye eden** Kick'in hediye eden rozetine sahiptir ya da süre içinde hediye vermiştir. Katılım yalnızca abonelere açıkken kimin katılabileceğini aynı seçici, Abonelik hediye alan olmadan belirler."],
       },
     ],
   },

@@ -1,5 +1,5 @@
 "use client";
-import { Award, Check, Crown, Gem, Gift, type LucideIcon, Star } from "lucide-react";
+import { Award, Check, Crown, Gem, Gift, type LucideIcon, PackageOpen, Star } from "lucide-react";
 import { useId, useState } from "react";
 import { useT } from "@/components/i18n";
 import { Numerals } from "@/components/numerals";
@@ -8,20 +8,24 @@ import { cn } from "@/lib/utils";
 // Kick's chat badges, drawn here (not Kick's artwork): one glyph and colour each (D32). The
 // player card's Kick badges (D31) use the same table.
 export const BADGES = ["subscriber", "vip", "og", "founder", "sub_gifter"] as const;
-export type Badge = (typeof BADGES)[number];
+// The perk's list adds Sub receiver: a recorded gifted sub, not a chat badge (spec § 1b, B2).
+export const PERK_BADGES = [...BADGES, "sub_receiver"] as const;
+export type Badge = (typeof PERK_BADGES)[number];
 export const BADGE_LOOK: Record<Badge, { icon: LucideIcon; tone: string }> = {
   subscriber: { icon: Star, tone: "text-brand" },
   vip: { icon: Gem, tone: "text-badge-vip" },
   og: { icon: Award, tone: "text-badge-og" },
   founder: { icon: Crown, tone: "text-badge-founder" },
   sub_gifter: { icon: Gift, tone: "text-success" },
+  sub_receiver: { icon: PackageOpen, tone: "text-success" },
 };
 
 // A tile per badge, a checkbox group (Tab between tiles, Space toggles). Each tile says what its
 // holders get as it stands (owner, 2026-09-28); the last selected tile refuses to clear, with the
 // reason; the sentence under the tiles says the result live.
-export function BadgePicker({ label, value, onChange, effect, result, refusal }: {
+export function BadgePicker({ label, badges = BADGES, value, onChange, effect, result, refusal }: {
   label: string;
+  badges?: readonly Badge[];
   value: readonly string[];
   onChange: (next: string[]) => void;
   effect: (who: string, on: boolean) => string;
@@ -32,7 +36,7 @@ export function BadgePicker({ label, value, onChange, effect, result, refusal }:
   const { t, lang } = useT();
   const id = useId();
   const [refused, setRefused] = useState(false);
-  const picked = BADGES.filter((b) => value.includes(b));
+  const picked = badges.filter((b) => value.includes(b));
   const who = new Intl.ListFormat(lang, { type: "conjunction" }).format(picked.map((b) => t(`badge.${b}.plural`)));
 
   return (
@@ -41,7 +45,7 @@ export function BadgePicker({ label, value, onChange, effect, result, refusal }:
         {label}
       </span>
       <div role="group" aria-labelledby={id} className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-2">
-        {BADGES.map((b) => {
+        {badges.map((b) => {
           const on = value.includes(b);
           const { icon: Icon, tone } = BADGE_LOOK[b];
           return (

@@ -269,14 +269,14 @@ export const en: Help = {
         title: "Subscriptions and refills",
         body: [
           "Kick tells Queue when someone subscribes, renews or is gifted a sub. From then until the sub ends, they count as a subscriber, even before they chat or with their badge hidden.",
-          "**Refill protection on** chooses which of those give every protected pick back at once: **Gift giver**, **Gift receiver**, **New sub**, **Renewal**. All but **Gift receiver** are on by default. A refill starts the count again, so picks used before it no longer count; it never goes above the limit. When replies are on, chat hears who was refilled.",
-          "A gift giver is protected for the window after any gift, with or without a badge, unless they gift anonymously. Someone who receives a gifted sub counts as a subscriber (for subscribers-only joins and the Sub tag) but isn't protected unless **Gift receiver** is ticked, or they have another protected badge.",
+          "**Refill protection on** chooses which of those give every protected pick back at once: **Gifted sub**, **New sub**, **Renewal**, all on by default. A gifted sub refills the giver and everyone who received one; the badges decide who can use it. A refill starts the count again, so picks used before it no longer count; it never goes above the limit. When replies are on, chat hears who was refilled.",
+          "With **Sub gifter** ticked, a gift giver is protected for the window after any gift, chatting or not, unless they gift anonymously. Someone who receives a gifted sub counts as a subscriber (for subscribers-only joins and the Sub tag) but is protected only when **Sub receiver** is ticked, or they have another badge that qualifies.",
         ],
       },
       {
         id: "badges",
         title: "Badges",
-        body: ["Choose which Kick badges qualify: subscriber, VIP, OG, founder or gifter. The same picker chooses who may join when joining is for subscribers only."],
+        body: ["Choose who qualifies: subscribers, sub receivers, VIPs, OGs, founders or sub gifters. **Subscriber** is a sub of their own; **Sub receiver** is a gifted one; **Sub gifter** is Kick's gifter badge or a gift given within the window. The same picker, without Sub receiver, chooses who may join when joining is for subscribers only."],
       },
     ],
   },

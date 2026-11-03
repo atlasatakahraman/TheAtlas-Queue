@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { BadgePicker } from "@/components/queue/badge-picker";
+import { BadgePicker, PERK_BADGES } from "@/components/queue/badge-picker";
 import { OverlaysSection } from "@/components/queue/overlays-section";
 import { confirm } from "@/components/queue/confirm";
 import { Tag } from "@/components/queue/player-row";
@@ -501,6 +501,7 @@ function PerksSection() {
           </div>
           <BadgePicker
             label={t("settings.perk_badges")}
+            badges={PERK_BADGES}
             value={s.draft.perk_badges}
             onChange={(v) => void s.put("perk_badges", v)}
             effect={(who, on) => t(on ? "settings.perk_badges.on" : "settings.perk_badges.off", { who })}

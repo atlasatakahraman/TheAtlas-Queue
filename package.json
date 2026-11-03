@@ -12,7 +12,8 @@
     "check:secrets": "bun --bun scripts/check-secrets.ts",
     "supabase:start": "bun --bun scripts/docker-preflight.ts && bunx --bun supabase start",
     "supabase:reset": "bun --bun scripts/docker-preflight.ts && bunx --bun supabase db reset",
-    "supabase:check": "bun --bun scripts/check-local.ts"
+    "supabase:check": "bun --bun scripts/check-local.ts",
+    "vercel:preview": "bun --bun --env-file=.env.local scripts/preview.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",

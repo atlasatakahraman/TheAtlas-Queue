@@ -18,7 +18,8 @@ function csp(nonce: string, framed: boolean) {
     // Kick avatars; Riot profile icons from Data Dragon (the queue table's avatars).
     "img-src 'self' data: blob: https://*.kick.com https://ddragon.leagueoflegends.com",
     "font-src 'self'",
-    `connect-src 'self'${supabase ? ` ${supabase} ${supabase.replace("https://", "wss://")}` : ""}`,
+    // Realtime's socket: wss:// for the hosted project, ws:// for a local stack on http://.
+    `connect-src 'self'${supabase ? ` ${supabase} ${supabase.replace(/^http(s?):\/\//, "ws$1://")}` : ""}`,
     // Only an overlay may be framed, by this site: the Settings builder's live preview.
     framed ? "frame-ancestors 'self'" : "frame-ancestors 'none'",
     "base-uri 'self'",

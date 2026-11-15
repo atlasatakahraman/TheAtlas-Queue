@@ -565,7 +565,10 @@ once, and runs on these times after the stage stops (`SLAM_AT` 380ms, then `BREA
 
 The stage's pool always holds the protected player and the stand-in, even when this browser's
 pick source differs from the one the pick used. The kept-on-team chat line goes out once the
-reveal is over, so chat never spoils the wheel.
+pick is settled: the **Picked** dialog closes (close, Escape, outside click) or **All to Team N**
+moves it, so chat never spoils the wheel and never hears about a pick the streamer then replaces
+(owner, 2026-11-14, migration 0052). Only the dashboard that made the pick sends it; *Pick again*
+replaces the pick before it is announced.
 
 **Everywhere at once.** `/watch` and `/overlay` play the same reveal when a new draw arrives. A
 pick opens the same **Picked** dialog on `/watch` (P13), read-only (no moves, no *All to…*, no
@@ -1362,8 +1365,9 @@ Only *Not connected* ever raises a toast.
 
 ### Undo, and a confirm for the big ones
 
-Every action that changes or removes data gets a 5-second **Undo** toast: remove, move, mark
-away, moderation, draw and reroll (Undo restores the previous result).
+Every action that changes or removes data gets a 10-second **Undo** toast: remove, move, mark
+away, moderation, draw and reroll (Undo restores the previous result). A toast without Undo stays
+5 s (owner, 2026-11-14: 5 s was too short to reach the button).
 A row's `×` and every other single-player action stop there: no dialog.
 
 **Bulk and moderation actions also ask first** (owner, 2026-09-27, amending D26): *Clear queue*,
@@ -1709,16 +1713,43 @@ every refilled name that's in the queue and gets the perk: *@a, @b, your protect
 3 left.* (`chat.perk.refilled`). A recorded sub is deleted once it has ended and its last refill
 is older than 90 days, the longest window.
 
-**The stand-in (P5).** Random among the unprotected team players not already picked. A protected
-player is never a stand-in.
+**The stand-in (P5).** Random among the unprotected team players not already picked, in the
+[pick variety](#pick-variety) order, so it is not the same person every time. A protected player
+is never a stand-in.
 
 **No stand-in left (P6).** Protection holds: they stay, the pick returns fewer names, and the use
 is spent.
 
 **Kept picks only (P7).** The use is spent at the hit and refunded when the streamer presses
-**Pick again** or **Undo** on that pick. There is no *Remove protection*. Viewers check their own
-remaining uses with `!hak`; a viewer without a perk badge is told who the perk is for, never a
-count; when protection keeps someone on the team, chat says so once (P9).
+**Pick again** or **Undo** on that pick, or **Undo** on the **All to Team N** that moved it: that
+move names its pick, and undoing it undoes the pick first (migration 0052). There is no *Remove
+protection*. Viewers check their own remaining uses with `!hak`; a viewer without a perk badge is
+told who the perk is for, never a count; when protection keeps someone on the team, chat says so
+once (P9), after the pick is settled ([near miss](#near-miss--save)). When a pick chat heard about
+is undone, each saved name hears it once: *@a, the pick was undone — your protection is back! 2
+left.* (`chat.perk.refunded`). A pick that was never announced is undone silently.
+
+### Pick variety
+
+Owner, 2026-11-14, migration 0052. A pick has a memory, so the same names don't keep coming back.
+True randomness repeats, and with 10 players a memoryless pick named the same person twice in a
+row 1 time in 10; the same rule 0030 gave team splits.
+
+- **Memory.** The channel's newest 50 kept picks (an undone pick drops out; one replaced by *Pick
+  again* stays, so the re-pick avoids the same names). Each name scores `s = Σ 0.5^(age/5)`, age 0
+  being the newest pick, and weighs `w = 1/(1+4s)³`: 1 for someone never picked, 0.008 for the
+  last pick.
+- **Two memories.** The pool remembers whom the draw landed on: the picked names, minus
+  stand-ins, plus the saved ones. Stand-ins remember every name shown. Counting stand-ins in the
+  pool's memory tilted the draw toward subs (522 saves per 1,000 picks against a fair 400).
+- **Draw.** Weighted sampling without replacement (Efraimidis–Spirakis): each player's key is
+  `ln(u)/w`, `u` from `gen_random_bytes(8)` (53 bits), highest first. Every source alike:
+  Waiting, Teams, Whole queue, Custom.
+- **Hidden.** Weights never reach the state, events, the UI, `/watch`, the overlay or chat. They
+  apply to everyone in the pool alike, so the perk still adds no hidden odds.
+- **Measured** (Stage 0, 10 players, 5,000 picks): back-to-back repeat 1.32% (memoryless: 8.71%),
+  every player's share 9.9–10.2%, and a sub spends 2 uses within 5 picks in 1.95% of windows
+  (memoryless: 7.1%). The history read takes under 2 ms.
 
 ### Buttons
 

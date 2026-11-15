@@ -68,9 +68,14 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
     .map((b) => b.type)
     .filter((t): t is string => typeof t === "string" && /^[a-z_]{1,32}$/.test(t))
     .slice(0, 16);
-  if (badgesChanged(broadcaster!, s.user_id!, badges))
+  const cmd = parseCommand(String(p.content ?? ""), ctx.commands);
+  // A command refreshes too, so a row added by hand after the chatter was cached still gets linked
+  // by name (0053); the database writes nothing when there is nothing to change.
+  if (badgesChanged(broadcaster!, s.user_id!, badges) || cmd)
     after(async () => {
-      const { error } = await adminDb().rpc("refresh_badges", { p_broadcaster: broadcaster, p_sender_id: s.user_id, p_badges: badges });
+      const { error } = await adminDb().rpc("refresh_badges", {
+        p_broadcaster: broadcaster, p_sender_id: s.user_id, p_badges: badges, p_username: s.username,
+      });
       if (error) console.error(JSON.stringify({ route: "kick/webhook", step: "refresh_badges", error: error.code }));
     });
   if (s.user_id !== broadcaster && needsBadgeSync(ctx.members[String(s.user_id)], badges.includes("moderator"))) {
@@ -81,7 +86,6 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
     contexts.delete(broadcaster!);
   }
 
-  const cmd = parseCommand(String(p.content ?? ""), ctx.commands);
   if (!cmd) {
     if (!isCommandsAsk(String(p.content ?? ""))) return "chat";
     after(() => listCommands(ctx.channel_id, ctx.commands));

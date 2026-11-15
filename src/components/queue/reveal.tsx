@@ -36,7 +36,7 @@ export function RevealDriver() {
   return <PickDialog />;
 }
 
-// The kept-on-team chat line (P9) once the pick is settled: its dialog closes, or All to Team N
+// The pick's chat lines (Picked, 0054; kept-on-team, P9) once the pick is settled: its dialog closes, or All to Team N
 // moves it (0052 V6). Only the dashboard that made the pick sends it; Pick again replaces the pick
 // first, so a replaced pick is never announced. announceSaves holds the once-only gate.
 function useSettle() {
@@ -44,7 +44,7 @@ function useSettle() {
   const channelId = useQueue((v) => v.channel.id);
   return useCallback(
     (d: Draw) => {
-      if (d.result.saved?.length && issuedHere(d.request_id)) void announceSaves(channelId, d.id);
+      if (issuedHere(d.request_id)) void announceSaves(channelId, d.id);
     },
     [announceSaves, channelId],
   );

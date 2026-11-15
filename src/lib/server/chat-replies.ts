@@ -8,7 +8,11 @@ import { HERE } from "@/lib/server/site";
 // Chat replies (DESIGN.md § Settings → Chat replies): run after the webhook has answered Kick, in
 // the stream language with the streamer's own labels, only while replies are on.
 
-type Result = { result: string; reason?: string; player?: string; left?: number; enabled?: boolean; eligible?: boolean; position?: number | null };
+type Result = {
+  result: string; reason?: string; player?: string; left?: number; enabled?: boolean; eligible?: boolean;
+  // position (0054): status null means not in the queue; team only while playing.
+  position?: number | null; status?: "waiting" | "playing" | "away" | "punished" | null; team?: 1 | 2 | null;
+};
 type Settings = { chat_replies: boolean; stream_locale: Lang; labels: Labels | null };
 
 // Replies (owner, 2026-10-06; amends 0075): the first in a quiet channel goes out at once; those
@@ -82,7 +86,7 @@ async function flush(channelId: string, b: Batch) {
 }
 
 // The answer to one command's ingest_chat result; nothing for results chat need not hear.
-export async function answer(channelId: string, command: keyof Commands, r: Result, name: string) {
+export async function answer(channelId: string, command: keyof Commands, r: Result, name: string, commands: Commands) {
   // The place is those waiting who joined up to this player (as !sıram), not everyone waiting when
   // this runs: an answer that runs late would count the joins after it (owner's screenshot,
   // 2026-09-29: HoustonHUB #2 read #6).
@@ -106,11 +110,25 @@ export async function answer(channelId: string, command: keyof Commands, r: Resu
     return throttled(`${channelId}:offline`) ? undefined : say(channelId, "chat.rejected.offline", {});
   if (command === "join" && r.result === "rejected" && r.reason === "queue.closed")
     return throttled(`${channelId}:closed`) ? undefined : say(channelId, "chat.rejected.closed", {});
-  if (command === "position" && r.position) return say(channelId, "chat.position", { name, position: r.position });
+  // !sıram answers every state (0054), once per viewer per 10 s.
+  if (command === "position" && r.result === "position") {
+    if (throttled(`${channelId}:position:${name.toLowerCase()}`, 10_000)) return;
+    if (r.position) return say(channelId, "chat.position", { name, position: r.position });
+    if (r.status === "playing" && r.team) return say(channelId, "chat.position.team", { name, team: r.team });
+    if (r.status === "away") return say(channelId, "chat.position.away", { name, command: main(commands.away) });
+    if (r.status === "punished") return say(channelId, "chat.position.punished", { name });
+    // null, not undefined: a reply from before 0054 has no status and stays silent as it did.
+    if (r.status === null) return say(channelId, "chat.position.none", { name, command: main(commands.join) });
+  }
   // Without a perk badge (0039): who the perk is for, once per viewer per 30 s.
   if (command === "perk" && r.result === "perk" && r.enabled && r.eligible === false)
     return throttled(`${channelId}:perk-none:${name.toLowerCase()}`) ? undefined : perkNone(channelId, name);
   if (command === "perk" && r.result === "perk" && r.enabled) return say(channelId, "chat.perk", { name, uses: r.left ?? 0 });
+}
+
+// Who a pick took (0054), one line per pick before any protection line (announceSaves holds the gate).
+export async function picked(channelId: string, names: string[]) {
+  if (names.length) await say(channelId, "chat.picked", { list: names.map((n) => `@${n}`).join(" ") });
 }
 
 // Protection kept a viewer on their team (P9), once per pick (announceSaves holds the gate).
@@ -135,8 +153,8 @@ export async function perkRefilled(channelId: string, users: { username: string;
 // 30 s per channel.
 // ponytail: per-instance throttle; a second instance may answer once more inside the 30 s.
 const answered = new Map<string, number>();
-function throttled(key: string) {
-  if (Date.now() - (answered.get(key) ?? 0) < 30_000) return true;
+function throttled(key: string, ms = 30_000) {
+  if (Date.now() - (answered.get(key) ?? 0) < ms) return true;
   answered.set(key, Date.now());
   return false;
 }
@@ -148,7 +166,7 @@ export async function listCommands(channelId: string, commands: Commands) {
   const s = data as (Settings & { perk_enabled: boolean; watch_enabled: boolean; commands_list: boolean; rules: string }) | null;
   if (!s?.chat_replies || !s.commands_list) return;
   const keys = ["join", "leave", "position", "away", ...(s.perk_enabled ? ["perk" as const] : []), ...(s.watch_enabled ? ["watch" as const] : []), ...(s.rules.trim() ? ["rules" as const] : [])] as const;
-  const list = keys.map((k) => `${translate(s.stream_locale, `settings.${k}_command`)} ${commands[k]}`).join(", ");
+  const list = keys.map((k) => `${translate(s.stream_locale, `settings.${k}_command`)} ${main(commands[k])}`).join(", ");
   await say(channelId, "chat.commands", { list, url: `${HERE}/wiki/chat-commands?lang=${s.stream_locale}` }, s);
 }
 
@@ -174,6 +192,10 @@ export async function sendRules(channelId: string) {
   if (!s || !text) return;
   await say(channelId, "chat.rules", { text }, s);
 }
+
+// A command's main word. ponytail: a plain string is a webhook_context from before 0054, so chat
+// keeps working while the app and the migration land a minute apart.
+const main = (words: string[] | string) => [words].flat()[0];
 
 // The perk's badges joined like the badge picker's sentence, in the stream language.
 async function perkNone(channelId: string, name: string) {

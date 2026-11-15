@@ -3,7 +3,7 @@ import "server-only";
 import { auth } from "@/lib/auth";
 import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
-import { keptOnTeam, protectionBack } from "@/lib/server/chat-replies";
+import { keptOnTeam, picked, protectionBack } from "@/lib/server/chat-replies";
 import { dropSubscriptions, ensureSubscriptions, kickUserBySlug } from "@/lib/server/kick";
 import { dropChatToken } from "@/lib/server/kick-tokens";
 import { kickUser } from "@/lib/server/profile";
@@ -98,8 +98,9 @@ export async function stopChatReplies(channelId: string): Promise<void> {
   if (await membership(channelId, true)) await dropChatToken(channelId);
 }
 
-// The kept-on-team lines for a pick (P9), sent once whoever asks: the update that sets
-// announced_at is the gate, so every dashboard can call it when its reveal ends.
+// A pick's chat lines, sent once whoever asks: who was picked (0054), then the kept-on-team lines
+// (P9). The update that sets announced_at is the gate, so every dashboard can call it when its
+// reveal ends.
 export async function announceSaves(channelId: string, drawId: string): Promise<void> {
   if (typeof drawId !== "string" || !UUID.test(drawId) || !(await membership(channelId))) return;
   const { data } = await adminDb()
@@ -112,8 +113,9 @@ export async function announceSaves(channelId: string, drawId: string): Promise<
     .is("undone_at", null)
     .select("result")
     .maybeSingle();
-  const saved = (data?.result as { saved?: { kick_username: string; left: number }[] } | null)?.saved ?? [];
-  for (const s of saved) await keptOnTeam(channelId, s.kick_username, s.left);
+  const result = data?.result as { picked?: { kick_username: string }[]; saved?: { kick_username: string; left: number }[] } | null;
+  await picked(channelId, (result?.picked ?? []).map((p) => p.kick_username));
+  for (const s of result?.saved ?? []) await keptOnTeam(channelId, s.kick_username, s.left);
 }
 
 // A pick that chat heard about was undone, itself or through All to Team N (0052 V5, V7): each

@@ -18,6 +18,7 @@ export const CURATED_KEYS = [
   "watch.title", "watch.subtitle", "watch.disabled",
   "overlay.queue.title", "overlay.draw.title",
   "chat.joined", "chat.rejected.banned", "chat.rejected.duplicate", "chat.rejected.offline", "chat.rejected.closed", "chat.position", "chat.perk", "chat.perk.none", "chat.perk.saved", "chat.perk.refilled", "chat.perk.refunded", "chat.commands", "chat.watch", "chat.joined.many", "chat.rules",
+  "chat.position.team", "chat.position.away", "chat.position.punished", "chat.position.none", "chat.picked",
 ] as const satisfies readonly LabelKey[];
 
 export function parseLang(v: string | null | undefined): Lang | null {

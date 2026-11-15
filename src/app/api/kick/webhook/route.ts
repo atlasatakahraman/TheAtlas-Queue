@@ -123,7 +123,7 @@ async function onChat(messageId: string, p: { broadcaster?: { user_id?: number }
   if (error) throw new Error(`ingest_chat ${error.message}`);
   const result = data as { result: string; reason?: string; rank_needed?: boolean } | null;
   // The chat reply, when replies are on, after Kick has its 200.
-  if (result) after(() => answer(ctx.channel_id, cmd.command, result, s.username!));
+  if (result) after(() => answer(ctx.channel_id, cmd.command, result, s.username!, ctx.commands));
 
   // Riot never blocks a join: the rank lands as a second event after the response is sent.
   if (result?.rank_needed && cmd.riotId && ctx.riot) {

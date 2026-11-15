@@ -57,7 +57,7 @@ export const tr: Help = {
   "chat-commands": {
     title: "Sohbet komutları",
     description: "İzleyicilerin sıraya katılmak, ayrılmak ve sırasını sormak için kullandığı Kick sohbet komutları ve bunları değiştirmek.",
-    lead: "İzleyiciler sırayı Kick sohbetinden kullanır. Komut, mesajın ilk kelimesidir; katılma komutundan sonra yazılan Riot ID olarak okunur.",
+    lead: "İzleyiciler sırayı Kick sohbetinden kullanır. Komut, mesajın ilk kelimesidir; katılma komutundan sonra yazılan Riot ID olarak okunur. Büyük harf ve Türkçe harfler fark etmez: `!ÇIK`, `!çık` ve `!cik` aynı komuttur.",
     sections: [
       {
         id: "join",
@@ -72,7 +72,7 @@ export const tr: Help = {
       {
         id: "position",
         title: "Sıram",
-        body: [`\`${c.position}\` bekleyenler arasındaki yerini sorar. Yayıncı sohbet yanıtlarını açtıysa Queue sohbette yanıtlar.`],
+        body: [`\`${c.position}\` nerede olduğunu sorar. Yayıncı sohbet yanıtlarını açtıysa Queue sohbette yanıtlar: beklerken sıradaki yerini, oynarken takımını, aksi hâlde AFK olduğunu, bu oyunda cezalı olduğunu ya da sırada olmadığını, seni geri getirecek komutla birlikte söyler. Her izleyiciye en fazla 10 saniyede bir yanıt verir.`],
       },
       {
         id: "away",
@@ -103,7 +103,7 @@ export const tr: Help = {
         id: "custom",
         title: "Komutları değiştirmek",
         body: [
-          `Yayıncı kendi komutlarını [Ayarlar → Komutlar](/wiki/settings#commands) bölümünde belirler. Komut \`!\` ve boşluksuz 1 ile ${D.commandMax} karakterdir, yedisi de birbirinden farklı olmalıdır. Bir kanalın kendi komutları izleme sayfasında yazar.`,
+          `Yayıncı kendi komutlarını [Ayarlar → Komutlar](/wiki/settings#commands) bölümünde belirler. Komut \`!\` ve boşluksuz 1 ile ${D.commandMax} karakterdir. Her komut altındaki **Kelime ekle** ile 5 kelimeye kadar daha yanıt verebilir; böylece \`!çık\` \`!exit\`'i de kabul eder. Büyük harf ve Türkçe harfler bir yana, bir kelime iki komuta ait olamaz. Bir kanalın kendi komutları izleme sayfasında yazar.`,
         ],
       },
     ],
@@ -177,7 +177,7 @@ export const tr: Help = {
       {
         id: "pick",
         title: "Oyuncu çekmek",
-        body: ["**Çek** ×1, ×2, ×3, ×4 ya da ×5 kaynağından (**Bekleyenler**, **Takımlar** ya da **Tüm sıra**) o kadar oyuncuyu rastgele alır; yasaklı ve cezalı oyuncular dışarıda kalır. Kaynağın dolduramayacağı sayı gizlenir.", "Aynı listenin sonundaki **Özel…** kimlerin seçilebileceğini işaretlediğin bir liste açar: isimle ara ya da Bekleyenler, Takım 1 veya Takım 2'nin hepsini tek seferde işaretle, sonra oradaki **Seç** düğmesine bas. Araç çubuğu kendi kaynağında kalır, listen bu tarayıcıda bu kanal için saklanır ve **Tekrar çek** özel bir seçimi bu listeden tekrarlar. Özel seçim kimseyi korumaz."],
+        body: ["**Çek** ×1, ×2, ×3, ×4 ya da ×5 kaynağından (**Bekleyenler**, **Takımlar** ya da **Tüm sıra**) o kadar oyuncuyu rastgele alır; yasaklı ve cezalı oyuncular dışarıda kalır. Kaynağın dolduramayacağı sayı gizlenir.", "Aynı listenin sonundaki **Özel…** kimlerin seçilebileceğini işaretlediğin bir liste açar: isimle ara ya da Bekleyenler, Takım 1 veya Takım 2'nin hepsini tek seferde işaretle, sonra oradaki **Seç** düğmesine bas. Araç çubuğu kendi kaynağında kalır, listen bu tarayıcıda bu kanal için saklanır ve **Tekrar çek** özel bir seçimi bu listeden tekrarlar. Özel seçim kimseyi korumaz.", "Sohbet yanıtları açıksa, gösterim bitince sohbet kimlerin seçildiğini duyar: *Seçilenler: @a @b*. Bunu yalnızca seçimi yapan panel gönderir; önce **Tekrar çek** ile değiştirilen seçim hiç duyurulmaz."],
       },
       {
         id: "fair-play",

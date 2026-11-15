@@ -56,7 +56,7 @@ export const en: Help = {
   "chat-commands": {
     title: "Chat commands",
     description: "The Kick chat commands viewers use to join, leave and check the queue, and how to change them.",
-    lead: "Viewers use the queue from Kick chat. A command is the first word of a message; anything after the join command is read as a Riot ID.",
+    lead: "Viewers use the queue from Kick chat. A command is the first word of a message; anything after the join command is read as a Riot ID. Capitals and Turkish letters don't matter: `!ÇIK`, `!çık` and `!cik` are the same command.",
     sections: [
       {
         id: "join",
@@ -71,7 +71,7 @@ export const en: Help = {
       {
         id: "position",
         title: "Position",
-        body: [`\`${c.position}\` asks for your place among the waiting players. Queue answers in chat when the streamer has chat replies on.`],
+        body: [`\`${c.position}\` asks where you stand. Queue answers in chat when the streamer has chat replies on: your place while you wait, your team while you play, and otherwise that you are away, sitting this game out, or not in the queue, with the command that brings you back. It answers each viewer at most once every 10 seconds.`],
       },
       {
         id: "away",
@@ -102,7 +102,7 @@ export const en: Help = {
         id: "custom",
         title: "Changing the commands",
         body: [
-          `The streamer sets their own in [Settings → Commands](/wiki/settings#commands). A command is \`!\` and 1 to ${D.commandMax} characters with no spaces, and all seven must differ. A channel's own commands are shown on its watch page.`,
+          `The streamer sets their own in [Settings → Commands](/wiki/settings#commands). A command is \`!\` and 1 to ${D.commandMax} characters with no spaces. Each command can also answer to up to 5 more words, added under it with **Add word**, so \`!çık\` can take \`!exit\` as well. No word may belong to two commands, capitals and Turkish letters aside. A channel's own commands are shown on its watch page.`,
         ],
       },
     ],
@@ -176,7 +176,7 @@ export const en: Help = {
       {
         id: "pick",
         title: "Picking players",
-        body: ["**Pick** ×1, ×2, ×3, ×4 or ×5 takes that many players at random from its source (**Waiting**, **Teams** or **Whole queue**), leaving out banned and punished players. A size the source cannot fill is hidden.", "**Custom…**, at the end of the same list, opens a list where you tick who can be picked: search by name, or tick all of Waiting, Team 1 or Team 2 at once, then press **Pick** there. The toolbar keeps its source, your list is saved in this browser for this channel, and **Pick again** repeats a custom pick from it. A custom pick never protects anyone."],
+        body: ["**Pick** ×1, ×2, ×3, ×4 or ×5 takes that many players at random from its source (**Waiting**, **Teams** or **Whole queue**), leaving out banned and punished players. A size the source cannot fill is hidden.", "**Custom…**, at the end of the same list, opens a list where you tick who can be picked: search by name, or tick all of Waiting, Team 1 or Team 2 at once, then press **Pick** there. The toolbar keeps its source, your list is saved in this browser for this channel, and **Pick again** repeats a custom pick from it. A custom pick never protects anyone.", "With chat replies on, chat hears who was picked once the reveal ends: *Picked: @a @b*. Only the dashboard that made the pick sends it, and a pick replaced by **Pick again** first is never announced."],
       },
       {
         id: "fair-play",

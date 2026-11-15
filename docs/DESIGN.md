@@ -1840,7 +1840,7 @@ The curated set, and nothing else. Everything outside it is translated but fixed
 | Actions | `action.add`, `action.draw`, `action.reroll`, `action.pick` |
 | Watch page | `watch.title`, `watch.subtitle`, `watch.disabled` |
 | Overlay | `overlay.queue.title`, `overlay.draw.title` |
-| Chat replies | every one (owner, 2026-09-29; migration 0038): `chat.joined`, `chat.joined.many`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.rejected.offline`, `chat.rejected.closed`, `chat.position`, `chat.perk`, `chat.perk.none`, `chat.commands`, `chat.watch`, `chat.rules`. Braced words (`{name}`, `{position}`, `{list}`, `{url}`, …) are filled in; one left out is simply not said |
+| Chat replies | every one (owner, 2026-09-29; migration 0038): `chat.joined`, `chat.joined.many`, `chat.rejected.banned`, `chat.rejected.duplicate`, `chat.rejected.offline`, `chat.rejected.closed`, `chat.position`, `chat.position.team`, `chat.position.away`, `chat.position.punished`, `chat.position.none` (0054), `chat.picked` (0054), `chat.perk`, `chat.perk.none`, `chat.commands`, `chat.watch`, `chat.rules`. Braced words (`{name}`, `{position}`, `{list}`, `{url}`, …) are filled in; one left out is simply not said |
 
 Team names are ordinary labels, so "Kurtlar" in Turkish and "Wolves" in English is two
 overrides, not a special field.

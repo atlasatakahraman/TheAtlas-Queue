@@ -207,6 +207,9 @@ export type Settings = {
   // The streamer's rules (0036): sent by the rules command, shown on /watch; empty is off.
   rules: string;
   commands_list: boolean;
+  // Up to 5 more words per command (0054), keyed join … rules; the main word stays in *_command.
+  // Absent on a database before 0054, so read it with ?.
+  command_words: Partial<Record<"join" | "leave" | "position" | "perk" | "away" | "watch" | "rules", string[]>>;
   team_size: number;
   riot_enabled: boolean;
   require_riot_id: boolean;

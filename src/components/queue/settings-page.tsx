@@ -10,6 +10,7 @@ import {
   type LucideIcon,
   MessageSquare,
   MonitorPlay,
+  Plus,
   RotateCcw,
   Shield,
   Star,
@@ -19,6 +20,7 @@ import {
   UserPlus,
   Users,
   Video,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -41,6 +43,7 @@ import { Tag } from "@/components/queue/player-row";
 import { useAct, useCanWrite, useErrorText, useQueue, useServerActions } from "@/components/queue/store";
 import { enter, useUi } from "@/components/queue/ui";
 import { Tip } from "@/components/tip";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -49,6 +52,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { CURATED_KEYS, type LabelKey } from "@/lib/i18n";
+import { foldCommand } from "@/lib/kick-command";
 import { en } from "@/lib/i18n/en";
 import { tr } from "@/lib/i18n/tr";
 import { isError, type RpcError } from "@/lib/queue-store";
@@ -238,27 +242,37 @@ export const triggerCls = "h-9! w-full max-md:h-11!";
 
 function CommandsSection() {
   const { t } = useT();
-  const s = useSection([...COMMANDS, "rules"] as const);
+  const s = useSection([...COMMANDS, "command_words", "rules"] as const);
   const r = useSection(["chat_replies", "commands_list"] as const);
   const { stopChatReplies } = useServerActions();
   const channelId = useQueue((v) => v.channel.id);
   return (
     <Section title={t("settings.commands")} onEnter={() => void s.save()}>
       <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
-        {COMMANDS.map((k) => (
-          <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]} help={`/wiki/chat-commands#${k.replace("_command", "")}`}>
-            <Input
-              id={k}
-              className={cn(inputCls, "font-mono text-code")}
-              value={s.draft[k]}
-              spellCheck={false}
-              aria-invalid={!!s.errors[k] || !!s.errors.commands}
-              onChange={(e) => s.set(k, e.target.value.trim())}
-            />
-          </Field>
-        ))}
+        {COMMANDS.map((k) => {
+          const key = k.replace("_command", "") as keyof Settings["command_words"];
+          return (
+            <Field key={k} id={k} label={t(`settings.${k}`)} error={s.errors[k]} help={`/wiki/chat-commands#${key}`}>
+              <Input
+                id={k}
+                className={cn(inputCls, "font-mono text-code")}
+                value={s.draft[k]}
+                spellCheck={false}
+                aria-invalid={!!s.errors[k] || !!s.errors.commands}
+                onChange={(e) => s.set(k, e.target.value.trim())}
+              />
+              <ExtraWords
+                command={t(`settings.${k}`)}
+                main={s.draft[k]}
+                words={s.draft.command_words?.[key] ?? []}
+                onChange={(w) => s.set("command_words", { ...s.draft.command_words, [key]: w })}
+              />
+            </Field>
+          );
+        })}
       </div>
       {s.errors.commands && <p className="text-meta text-destructive">{t("settings.commands.clash")}</p>}
+      {s.errors.command_words && <p className="text-meta text-destructive">{s.errors.command_words}</p>}
       <Field id="rules" label={t("settings.rules")} hint={t("settings.rules.hint")} error={s.errors.rules} help="/wiki/chat-commands#rules">
         <Textarea id="rules" className="min-h-24" maxLength={1000} value={s.draft.rules} onChange={(e) => s.set("rules", e.target.value)} />
       </Field>
@@ -285,6 +299,76 @@ function CommandsSection() {
         onChange={(v) => void r.put("commands_list", v)}
       />
     </Section>
+  );
+}
+
+// A command's extra words (0054) as chips under its main word, up to 5; Save sends them with the
+// rest. A word is ! and up to 24 characters with no spaces; the ! is added when left out. One the
+// command already has, capitals and Turkish letters aside, stays in the field marked.
+const EXTRA_MAX = 5;
+const EXTRA_WORD = /^!\S{1,24}$/u;
+function ExtraWords({ command, main, words, onChange }: { command: string; main: string; words: string[]; onChange: (w: string[]) => void }) {
+  const { t } = useT();
+  const canWrite = useCanWrite();
+  const [draft, setDraft] = useState<string | null>(null);
+  const word = draft === null ? "" : draft.startsWith("!") ? draft : `!${draft}`;
+  const valid = EXTRA_WORD.test(word) && ![main, ...words].some((w) => foldCommand(w) === foldCommand(word));
+  const add = () => {
+    if (valid) onChange([...words, word]);
+    if (valid || !draft) setDraft(null);
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {words.map((w) => (
+        <Badge key={w} variant="outline" className="h-7 gap-0.5 pr-0.5 font-mono text-code font-normal">
+          {w}
+          <button
+            type="button"
+            disabled={!canWrite}
+            aria-label={t("settings.command_words.remove", { word: w })}
+            onClick={() => onChange(words.filter((x) => x !== w))}
+            className="inline-flex size-6 items-center justify-center rounded-full text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-50"
+          >
+            <X className="size-3.5" aria-hidden />
+          </button>
+        </Badge>
+      ))}
+      {draft !== null ? (
+        <Input
+          autoFocus
+          aria-label={t("settings.command_words.add_for", { command })}
+          className="h-7 w-32 font-mono text-code"
+          value={draft}
+          maxLength={25}
+          spellCheck={false}
+          aria-invalid={!!draft && !valid}
+          onChange={(e) => setDraft(e.target.value.trim())}
+          onBlur={add}
+          onKeyDown={(e) => {
+            // Enter adds the word here; it must not reach the section, which would save.
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              e.stopPropagation();
+              add();
+            } else if (e.key === "Escape") setDraft(null);
+          }}
+        />
+      ) : (
+        words.length < EXTRA_MAX && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 px-2 text-muted-foreground max-md:h-11"
+            disabled={!canWrite}
+            aria-label={t("settings.command_words.add_for", { command })}
+            onClick={() => setDraft("")}
+          >
+            <Plus className="size-3.5" aria-hidden />
+            {t("settings.command_words.add")}
+          </Button>
+        )
+      )}
+    </div>
   );
 }
 

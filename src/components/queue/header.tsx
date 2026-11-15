@@ -129,18 +129,13 @@ export function TopBar() {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex min-w-0 items-center gap-3 select-none">
-        {/* Two links (owner, 2026-09-29): the tile and the wordmark go to the dashboard's Queue tab;
-            the channel name is the way back to the selection page (D19, ?pick never redirects). */}
+        {/* Two links (owner, 2026-11-15, swapped from 2026-09-29): the tile and the wordmark go back
+            to the selection page (D19, ?pick never redirects); the channel name goes to the Queue tab. */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
-              href={`/c/${slug}?tab=queue`}
+              href="/?pick"
               className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-              onClick={(e) => {
-                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                e.preventDefault();
-                ui.setTab("queue");
-              }}
             >
               {/* The black tile on paper, the white one on ink. */}
               <Image src="/TheAtlasB2048.png" alt="" width={36} height={36} priority className="size-9 rounded-lg dark:hidden" />
@@ -157,7 +152,7 @@ export function TopBar() {
               </span>
             </Link>
           </TooltipTrigger>
-          <TooltipContent>{t("header.home")}</TooltipContent>
+          <TooltipContent>{t("select.back")}</TooltipContent>
         </Tooltip>
         {/* The channel as a breadcrumb (owner, 2026-09-27, D21: the dateline went). On phones it
             stands in for the wordmark. */}
@@ -167,13 +162,18 @@ export function TopBar() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
-              href="/?pick"
+              href={`/c/${slug}?tab=queue`}
               className="min-w-0 truncate rounded-sm cap-center font-serif text-title outline-none focus-visible:ring-2 focus-visible:ring-ring/40 max-xl:text-body"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                ui.setTab("queue");
+              }}
             >
               <Typed text={channel} startDelay={channelAt} />
             </Link>
           </TooltipTrigger>
-          <TooltipContent>{t("select.back")}</TooltipContent>
+          <TooltipContent>{t("header.home")}</TooltipContent>
         </Tooltip>
         {/* A game's page goes on: … / channel / Games / 5, Games leading back to the tab;
             Settings: … / channel / Settings. */}

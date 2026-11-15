@@ -98,10 +98,10 @@ function Page({ slug, snap }: { slug: string; snap: Live }) {
     <div className="flex min-h-dvh flex-col">
       <SlimBar
         crumb={snap.channel.name}
-        crumbHref="/?pick"
-        crumbTip={t("select.back")}
-        home={`/watch/${slug}`}
-        homeTip={t("watch.to_top")}
+        crumbHref={`/watch/${slug}`}
+        crumbTip={t("watch.to_top")}
+        home="/?pick"
+        homeTip={t("select.back")}
         after={
           snap.channel.live && (
             <span className="flex shrink-0 items-center gap-1.5 text-meta font-medium text-destructive">

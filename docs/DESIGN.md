@@ -684,7 +684,7 @@ muted `/` and the **channel name** in Newsreader, typed on after the wordmark (o
 then *Moderating* as muted text for a moderator; on phones the channel stands in for the
 wordmark. Under 1280px the whole title steps down to the body size (owner, 2026-09-28: at
 1090px both were cut to *TheAtlas… / atlasataka…*; hiding the wordmark was refused, it is the
-page's title). The wordmark never truncates, only the channel does, and only on phones. **Two links** (owner, 2026-09-29): the tile and the wordmark go to the dashboard's first tab (Queue, from a game's page or Settings too); the channel name is D19's way back to the selection page (`/?pick`, its tooltip *Your channels*). The wordmark's tooltip is *Go to the queue* (owner, 2026-09-29). Right: the [connection pill](#connection-health), the command palette button
+page's title). The wordmark never truncates, only the channel does, and only on phones. **Two links** (owner, 2026-11-15, swapped from 2026-09-29): the tile and the wordmark are D19's way back to the selection page (`/?pick`, tooltip *Your channels*); the channel name goes to the dashboard's first tab (Queue, from a game's page or Settings too; tooltip *Go to the queue*). `/watch` matches: the wordmark goes to `/?pick`, the channel name to the top of the watch page. Right: the [connection pill](#connection-health), the command palette button
 (a search icon, `aria-label`), the **Wiki** button (owner, 2026-09-29, Stage 16: `BookOpen` and the
 word *Wiki*, a ghost button, opening `/wiki` in the page's language in a new tab; it reads as a
 place, not a tool, so it keeps its word; under 1024px it folds into `⋯` with the others), the EN | TR switch, GitHub, the theme button, a settings gear
@@ -907,8 +907,8 @@ Watch a channel
   exists (the row says so, *Remove*), loading (the rows as skeletons).
 - Built in Stage 12. Continue is the last dashboard or watch page (the `queue.continue` cookie,
   written by both); a Continue to a place that is gone says *No longer available* with *Remove*.
-  The way back from a dashboard is the top bar's channel name (a link to `/?pick`, which never
-  redirects; the tile and the wordmark go to the dashboard's Queue tab, owner 2026-09-29). A first sign-in with no channel and no Continue still goes
+  The way back from a dashboard is the top bar's tile and wordmark (a link to `/?pick`, which never
+  redirects; the channel name goes to the dashboard's Queue tab, owner 2026-11-15). A first sign-in with no channel and no Continue still goes
   to `/welcome`; *Set up your channel* shows whenever the account owns no channel. Your channels
   put the streamer's own first; *Watch* shows only where the watch page is on.
 

@@ -62,6 +62,8 @@ export type Draw = {
     pool?: string[];
   };
   rerolled_from: string | null;
+  // The request that made it: the dashboard that sent it announces its saves (0052 V6).
+  request_id?: string;
   created_by: string | null;
   created_at: string;
   undone_at: string | null;
@@ -261,6 +263,7 @@ export type DashboardActions = {
   reconnect: (channelId: string) => Promise<string | null>;
   stopChatReplies: (channelId: string) => Promise<void>;
   announceSaves: (channelId: string, drawId: string) => Promise<void>;
+  announceRefunds: (channelId: string) => Promise<void>;
   deleteMyData: (channelId: string, typed: string) => Promise<boolean>;
 };
 

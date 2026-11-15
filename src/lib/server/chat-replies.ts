@@ -118,6 +118,11 @@ export async function keptOnTeam(channelId: string, name: string, left: number) 
   await say(channelId, "chat.perk.saved", { name, uses: left });
 }
 
+// The pick that kept them was undone, so the use came back (0052 V7; announceRefunds holds the gate).
+export async function protectionBack(channelId: string, name: string, uses: number) {
+  await say(channelId, "chat.perk.refunded", { name, uses });
+}
+
 // A subscription event refilled protection (0049): one line per event with every name in it, so
 // a gift to many is one message (split at Kick's limit), not one per giftee.
 export async function perkRefilled(channelId: string, users: { username: string; left: number }[]) {

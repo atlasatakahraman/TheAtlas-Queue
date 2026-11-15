@@ -9,6 +9,7 @@ import { NearMissName, poolWith, type Save, STAGED, Stage, type Staged } from "@
 import { REVEAL } from "@/components/queue/reveal-order";
 import { ResponsiveDialog } from "@/components/queue/responsive-dialog";
 import { useAct, useCanWrite, useQueue, useServerActions, useStore } from "@/components/queue/store";
+import { issuedHere, settleReveal } from "@/lib/queue-store";
 import { LandingName, pickPool, revealOrder, useDrawActions, usePick, useRevealMotion } from "@/components/queue/teams-tab";
 import { useMotion } from "@/components/prefs";
 import { useUi } from "@/components/queue/ui";
@@ -35,17 +36,37 @@ export function RevealDriver() {
   return <PickDialog />;
 }
 
+// The kept-on-team chat line (P9) once the pick is settled: its dialog closes, or All to Team N
+// moves it (0052 V6). Only the dashboard that made the pick sends it; Pick again replaces the pick
+// first, so a replaced pick is never announced. announceSaves holds the once-only gate.
+function useSettle() {
+  const { announceSaves } = useServerActions();
+  const channelId = useQueue((v) => v.channel.id);
+  return useCallback(
+    (d: Draw) => {
+      if (d.result.saved?.length && issuedHere(d.request_id)) void announceSaves(channelId, d.id);
+    },
+    [announceSaves, channelId],
+  );
+}
+
 function PickDialog() {
   const { t } = useT();
   const store = useStore();
+  const settle = useSettle();
   const reveal = useQueue((v) => v.reveal);
   const pick = reveal?.kind === "pick" ? reveal : null;
   // The last pick stays in the dialog while it animates out, so it does not close empty.
   const [last, setLast] = useState(pick);
   if (pick && pick !== last) setLast(pick);
   const shown = pick ?? last;
+  const close = (o: boolean) => {
+    if (o) return;
+    if (pick) settle(pick);
+    store.clearReveal();
+  };
   return (
-    <ResponsiveDialog open={!!pick} onOpenChange={(o) => !o && store.clearReveal()} title={t("pick.title")}>
+    <ResponsiveDialog open={!!pick} onOpenChange={close} title={t("pick.title")}>
       {shown && <PickBody key={shown.id} draw={shown} />}
     </ResponsiveDialog>
   );
@@ -77,8 +98,7 @@ function PickBody({ draw }: { draw: Draw }) {
   const staged = motion && STAGED.includes(setting) ? (setting as Staged) : null;
   const { source, custom, live: livePool } = usePick();
   const { pick: pickAgain } = useDrawActions();
-  const { announceSaves } = useServerActions();
-  const channelId = useQueue((v) => v.channel.id);
+  const settle = useSettle();
   // The pool the reveal runs over, the picked and saved names included: the pick's own source
   // (0045) and, for a custom pick, the pool it recorded (0047), so another member's pick shows
   // what that member picked from. A draw from before either falls back to this browser's.
@@ -105,10 +125,12 @@ function PickBody({ draw }: { draw: Draw }) {
     const prot = s && pool.find((p) => p.id === s.id);
     return prot ? { protectedPlayer: prot, standin: (entry && pool.find((p) => p.id === entry.id)) ?? null } : undefined;
   };
-  // The kept-on-team chat line once the reveal is over (P9), so chat never spoils the wheel.
+  // The pick's Undo toast waits for this (owner, 2026-11-15): the reveal stopped, or the dialog
+  // closed or moved on to another pick mid-reveal.
   useEffect(() => {
-    if (!playing && saved.length) void announceSaves(channelId, draw.id);
-  }, [playing, saved.length, announceSaves, channelId, draw.id]);
+    if (!playing) settleReveal(draw.id);
+  }, [playing, draw.id]);
+  useEffect(() => () => settleReveal(draw.id), [draw.id]);
 
   // Enter or Space skips a reveal that is playing (August); once it has stopped, focus sits on
   // Pick again, so the same keys pick again.
@@ -125,13 +147,15 @@ function PickBody({ draw }: { draw: Draw }) {
 
   // All to Team N (owner, 2026-09-27): one write, one Undo; those already there stay. It closes
   // the dialog, the pick being done (owner, 2026-09-28); a single name's move keeps it open.
+  // It names the pick (0052 V5), so its Undo undoes the pick too and refunds the protection.
   const allTo = (n: 1 | 2) => {
     const ids = here.filter((p) => !(p.status === "playing" && p.team === n)).map((p) => p.id);
     return {
       ids,
       run: () => {
+        settle(draw);
         store.clearReveal();
-        return act("move_players", { p_ids: ids, p_team: n }, {
+        return act("move_players", { p_ids: ids, p_team: n, p_pick: draw.id }, {
           optimistic: { ids, patch: (x) => ({ ...x, status: "playing", team: n }) },
           done: "done.move_all",
           vars: { n: ids.length, team: t(`team.${n}`) },

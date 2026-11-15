@@ -32,6 +32,36 @@ function played(): string[] {
   }
 }
 
+// The request ids this tab sent, so a draw can tell the dashboard that made it (spec 2026-11-14
+// V6: only that one announces a save).
+const issued = new Set<string>();
+export function issuedHere(requestId: string | null | undefined): boolean {
+  return !!requestId && issued.has(requestId);
+}
+
+// A pick's Undo toast waits for its reveal to stop (owner, 2026-11-15), so a long wheel doesn't
+// spend the toast's 10 s. The Picked dialog settles it when the reveal stops, closes or is replaced.
+// ponytail: 60 s cap in case no dialog ever mounts for the draw; a per-draw signal if that ever fires.
+const reveals = new Map<string, () => void>();
+// Settled before anyone waited: realtime can deliver the draw, and a reveal with no motion stop,
+// before the RPC's own reply comes back. The last 20 are enough.
+const settled: string[] = [];
+export function revealSettled(drawId: string): Promise<void> {
+  if (settled.includes(drawId)) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      reveals.delete(drawId);
+      resolve();
+    };
+    reveals.set(drawId, done);
+    setTimeout(done, 60_000);
+  });
+}
+export function settleReveal(drawId: string) {
+  if (!settled.includes(drawId) && settled.push(drawId) > 20) settled.shift();
+  reveals.get(drawId)?.();
+}
+
 export function markPlayed(id: string) {
   try {
     localStorage.setItem(PLAYED_KEY, JSON.stringify([id, ...played().filter((x) => x !== id)].slice(0, 20)));
@@ -206,6 +236,7 @@ export function createQueueStore(initial: QueueState, me: number) {
   // error (the server replays it once at most). Returns the event or the error key.
   async function call(rpc: string, args: Record<string, unknown>): Promise<ChangeEvent | RpcError> {
     const params = { p_channel: channelId, ...args, p_request_id: crypto.randomUUID() };
+    issued.add(params.p_request_id);
     for (let attempt = 0; ; attempt++) {
       const { data, error } = await db().rpc(rpc, params);
       if (!error) {

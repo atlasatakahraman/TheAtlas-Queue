@@ -28,7 +28,7 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { customPoolKey, useStored, useStoredIds } from "@/components/use-client-state";
-import { isError, type QueueView } from "@/lib/queue-store";
+import { isError, type QueueView, revealSettled } from "@/lib/queue-store";
 import { cn } from "@/lib/utils";
 import type { ChangeEvent, Draw, DrawEntry, Player } from "@/types/queue";
 import { REVEAL, revealOrder } from "@/components/queue/reveal-order";
@@ -63,6 +63,11 @@ export function useDrawActions() {
         done: `done.pick.${source}`,
         vars: { n },
         undoable: (r) => again || r.rows.some((row) => row._t === "draws" && ((row as unknown as Draw).result?.saved?.length ?? 0) > 0),
+        // The toast waits for the Picked dialog's reveal, when this tab plays one.
+        hold: async (r) => {
+          const id = r.rows.find((row) => row._t === "draws")?.id;
+          if (typeof id === "string" && store.get().reveal?.id === id) await revealSettled(id);
+        },
       }).then(stale);
     },
     // The clears ask first (owner, 2026-09-27), wherever they are pressed from.

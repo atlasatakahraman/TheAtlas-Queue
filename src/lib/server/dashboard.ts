@@ -3,7 +3,7 @@ import "server-only";
 import { auth } from "@/lib/auth";
 import { fetchRank } from "@/lib/riot/client";
 import { adminDb } from "@/lib/server/admin-db";
-import { keptOnTeam } from "@/lib/server/chat-replies";
+import { keptOnTeam, protectionBack } from "@/lib/server/chat-replies";
 import { dropSubscriptions, ensureSubscriptions, kickUserBySlug } from "@/lib/server/kick";
 import { dropChatToken } from "@/lib/server/kick-tokens";
 import { kickUser } from "@/lib/server/profile";
@@ -114,6 +114,15 @@ export async function announceSaves(channelId: string, drawId: string): Promise<
     .maybeSingle();
   const saved = (data?.result as { saved?: { kick_username: string; left: number }[] } | null)?.saved ?? [];
   for (const s of saved) await keptOnTeam(channelId, s.kick_username, s.left);
+}
+
+// A pick that chat heard about was undone, itself or through All to Team N (0052 V5, V7): each
+// saved name hears its protection is back, once. announce_refunds sets the gate and reads the
+// uses in one statement, so two dashboards never both send it.
+export async function announceRefunds(channelId: string): Promise<void> {
+  if (!(await membership(channelId))) return;
+  const { data } = await adminDb().rpc("announce_refunds", { p_channel: channelId });
+  for (const r of (data as { name: string; uses: number }[] | null) ?? []) await protectionBack(channelId, r.name, r.uses);
 }
 
 // Delete my data (DESIGN.md § Settings → Your data): owner only, the channel's slug typed again.

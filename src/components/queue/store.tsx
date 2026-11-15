@@ -71,6 +71,8 @@ type ActOptions = {
   vars?: Vars;
   // Whether this result offers Undo (default yes); the toast still shows without it.
   undoable?: (r: ChangeEvent) => boolean;
+  // Holds the success toast until this resolves (a pick's reveal); the call itself returns at once.
+  hold?: (r: ChangeEvent) => Promise<void>;
   // Forms show errors inline under the field instead of a toast (spec § Error handling).
   silent?: boolean;
 };
@@ -81,6 +83,7 @@ export function useAct() {
   const store = useStore();
   const { t } = useT();
   const errorText = useErrorText();
+  const { announceRefunds } = useServerActions();
 
   return useCallback(
     async function act(rpc: string, args: Record<string, unknown>, opts: ActOptions = {}): Promise<ChangeEvent | RpcError> {
@@ -102,16 +105,25 @@ export function useAct() {
       }
       const activity = r.rows.find((row) => row._t === "activity");
       if (opts.done && activity && r.kind !== "replay") {
-        toast(t(opts.done, opts.vars), {
-          duration: 5000,
-          action:
-            opts.undoable && !opts.undoable(r)
-              ? undefined
-              : { label: t("common.undo"), onClick: () => void act("undo", { p_activity: activity.id }) },
-        });
+        const undo = !opts.undoable || opts.undoable(r);
+        const done = opts.done;
+        // 10 s with Undo, so there is time to reach it; 5 s without (spec 2026-11-14 V8).
+        const show = () =>
+          toast(t(done, opts.vars), {
+            duration: undo ? 10_000 : 5000,
+            action: undo ? { label: t("common.undo"), onClick: () => void act("undo", { p_activity: activity.id }) } : undefined,
+          });
+        if (opts.hold) void opts.hold(r).then(show);
+        else show();
+      }
+      // Undoing a pick, or the All to Team N after it, refunds the pick's protection; chat hears it
+      // when it heard the save (0052 V7). The server finds the draw and holds the once-only gate.
+      if (rpc === "undo" && r.rows.some((x) => x._t === "activity" && x.undone_at && typeof x.action === "string"
+                                              && (x.action === "move_players" || x.action.startsWith("pick_from_")))) {
+        void announceRefunds(store.get().channel.id);
       }
       return r;
     },
-    [store, t, errorText],
+    [store, t, errorText, announceRefunds],
   );
 }
